@@ -83,6 +83,8 @@ Native app relaunch and live provider interaction belong to the coordinator inte
 
 ## Deviations
 
+None.
+
 ## Agent start prompt
 
 > Read `docs/plans/linked-work/00-overview.md` and `docs/plans/linked-work/04-note-links.md`, plus `.agents/skills/working-with-cider/SKILL.md`. Implement plan 04 on `linked-work/04-note-links`. Start only from the coordinator-provided common round base in this plan's dedicated worktree. Do not merge or rebase sibling branches. Goal: Make notes addressable by stable references, attach them to TODOs, and show backlinks without rewriting Markdown. Edit only the files in this plan's File ownership list, including its own Deviations section; keep all frozen contracts and sibling files unchanged. Follow the overview's data, hook, isolation and local-commit rules. Run these verification commands from the repo root: `swift build --product Cider; swift test --filter LinkedContractTests; swift test --filter LinkedNoteTests; swift test --filter MarkdownLinkIndexTests; git diff --check`. Also complete the plan's explicit integration/manual gates when applicable; never claim unrun checks passed. Commit locally without pushing. Finish with what works, base/head IDs, changed files, each verification result, merge risks, and Deviations (or state none).
