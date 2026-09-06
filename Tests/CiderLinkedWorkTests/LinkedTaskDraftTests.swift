@@ -35,16 +35,38 @@ import CiderUI
         #expect(try draft.savedTask().status == .planned)
     }
 
-    @MainActor @Test func staleSaveLeavesTheTypedDraftUntouched() async throws {
+    @MainActor @Test func conflictPreservesBothVersionsAndRebasedSaveSucceeds() async throws {
         let fixture = try LinkedFixture.load()
         let repository = FixtureRepository(fixture)
         let model = LinkedWorkModel(repository: repository, noteAccess: FixtureNoteAccess())
         var draft = TaskDraft(task: fixture.tasks[0])
         draft.descriptionMarkdown = "Keep this local text"
-        _ = try await repository.apply(WorkMutation(change: .saveTask(task: fixture.tasks[0])))
+        var savedElsewhere = fixture.tasks[0]
+        savedElsewhere.title = "Saved elsewhere"
+        _ = try await repository.apply(WorkMutation(change: .saveTask(task: savedElsewhere)))
 
         #expect(await model.perform(try draft.saveMutation()) == false)
-        #expect(draft.descriptionMarkdown == "Keep this local text")
+        let saved = try await repository.detail(fixture.tasks[0].id).task
+        let conflict = TaskDraftConflict(local: draft, saved: saved)
         #expect(model.error?.contains("draft is still here") == true)
+        #expect(conflict.local.descriptionMarkdown == "Keep this local text")
+        #expect(conflict.saved.title == "Saved elsewhere")
+        #expect(conflict.rebasedDraft.originalRevision == saved.revision)
+        #expect(conflict.rebasedDraft.title == "Saved elsewhere")
+        #expect(conflict.rebasedDraft.descriptionMarkdown == "Keep this local text")
+
+        #expect(await model.perform(try conflict.rebasedDraft.saveMutation()))
+        let resolved = try await repository.detail(fixture.tasks[0].id).task
+        #expect(resolved.title == "Saved elsewhere")
+        #expect(resolved.descriptionMarkdown == "Keep this local text")
+        #expect(model.error == nil)
+    }
+
+    @Test func validationUsesStoreLimitsAndExplainsDraftIssues() {
+        var whitespaceCriterion = TaskDraft(task: WorkTask(title: "Review", criteria: [WorkCriterion(text: "   ")]))
+        #expect(whitespaceCriterion.validationMessage == "Each criterion needs text or should be removed.")
+        whitespaceCriterion.criteria = []
+        whitespaceCriterion.descriptionMarkdown = String(repeating: "x", count: 65_537)
+        #expect(whitespaceCriterion.validationMessage == "Descriptions must be 64 KiB or smaller.")
     }
 }

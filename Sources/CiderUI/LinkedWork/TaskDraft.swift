@@ -30,6 +30,23 @@ public struct TaskDraft: Sendable, Equatable {
         return Double(criteria.filter(\.checked).count) / Double(criteria.count)
     }
 
+    /// Calls the frozen repository validator before exposing a field-level recovery hint.
+    public var validationMessage: String? {
+        do { _ = try savedTask() }
+        catch {
+            if title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return "Give the task a title before saving." }
+            if title.count > 500 { return "Task titles must be 500 characters or fewer." }
+            if descriptionMarkdown.utf8.count > 65_536 { return "Descriptions must be 64 KiB or smaller." }
+            if criteria.count > 200 { return "A task can have at most 200 criteria." }
+            if criteria.contains(where: { $0.text.count > 1_000 }) { return "Each criterion must be 1,000 characters or fewer." }
+            return "Review the task details and try again."
+        }
+        if criteria.contains(where: { $0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) {
+            return "Each criterion needs text or should be removed."
+        }
+        return nil
+    }
+
     /// Completion is an explicit human choice. Reopening a completed item makes it planned;
     /// changing another field never normalizes a non-done status.
     public mutating func setCompleted(_ completed: Bool) {
@@ -67,4 +84,27 @@ public struct TaskDraft: Sendable, Equatable {
     public func saveMutation() throws -> WorkMutation {
         WorkMutation(change: .saveTask(task: try savedTask()))
     }
+
+    /// Applies only locally changed fields to a newly read row, preserving unrelated saved edits.
+    public func rebased(onto saved: WorkTask) -> TaskDraft {
+        var rebased = TaskDraft(task: saved)
+        if title != original.title { rebased.title = title }
+        if descriptionMarkdown != original.descriptionMarkdown { rebased.descriptionMarkdown = descriptionMarkdown }
+        if plannedDay != original.plannedDay { rebased.plannedDay = plannedDay }
+        if dueAt != original.dueAt { rebased.dueAt = dueAt }
+        if status != original.status { rebased.status = status }
+        if criteria != original.criteria { rebased.criteria = criteria }
+        return rebased
+    }
+}
+
+/// A conflict retains both versions until the person chooses how to continue.
+public struct TaskDraftConflict: Sendable, Equatable {
+    public let local: TaskDraft
+    public let saved: WorkTask
+    public init(local: TaskDraft, saved: WorkTask) {
+        self.local = local
+        self.saved = saved
+    }
+    public var rebasedDraft: TaskDraft { local.rebased(onto: saved) }
 }

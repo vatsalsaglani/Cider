@@ -5,6 +5,7 @@ import CiderUI
 struct TaskOverviewView: View {
     @Binding var draft: TaskDraft
     let saving: Bool
+    let validationMessage: String?
     let onSave: () -> Void
 
     var body: some View {
@@ -54,16 +55,15 @@ struct TaskOverviewView: View {
                 Button("Save changes") { onSave() }
                     .buttonStyle(.borderedProminent)
                     .tint(CiderColor.accent)
-                    .disabled(!canSave || saving)
+                    .disabled(validationMessage != nil || saving)
+            }
+            if let validationMessage {
+                Text(validationMessage).font(.caption).foregroundStyle(CiderColor.warning)
             }
         }
         .formStyle(.grouped)
     }
 
-    private var canSave: Bool {
-        !draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && draft.criteria.allSatisfy { !$0.text.isEmpty }
-    }
     private var plannedDay: Binding<Date> {
         Binding(get: { draft.plannedDay.date() }, set: { draft.plannedDay = LocalDay($0) })
     }

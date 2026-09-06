@@ -14,6 +14,8 @@ struct TaskDetailView: LinkedTaskDetailFeature {
     @Environment(\.dismiss) private var dismiss
     @State private var section: TaskDetailSection = .overview
     @State private var draft: TaskDraft?
+    @State private var conflict: TaskDraftConflict?
+    @State private var operationError: String?
     @State private var showDeleteConfirmation = false
 
     init(taskID: UUID, model: LinkedWorkModel, navigate: @escaping (LinkedRoute) -> Void) {
@@ -25,13 +27,7 @@ struct TaskDetailView: LinkedTaskDetailFeature {
             if let detail = currentDetail, let draft {
                 VStack(alignment: .leading, spacing: 18) {
                     header(detail)
-                    if let error = model.error {
-                        HStack {
-                            Text(error).font(.caption).foregroundStyle(CiderColor.warning)
-                            Spacer()
-                            Button("Reload saved task") { reload() }
-                        }
-                    }
+                    recoveryMessage
                     CiderPillPicker("Task detail section", selection: $section,
                                     options: TaskDetailSection.allCases, title: { $0.rawValue })
                         .frame(maxWidth: 520)
@@ -75,7 +71,8 @@ struct TaskDetailView: LinkedTaskDetailFeature {
     @ViewBuilder private func sectionContent(detail: TaskDetail, draft: TaskDraft) -> some View {
         switch section {
         case .overview:
-            TaskOverviewView(draft: Binding(get: { self.draft ?? draft }, set: { self.draft = $0 }), saving: model.busy, onSave: save)
+            TaskOverviewView(draft: Binding(get: { self.draft ?? draft }, set: { self.draft = $0 }), saving: model.busy,
+                             validationMessage: validationError(for: self.draft ?? draft), onSave: save)
         case .chats:
             TaskChatPicker(taskID: taskID, model: model, attached: detail.chatLinks, onChanged: reload)
         case .notes:
@@ -97,17 +94,54 @@ struct TaskDetailView: LinkedTaskDetailFeature {
     }
     private func save() {
         guard let draft else { return }
+        guard validationError(for: draft) == nil else { return }
         do {
             let saved = try draft.saveMutation()
             Task {
                 if await model.perform(saved) {
+                    conflict = nil; operationError = nil
                     self.draft = nil
                     await model.loadDetail(taskID)
                     seedDraftIfNeeded()
+                } else {
+                    let failedMessage = model.error
+                    await model.loadDetail(taskID)
+                    if let newer = currentDetail?.task, newer.revision != draft.originalRevision {
+                        conflict = TaskDraftConflict(local: draft, saved: newer)
+                        operationError = nil
+                    } else {
+                        operationError = failedMessage
+                    }
                 }
             }
-        } catch { /* Inline validation uses the same repository contract. Keep the draft intact. */ }
+        } catch { operationError = validationError(for: draft) ?? "The task could not be saved. Your draft is still here." }
     }
+    @ViewBuilder private var recoveryMessage: some View {
+        if let conflict {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("This task changed while you were editing.").font(.caption).foregroundStyle(CiderColor.warning)
+                DisclosureGroup("Compare saved and local versions") {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Saved revision \(conflict.saved.revision): \(conflict.saved.title)")
+                        Text("Your draft from revision \(conflict.local.originalRevision): \(conflict.local.title)")
+                    }.font(.caption).foregroundStyle(.secondary)
+                }
+                HStack {
+                    Button("Use saved version") { useSavedVersion(conflict) }
+                    Button("Rebase my edits") { rebase(conflict) }.buttonStyle(.borderedProminent)
+                }
+            }
+        } else if let error = operationError ?? model.error {
+            Text(error).font(.caption).foregroundStyle(CiderColor.warning)
+        }
+    }
+    private func useSavedVersion(_ conflict: TaskDraftConflict) {
+        draft = TaskDraft(task: conflict.saved); self.conflict = nil; operationError = nil
+    }
+    private func rebase(_ conflict: TaskDraftConflict) {
+        draft = conflict.rebasedDraft; self.conflict = nil; operationError = nil
+    }
+    private func validationError(for draft: TaskDraft) -> String? { draft.validationMessage }
     private func delete(_ detail: TaskDetail) {
         Task {
             if await model.perform(WorkMutation(change: .deleteTask(taskID: detail.task.id))) { dismiss() }

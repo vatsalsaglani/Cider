@@ -19,8 +19,13 @@ struct TaskLinksView: View {
                             HStack {
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text(chat.title?.isEmpty == false ? chat.title! : "Untitled chat")
-                                    Text(link.role?.isEmpty == false ? link.role! : "Contributor")
+                                    Text("\(chat.identity.provider.title) · \(chat.origin?.name ?? "Source app unavailable") · \(chat.directory)")
                                         .font(.caption).foregroundStyle(.secondary)
+                                        .lineLimit(1)
+                                    HStack(spacing: 4) {
+                                        Text(link.role?.isEmpty == false ? link.role! : "Contributor")
+                                        if duplicateTitle(chat) { Text("· \(String(chat.identity.sessionID.suffix(8)))").monospaced() }
+                                    }.font(.caption).foregroundStyle(.secondary)
                                 }
                                 Spacer()
                                 Button("Open") { navigate(.chat(chat.identity)) }
@@ -65,6 +70,10 @@ struct TaskLinksView: View {
 
     private func detachChat(_ link: TaskChatLink) {
         Task { if await model.perform(WorkMutation(change: .detachChat(linkID: link.id))) { onChanged() } }
+    }
+    private func duplicateTitle(_ chat: ChatReference) -> Bool {
+        guard let title = chat.title, !title.isEmpty else { return false }
+        return detail.chats.filter { $0.title == title }.count > 1
     }
     private func detachNote(_ link: TaskNoteLink) {
         Task { if await model.perform(WorkMutation(change: .detachNote(linkID: link.id))) { onChanged() } }
