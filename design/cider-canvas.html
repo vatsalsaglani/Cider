@@ -1,0 +1,835 @@
+<style>
+#cider-canvas{--c-bg:#08090b;--c-notch:#000;--c-surface:#111214;--c-raised:#191a1d;--c-hover:#242426;--c-border:#303033;--c-text:#f5f2ed;--c-muted:#a6a29b;--c-orange:#ff8a3d;--c-start:#ff6a32;--c-end:#ffb66b;--c-on:#18100b;--c-wash:#302018;--c-radius:16px;color:var(--c-text);font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;width:100%;color-scheme:dark}
+#cider-canvas *{box-sizing:border-box}
+#cider-canvas button,#cider-canvas input,#cider-canvas select,#cider-canvas textarea{font:inherit}
+#cider-canvas button{cursor:pointer}
+#cider-canvas button:disabled{cursor:default;opacity:.48}
+#cider-canvas button{color:inherit}
+#cider-canvas button i,#cider-canvas button svg{flex-shrink:0}
+#cider-canvas [hidden]{display:none!important}
+#cider-canvas h1,#cider-canvas h2,#cider-canvas h3,#cider-canvas p{margin:0}
+#cider-canvas .c-icon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;flex-shrink:0}
+#cider-canvas .c-muted{color:var(--c-muted)}
+#cider-canvas .c-small{font-size:11px}
+#cider-canvas .c-eyebrow{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--c-muted)}
+#cider-canvas .c-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--c-border);background:var(--c-raised);border-radius:8px;padding:7px 11px;min-height:32px;white-space:normal}
+#cider-canvas .c-button:hover{background:var(--c-hover)}
+#cider-canvas .c-button.c-primary{background:linear-gradient(18deg,var(--c-start),var(--c-orange) 60%,var(--c-end));color:var(--c-on);border:0;font-weight:600}
+#cider-canvas .c-button.c-quiet{border-color:transparent;background:transparent}
+#cider-canvas .c-button.c-quiet:hover{background:var(--c-hover)}
+#cider-canvas .c-dot{width:6px;height:6px;display:inline-block;flex-shrink:0;border-radius:50%;background:var(--c-orange)}
+#cider-canvas .c-pill{display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border:1px solid var(--c-border);border-radius:5px;color:var(--c-muted);font-size:11px;white-space:nowrap}
+#cider-canvas .c-pill.c-warm{background:var(--c-wash);border-color:transparent;color:var(--c-end)}
+#cider-canvas .c-screen{height:316px;position:relative;background:radial-gradient(ellipse at 7% 0%,#77351f 0%,#321c17 25%,#111114 65%);border-radius:16px 16px 0 0;overflow:hidden}
+#cider-canvas .c-menubar{display:flex;justify-content:space-between;gap:12px;padding:9px 15px;color:#dfc8b8;font-size:11px}
+#cider-canvas .c-display-label{position:absolute;left:22px;bottom:20px;display:flex;gap:9px;align-items:center;color:#c7b5a9;font-size:11px}
+#cider-canvas .c-external{position:absolute;right:20px;bottom:20px;border:1px solid #655046;border-radius:7px;padding:9px 13px;background:#211a18;color:#cfbbae;max-width:150px;font-size:11px}
+#cider-canvas .c-external button{border:0;background:none;padding:0;color:inherit;text-align:left}
+#cider-canvas .c-hud{position:absolute;top:0;left:50%;transform:translateX(-50%);width:440px;max-width:calc(100% - 32px);background:var(--c-notch);border-radius:0 0 28px 28px;box-shadow:0 18px 36px #0007;z-index:2;transition:width .22s ease}
+#cider-canvas .c-hud.c-collapsed{width:290px}
+#cider-canvas .c-hud-header{display:grid;grid-template-columns:1fr 116px 1fr;align-items:center;min-height:41px;padding:5px 17px;gap:3px}
+#cider-canvas .c-hud-trigger{border:0;padding:3px 0;background:transparent;display:flex;align-items:center;gap:7px;color:var(--c-end);text-align:left;min-height:28px}
+#cider-canvas .c-hud-count{text-align:right;color:var(--c-orange);font-size:11px;white-space:nowrap}
+#cider-canvas .c-camera{height:29px;min-width:64px;pointer-events:none}
+#cider-canvas .c-hud-body{padding:0 16px 14px}
+#cider-canvas .c-hud-tabs{display:flex;border-bottom:1px solid #252525;gap:15px;margin:0 0 8px}
+#cider-canvas .c-hud-tabs button{border:0;border-bottom:2px solid transparent;background:none;padding:7px 3px;color:var(--c-muted);font-size:11px}
+#cider-canvas .c-hud-tabs button[aria-pressed=true]{color:var(--c-orange);border-bottom-color:var(--c-orange)}
+#cider-canvas .c-hud-row{display:flex;align-items:center;gap:9px;width:100%;background:none;border:0;border-bottom:1px solid #202022;padding:9px 0;text-align:left;font-size:12px}
+#cider-canvas .c-hud-row span:nth-last-child(1){margin-left:auto;color:var(--c-muted);font-size:11px;flex-shrink:0}
+#cider-canvas .c-hud-footer{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
+#cider-canvas .c-hud-footer button{font-size:11px;min-height:27px;padding:4px 8px}
+#cider-canvas .c-hud[data-edge=left]{left:0;top:28px;transform:none;border-radius:0 24px 24px 0}
+#cider-canvas .c-hud[data-edge=right]{left:auto;right:0;top:28px;transform:none;border-radius:24px 0 0 24px}
+#cider-canvas .c-hud[data-edge=bottom]{top:auto;bottom:0;border-radius:24px 24px 0 0}
+#cider-canvas .c-hud.c-collapsed[data-edge=left],#cider-canvas .c-hud.c-collapsed[data-edge=right]{width:66px}
+#cider-canvas .c-hud.c-collapsed[data-edge=left] .c-hud-header,#cider-canvas .c-hud.c-collapsed[data-edge=right] .c-hud-header{display:flex;flex-direction:column;min-height:185px;justify-content:space-between;padding:18px 5px}
+#cider-canvas .c-hud.c-collapsed[data-edge=left] .c-hud-name,#cider-canvas .c-hud.c-collapsed[data-edge=right] .c-hud-name{display:none}
+#cider-canvas .c-hud.c-collapsed[data-edge=left] .c-hud-count,#cider-canvas .c-hud.c-collapsed[data-edge=right] .c-hud-count{white-space:normal;text-align:center}
+#cider-canvas .c-window{background:var(--c-bg);border:1px solid var(--c-border);border-radius:0 0 16px 16px;overflow:hidden}
+#cider-canvas .c-titlebar{display:flex;gap:10px;align-items:center;min-height:48px;padding:9px 15px;border-bottom:1px solid var(--c-border);background:var(--c-surface)}
+#cider-canvas .c-traffic{display:flex;gap:6px;margin-right:8px}
+#cider-canvas .c-traffic span{width:9px;height:9px;border-radius:50%;background:#ff6058}
+#cider-canvas .c-traffic span:nth-child(2){background:#febc2e}
+#cider-canvas .c-traffic span:nth-child(3){background:#28c840}
+#cider-canvas .c-titlebar .c-title{font-size:12px;font-weight:500;min-width:0;flex:1}
+#cider-canvas .c-titlebar .c-status{font-size:11px;color:var(--c-muted)}
+#cider-canvas .c-titlebar .c-button{min-height:28px;padding:4px 8px;font-size:11px}
+#cider-canvas .c-app{display:grid;grid-template-columns:180px minmax(0,1fr);min-height:565px}
+#cider-canvas .c-sidebar{padding:20px 11px 12px;border-right:1px solid var(--c-border);background:var(--c-surface);display:flex;flex-direction:column;gap:17px}
+#cider-canvas .c-brand{display:flex;align-items:center;gap:9px;padding:0 10px;font-size:17px;font-weight:600;letter-spacing:-.4px}
+#cider-canvas .c-brand .c-icon{color:var(--c-orange)}
+#cider-canvas .c-nav{display:flex;flex-direction:column;gap:4px}
+#cider-canvas .c-nav button{position:relative;border:0;border-radius:8px;background:none;display:flex;align-items:center;gap:10px;text-align:left;padding:8px 10px;min-height:36px;color:var(--c-muted)}
+#cider-canvas .c-nav button:hover{background:var(--c-hover);color:var(--c-text)}
+#cider-canvas .c-nav button[aria-current=page]{background:#252426;color:var(--c-text)}
+#cider-canvas .c-nav button[aria-current=page]:before{content:"";position:absolute;left:-11px;top:10px;bottom:10px;width:2px;background:var(--c-orange);border-radius:2px}
+#cider-canvas .c-badge{background:var(--c-orange);color:var(--c-on);font-size:11px;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;margin-left:auto}
+#cider-canvas .c-folder-group{padding:0 8px}
+#cider-canvas .c-folder-group .c-eyebrow{font-size:11px;letter-spacing:1px;margin-bottom:12px}
+#cider-canvas .c-folder{display:flex;align-items:center;gap:7px;border:0;background:none;color:var(--c-muted);font-size:11px;padding:5px 0;width:100%;text-align:left}
+#cider-canvas .c-folder .c-icon{width:16px}
+#cider-canvas .c-sidebar-bottom{margin-top:auto;display:flex;flex-direction:column;gap:7px}
+#cider-canvas .c-sidebar-bottom .c-button{justify-content:flex-start;font-size:11px}
+#cider-canvas .c-local{color:var(--c-muted);font-size:11px;display:flex;gap:7px;align-items:center;padding:8px 10px}
+#cider-canvas .c-page{padding:28px;min-width:0}
+#cider-canvas .c-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:26px}
+#cider-canvas .c-heading h1{font-size:28px;font-weight:600;line-height:1.15;letter-spacing:-1px;margin:5px 0 9px}
+#cider-canvas .c-heading p{font-size:12px;color:var(--c-muted)}
+#cider-canvas .c-inbox-grid{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:24px}
+#cider-canvas .c-section-label{display:flex;align-items:center;gap:8px;color:var(--c-muted);font-size:11px;text-transform:uppercase;letter-spacing:1.1px;margin-bottom:10px}
+#cider-canvas .c-attention{border:1px solid transparent;border-bottom-color:var(--c-border);background:none;padding:16px 11px;width:100%;display:block;text-align:left;border-radius:8px}
+#cider-canvas .c-attention:hover{background:var(--c-surface)}
+#cider-canvas .c-attention[aria-pressed=true]{background:var(--c-raised);border-color:var(--c-border)}
+#cider-canvas .c-attention-top{display:flex;justify-content:space-between;gap:9px;align-items:center;margin-bottom:7px}
+#cider-canvas .c-attention-title{font-weight:500;font-size:13px}
+#cider-canvas .c-attention-summary{font-size:11px;color:var(--c-muted);margin-bottom:10px}
+#cider-canvas .c-attention-meta{display:flex;gap:7px;align-items:center;font-size:11px;color:var(--c-muted);flex-wrap:wrap}
+#cider-canvas .c-attention-age{font-size:11px;color:var(--c-muted);white-space:nowrap}
+#cider-canvas .c-running{margin-top:24px;border-top:1px solid var(--c-border);padding-top:16px;display:flex;align-items:center;gap:8px;color:var(--c-muted);font-size:11px}
+#cider-canvas .c-inspector{border-left:1px solid var(--c-border);padding-left:22px;min-width:0}
+#cider-canvas .c-inspector h2{font-size:16px;font-weight:500;line-height:1.4;margin:9px 0}
+#cider-canvas .c-inspector p{font-size:12px;color:var(--c-muted);line-height:1.6}
+#cider-canvas .c-inspector-section{padding:17px 0;border-bottom:1px solid var(--c-border)}
+#cider-canvas .c-inspector-section:first-child{padding-top:0}
+#cider-canvas .c-inspector .c-button{width:100%;font-size:11px;margin-top:10px}
+#cider-canvas .c-codepath{overflow-wrap:anywhere;font-family:ui-monospace,monospace;font-size:11px;color:var(--c-muted);margin-top:7px}
+#cider-canvas .c-check{display:flex;align-items:flex-start;gap:8px;font-size:11px;padding-top:10px;line-height:1.5;color:var(--c-muted)}
+#cider-canvas input[type=checkbox]{accent-color:var(--c-orange);margin:3px 0 0;width:13px;height:13px;flex-shrink:0}
+#cider-canvas .c-phase-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0}
+#cider-canvas .c-feature{background:var(--c-surface);border:1px solid var(--c-border);border-radius:12px;padding:17px;text-align:left}
+#cider-canvas .c-feature[aria-pressed=true]{border-color:#946342;background:linear-gradient(140deg,#302018,#111214 72%)}
+#cider-canvas .c-feature h2{font-size:14px;margin:8px 0;font-weight:500}
+#cider-canvas .c-feature .c-small{color:var(--c-muted)}
+#cider-canvas .c-lanes{border-top:1px solid var(--c-border);margin-top:16px}
+#cider-canvas .c-lane{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;padding:14px 0;border-bottom:1px solid var(--c-border);align-items:center;font-size:12px}
+#cider-canvas .c-lane small{display:block;color:var(--c-muted);font-size:11px;margin-top:3px}
+#cider-canvas .c-flow{display:flex;align-items:center;gap:10px;margin-top:20px;flex-wrap:wrap;font-size:11px;color:var(--c-muted)}
+#cider-canvas .c-flow span{padding:7px 11px;border:1px solid var(--c-border);border-radius:7px;color:var(--c-text)}
+#cider-canvas .c-flow span:last-child{border-color:#a96a38;color:var(--c-end);background:var(--c-wash)}
+#cider-canvas .c-task-form{display:flex;gap:9px;margin-bottom:23px}
+#cider-canvas .c-input{width:100%;min-width:0;border:1px solid var(--c-border);border-radius:8px;padding:9px 11px;background:var(--c-surface);color:var(--c-text)}
+#cider-canvas .c-input::placeholder{color:var(--c-muted)}
+#cider-canvas .c-task{display:flex;gap:11px;align-items:flex-start;padding:17px 0;border-bottom:1px solid var(--c-border)}
+#cider-canvas .c-task-title{font-size:13px}
+#cider-canvas .c-task-meta{font-size:11px;color:var(--c-muted);margin-top:4px}
+#cider-canvas .c-task.is-done .c-task-title{text-decoration:line-through;color:var(--c-muted)}
+#cider-canvas .c-task .c-pill{margin-left:auto}
+#cider-canvas .c-note-top{display:flex;flex-wrap:wrap;gap:7px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--c-border);margin-bottom:20px}
+#cider-canvas .c-note-top .c-button{font-size:11px;padding:4px 8px;min-height:28px}
+#cider-canvas .c-note-meta{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 23px}
+#cider-canvas .c-note-title{font-size:28px;font-weight:600;letter-spacing:-.7px;line-height:1.2}
+#cider-canvas .c-document{font-size:14px;line-height:1.75;min-height:160px;overflow-wrap:anywhere}
+#cider-canvas .c-document p{margin:0 0 15px}
+#cider-canvas .c-document h2{font-size:18px;margin:22px 0 10px;font-weight:500;letter-spacing:-.4px}
+#cider-canvas .c-shot{position:relative;margin:13px 0;border:1px solid var(--c-border);background:#0c0d0e;border-radius:10px;overflow:hidden;max-width:100%;min-height:90px}
+#cider-canvas .c-shot-chrome{padding:8px 13px;border-bottom:1px solid var(--c-border);font-size:11px;color:var(--c-muted);display:flex;justify-content:space-between}
+#cider-canvas .c-shot-content{display:grid;grid-template-columns:85px 1fr;min-height:118px}
+#cider-canvas .c-shot-side{padding:15px 10px;border-right:1px solid #242426;font-size:11px;color:#a6a29b;line-height:2.2}
+#cider-canvas .c-shot-main{padding:16px;font-size:11px}
+#cider-canvas .c-shot-bar{height:7px;border-radius:3px;background:#303033;margin:9px 0;max-width:65%}
+#cider-canvas .c-shot-alert{background:#302018;color:#ffb66b;padding:5px 8px;font-size:11px;border-radius:4px;margin-top:11px;display:inline-block}
+#cider-canvas .c-pin{position:absolute;width:23px;height:23px;border-radius:50%;background:var(--c-orange);color:var(--c-on);border:2px solid #ffbd8b;font-weight:600;font-size:11px;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);z-index:1}
+#cider-canvas .c-asset-caption{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;font:11px/1.5 ui-monospace,monospace;color:var(--c-muted);margin-bottom:18px;overflow-wrap:anywhere}
+#cider-canvas .c-code{border:1px solid var(--c-border);background:var(--c-surface);border-radius:8px;padding:13px 15px;font:11px/1.7 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;margin:14px 0;color:#d8d4cc}
+#cider-canvas .c-code .kw{color:var(--c-orange)}
+#cider-canvas .c-code .str{color:var(--c-end)}
+#cider-canvas .c-note-diagram{display:flex;align-items:center;justify-content:center;gap:8px;padding:16px;border:1px solid var(--c-border);border-radius:8px;margin:14px 0;flex-wrap:wrap}
+#cider-canvas .c-note-diagram span{font-size:11px;padding:5px 12px;border:1px solid #8a603e;border-radius:5px}
+#cider-canvas .c-shot img{display:block;width:100%;height:auto}
+#cider-canvas .c-note-source{min-height:300px;font:12px/1.7 ui-monospace,monospace;resize:vertical}
+#cider-canvas .c-annotation-on .c-shot{cursor:crosshair;border-color:var(--c-orange)}
+#cider-canvas .c-usage-grid{display:grid;gap:12px}
+#cider-canvas .c-usage{display:grid;grid-template-columns:54px minmax(0,1fr) 110px;align-items:center;gap:17px;padding:19px;border:1px solid var(--c-border);border-radius:12px;background:var(--c-surface)}
+#cider-canvas .c-ring{width:52px;height:52px;border-radius:50%;background:conic-gradient(var(--c-orange) calc(var(--used)*1%),var(--c-border) 0);position:relative;display:grid;place-items:center;font-size:11px;font-weight:500}
+#cider-canvas .c-ring:before{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--c-surface)}
+#cider-canvas .c-ring span{position:relative}
+#cider-canvas .c-usage h2{font-size:14px;font-weight:500}
+#cider-canvas .c-usage p{font-size:11px;color:var(--c-muted);margin-top:5px}
+#cider-canvas .c-usage-value{text-align:right}
+#cider-canvas .c-usage-value strong{font-size:23px;font-weight:500;letter-spacing:-.6px}
+#cider-canvas .c-usage-value small{display:block;font-size:11px;color:var(--c-muted)}
+#cider-canvas .c-usage.is-stale{opacity:.66}
+#cider-canvas .c-setting{display:grid;grid-template-columns:1fr minmax(140px,210px);align-items:center;gap:20px;padding:18px 0;border-bottom:1px solid var(--c-border)}
+#cider-canvas .c-setting p{font-size:11px;color:var(--c-muted);margin-top:4px}
+#cider-canvas .c-setting select{font-size:12px}
+#cider-canvas .c-footbar{border-top:1px solid var(--c-border);padding:8px 15px;font-size:11px;color:var(--c-muted);display:flex;align-items:center;gap:8px;min-height:33px;background:var(--c-surface)}
+#cider-canvas .c-footbar span:last-child{margin-left:auto}
+#cider-canvas .c-app.c-compact{grid-template-columns:60px minmax(0,1fr)}
+#cider-canvas .c-app.c-compact .c-sidebar{padding:20px 8px 12px;align-items:center}
+#cider-canvas .c-app.c-compact .c-brand{padding:0}
+#cider-canvas .c-app.c-compact .c-brand-name,#cider-canvas .c-app.c-compact .c-nav-label,#cider-canvas .c-app.c-compact .c-badge,#cider-canvas .c-app.c-compact .c-folder-group,#cider-canvas .c-app.c-compact .c-local{display:none}
+#cider-canvas .c-app.c-compact .c-nav button{padding:9px 10px}
+#cider-canvas .c-app.c-compact .c-sidebar-bottom .c-button{padding:8px}
+#cider-canvas .c-app.c-compact .c-sidebar-bottom .c-button span{display:none}
+@media(max-width:850px){#cider-canvas .c-inbox-grid{grid-template-columns:minmax(0,1fr)}#cider-canvas .c-inspector{border-left:0;border-top:1px solid var(--c-border);padding:18px 0 0}#cider-canvas .c-inspector-section{padding:12px 0}#cider-canvas .c-page{padding:23px}#cider-canvas .c-phase-grid{grid-template-columns:1fr}#cider-canvas .c-feature{padding:13px}#cider-canvas .c-feature h2{margin:4px 0}}
+@media(max-width:580px){#cider-canvas .c-screen{height:306px}#cider-canvas .c-external{display:none}#cider-canvas .c-menubar span:last-child{display:none}#cider-canvas .c-hud-header{grid-template-columns:1fr 72px 1fr;padding:4px 12px}#cider-canvas .c-hud{max-width:calc(100% - 18px)}#cider-canvas .c-display-label{left:14px;bottom:13px}#cider-canvas .c-app,#cider-canvas .c-app.c-compact{display:block}#cider-canvas .c-sidebar,#cider-canvas .c-app.c-compact .c-sidebar{padding:10px;display:block;border-right:0;border-bottom:1px solid var(--c-border)}#cider-canvas .c-brand,#cider-canvas .c-sidebar-bottom,#cider-canvas .c-folder-group{display:none}#cider-canvas .c-nav{flex-direction:row;flex-wrap:wrap;gap:2px}#cider-canvas .c-nav button,#cider-canvas .c-app.c-compact .c-nav button{padding:7px 8px;gap:5px;font-size:11px}#cider-canvas .c-nav button[aria-current=page]:before{display:none}#cider-canvas .c-app.c-compact .c-nav-label{display:inline}#cider-canvas .c-badge{display:none}#cider-canvas .c-nav .c-icon{width:14px}#cider-canvas .c-titlebar .c-status{display:none}#cider-canvas .c-titlebar{gap:5px;padding:9px}#cider-canvas .c-titlebar .c-title{font-size:11px}#cider-canvas .c-page{padding:21px 16px}#cider-canvas .c-heading{gap:10px;flex-wrap:wrap;margin-bottom:19px}#cider-canvas .c-heading h1{font-size:25px}#cider-canvas .c-usage{grid-template-columns:43px 1fr 69px;gap:10px;padding:14px 10px}#cider-canvas .c-ring{width:42px;height:42px}#cider-canvas .c-usage-value strong{font-size:20px}#cider-canvas .c-setting{grid-template-columns:1fr;gap:10px}#cider-canvas .c-lane{grid-template-columns:1fr auto}#cider-canvas .c-lane>span:nth-child(2){display:none}#cider-canvas .c-footbar span:last-child{display:none}#cider-canvas .c-traffic{gap:4px;margin-right:2px}#cider-canvas .c-task-form{flex-wrap:wrap}#cider-canvas .c-task-form .c-button{width:100%}#cider-canvas .c-task .c-pill{white-space:normal;max-width:80px}#cider-canvas .c-note-title{font-size:25px}#cider-canvas .c-hud-tabs{gap:12px}#cider-canvas .c-hud-row{font-size:11px}}
+@media(prefers-reduced-motion:reduce){#cider-canvas *{transition:none!important;animation:none!important}}
+@media(pointer:coarse){#cider-canvas button{min-height:44px!important}#cider-canvas .c-hud{max-width:calc(100% - 8px)}#cider-canvas .c-screen{height:360px}#cider-canvas .c-hud-header{min-height:44px}#cider-canvas input,#cider-canvas select,#cider-canvas textarea{font-size:16px!important}#cider-canvas .c-pin{min-height:28px!important}}
+
+/* Workspace materials and task components. */
+#cider-canvas .c-window{background:radial-gradient(ellipse 85% 340px at 20% 0%,#85422175,transparent 78%),radial-gradient(ellipse 65% 240px at 90% 0%,#5c281b45,transparent 85%),var(--c-bg)}
+#cider-canvas .c-titlebar{background:#191411a8;border-bottom-color:#ffffff0d;backdrop-filter:blur(20px)}
+#cider-canvas .c-sidebar{background:#171310b3;border-right-color:#ffffff12;backdrop-filter:blur(18px)}
+#cider-canvas .c-footbar{background:#101011d9;border-top-color:#ffffff0c}
+#cider-canvas .c-app{min-height:615px}
+#cider-canvas .c-page{background:transparent}
+#cider-canvas .c-screen{height:374px}
+#cider-canvas .c-external{display:flex;align-items:center;gap:10px;max-width:none;padding:4px 9px;background:#191616;border-color:#5e4332;font-size:11px;bottom:12px;right:14px}
+#cider-canvas .c-display-label{bottom:19px}
+#cider-canvas .c-action-group{display:inline-flex;align-items:center;gap:5px;flex-shrink:0}
+#cider-canvas .c-icon-button{width:32px;min-width:32px;height:32px;min-height:32px;padding:0!important;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+#cider-canvas .c-icon-button svg{width:16px;height:16px}
+#cider-canvas .c-glass-group{padding:3px;border:1px solid #ffffff17;border-radius:12px;background:linear-gradient(160deg,#ffffff0c,#ffffff03);box-shadow:inset 0 1px #ffffff07;backdrop-filter:blur(16px)}
+#cider-canvas .c-icon-button[aria-pressed=true]{background:#ffffff15;color:var(--c-end)}
+#cider-canvas .c-titlebar .c-icon-button{min-height:29px;height:29px;width:30px;min-width:30px}
+#cider-canvas .c-sidebar-bottom .c-action-group{justify-content:space-evenly;width:100%}
+#cider-canvas .c-sidebar-date{display:flex;align-items:center;justify-content:space-between;gap:1px;margin:-1px 5px 9px 6px;padding:2px;color:var(--c-muted)}
+#cider-canvas .c-sidebar-date .c-icon-button{width:23px;min-width:23px;height:26px;min-height:26px;border:0;background:none;padding:0}
+#cider-canvas .c-sidebar-date .c-date-label{font-size:11px;text-align:center;min-width:45px;color:#d0bcb0}
+#cider-canvas .c-sidebar-date button:hover{background:#ffffff0a}
+#cider-canvas .c-app.c-compact .c-sidebar-date{display:none}
+#cider-canvas .c-app.c-compact .c-sidebar-bottom .c-action-group{flex-direction:column}
+#cider-canvas .c-inline-date{display:none;align-items:center;gap:6px;margin-top:-10px;margin-bottom:18px}
+#cider-canvas .c-app.c-compact .c-inline-date{display:flex}
+#cider-canvas .c-day-page{padding:28px 32px 32px}
+#cider-canvas .c-day-heading{align-items:center;margin-bottom:22px}
+#cider-canvas .c-day-heading h1{font-size:26px;line-height:1.2;letter-spacing:-.8px;margin-top:7px}
+#cider-canvas .c-day-heading .c-eyebrow{color:#d7af96;letter-spacing:1.7px;font-size:11px}
+#cider-canvas .c-day-actions{display:flex;gap:12px;align-items:center;flex-shrink:0}
+#cider-canvas .c-week-strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;padding:0 0 23px;border-bottom:1px solid #ffffff12;margin-bottom:24px}
+#cider-canvas .c-week-day{border:1px solid transparent;background:none;border-radius:12px;padding:11px 3px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;color:var(--c-muted)}
+#cider-canvas .c-week-day:hover{background:#ffffff08}
+#cider-canvas .c-week-day[aria-pressed=true]{background:linear-gradient(160deg,#ffb66b25,#ff6a3210);border-color:#ffb66b38;box-shadow:inset 0 1px #ffc69215;color:var(--c-text)}
+#cider-canvas .c-week-day .c-week-number{font-size:21px;font-weight:500;line-height:1.4}
+#cider-canvas .c-week-day[aria-pressed=true] .c-week-number{color:var(--c-end)}
+#cider-canvas .c-day-dots{display:flex;gap:3px;height:5px;align-items:center}
+#cider-canvas .c-day-dots i{width:3px;height:3px;border-radius:50%;background:var(--c-orange);display:block}
+#cider-canvas .c-composer{display:flex;align-items:center;gap:10px;min-width:0;border:1px solid #ffffff18;background:#151311b3;box-shadow:inset 0 1px #ffffff04;border-radius:12px;padding:7px 8px 7px 13px}
+#cider-canvas .c-composer>svg{width:16px;height:16px;flex-shrink:0;color:var(--c-muted)}
+#cider-canvas .c-composer input{border:0;background:none;padding:5px 0;min-width:0;width:100%;color:var(--c-text);font:inherit;outline-offset:3px}
+#cider-canvas .c-composer input::placeholder{color:#b5a396}
+#cider-canvas .c-composer .c-icon-button{width:29px;min-width:29px;height:29px;min-height:29px}
+#cider-canvas .c-day-composer{margin-bottom:24px}
+#cider-canvas .c-task-section-title{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--c-muted);padding:0 0 8px}
+#cider-canvas .c-task-section-title .c-total{color:#716d68}
+#cider-canvas .c-task-row{display:flex;align-items:center;gap:12px;padding:15px 5px;border-bottom:1px solid #ffffff0b;min-height:76px}
+#cider-canvas .c-task-check{appearance:none!important;position:relative;width:18px!important;height:18px!important;margin:0!important;border:1.5px solid #81786f;border-radius:50%;background:none;cursor:pointer}
+#cider-canvas .c-task-check:checked{background:var(--c-orange);border-color:var(--c-orange)}
+#cider-canvas .c-task-check:checked:after{content:'✓';position:absolute;inset:-1px;display:grid;place-items:center;color:var(--c-on);font-size:12px;font-weight:600}
+#cider-canvas .c-task-content{border:0;background:none;text-align:left;flex:1;min-width:0;padding:0;display:block;color:var(--c-text)}
+#cider-canvas .c-task-content:hover .c-task-title{color:var(--c-end)}
+#cider-canvas .c-task-row .c-task-title{font-size:13px;line-height:1.6;font-weight:500;overflow-wrap:anywhere}
+#cider-canvas .c-task-row .c-task-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:var(--c-muted);font-size:11px;line-height:1.5;margin-top:5px}
+#cider-canvas .c-task-row .c-task-meta svg{width:12px;height:12px}
+#cider-canvas .c-task-tag{padding:2px 7px;border-radius:5px;background:#ffffff06;color:#c6a58e;font-size:11px}
+#cider-canvas .c-task-row.is-done{opacity:.8}
+#cider-canvas .c-task-row.is-done .c-task-title{text-decoration:line-through}
+#cider-canvas .c-task-row.is-done .c-task-check{background:#6f6962;border-color:#6f6962}
+#cider-canvas .c-completed{margin-top:23px}
+#cider-canvas .c-completed summary{cursor:pointer;font-size:12px;color:var(--c-muted);padding:4px 0}
+#cider-canvas .c-completed summary::marker{color:#8d7c6d}
+#cider-canvas .c-empty-day{padding:32px 0 20px;color:var(--c-muted);text-align:center;font-size:13px}
+#cider-canvas .c-empty-day p{margin-top:6px;font-size:12px}
+#cider-canvas .c-month-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+#cider-canvas .c-month-heading h2{font-size:15px;font-weight:500}
+#cider-canvas .c-month-weekdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center;color:var(--c-muted);font-size:11px;margin-bottom:9px}
+#cider-canvas .c-month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-bottom:23px}
+#cider-canvas .c-calendar-day{border:1px solid #ffffff07;display:flex;flex-direction:column;gap:6px;align-items:flex-start;background:#11121488;min-height:82px;padding:8px;border-radius:7px;text-align:left;min-width:0}
+#cider-canvas .c-calendar-day:hover{background:#302018}
+#cider-canvas .c-calendar-day[aria-pressed=true]{border-color:#ffb66b55;background:#302018b3}
+#cider-canvas .c-calendar-day.is-outside{opacity:.38}
+#cider-canvas .c-calendar-day.is-today .c-calendar-number{background:var(--c-orange);color:var(--c-on);border-radius:50%;width:23px;height:23px;display:grid;place-items:center}
+#cider-canvas .c-calendar-number{font-size:12px;font-weight:500;min-height:23px}
+#cider-canvas .c-calendar-task{max-width:100%;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#cdb09b}
+#cider-canvas .c-calendar-more{color:var(--c-muted);font-size:11px}
+#cider-canvas .c-quick-capture{padding:16px 22px;background:#211a16ee;border-bottom:1px solid #ffffff14}
+#cider-canvas .c-capture-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;font-size:13px}
+#cider-canvas .c-capture-date{display:flex;gap:10px;align-items:center;margin-top:10px;color:var(--c-muted);font-size:12px}
+#cider-canvas .c-capture-date input{width:auto;padding:5px 9px;font-size:12px}
+#cider-canvas .c-task-detail{background:#1b1714;border:1px solid #665041;border-radius:12px;padding:18px;margin-top:20px}
+#cider-canvas .c-task-detail .c-input{margin-bottom:10px;background:#151311}
+#cider-canvas .c-task-detail-actions{display:flex;justify-content:flex-end;gap:7px}
+#cider-canvas .c-hud-task{display:flex;align-items:center;gap:9px;font-size:12px;border-bottom:1px solid #202022;padding:9px 0}
+#cider-canvas .c-hud-task .c-task-check{width:15px!important;height:15px!important;flex-shrink:0}
+#cider-canvas .c-hud-task span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#cider-canvas .c-hud-composer{margin-top:10px}
+#cider-canvas .c-hud-composer .c-composer{border-radius:9px;padding:3px 5px 3px 10px;font-size:12px;background:#151311}
+#cider-canvas .c-hud-composer .c-composer>svg{display:none}
+#cider-canvas .c-hud-footer{margin-top:9px}
+#cider-canvas .c-hud-footer .c-icon-button{height:27px;min-height:27px;width:29px;min-width:29px}
+#cider-canvas .c-note-meta b{font-weight:500}
+#cider-canvas .c-inspector .c-icon-button{width:32px;min-height:32px;display:flex;margin-top:12px}
+#cider-canvas .c-setting>.c-icon-button{justify-self:end}
+#cider-canvas .c-footbar #c-feedback{display:inline;margin-left:0}
+@media(max-width:850px){#cider-canvas .c-day-page{padding:25px 23px}#cider-canvas .c-day-heading{flex-wrap:wrap}#cider-canvas .c-week-strip{gap:4px}#cider-canvas .c-calendar-day{padding:5px;min-height:67px}#cider-canvas .c-calendar-task{display:none}}
+@media(max-width:580px){#cider-canvas .c-sidebar-date{display:none}#cider-canvas .c-inline-date{display:flex}#cider-canvas .c-screen{height:370px}#cider-canvas .c-external{display:none}#cider-canvas .c-day-page{padding:22px 16px}#cider-canvas .c-day-heading h1{font-size:24px}#cider-canvas .c-day-actions{gap:10px}#cider-canvas .c-week-strip{gap:3px;margin-bottom:20px}#cider-canvas .c-week-day{padding:8px 2px;border-radius:9px}#cider-canvas .c-week-day .c-week-number{font-size:18px}#cider-canvas .c-day-composer{margin-bottom:18px}#cider-canvas .c-calendar-day{min-height:54px;gap:3px;padding:3px}#cider-canvas .c-calendar-more{font-size:11px}#cider-canvas .c-task-row{gap:9px}#cider-canvas .c-quick-capture{padding:15px}#cider-canvas .c-task-meta .c-task-tag{padding:1px 4px}#cider-canvas .c-titlebar .c-title{font-size:11px}}
+@media(pointer:coarse){#cider-canvas .c-icon-button{width:44px;min-width:44px;height:44px;min-height:44px!important}#cider-canvas .c-screen{height:440px}#cider-canvas .c-hud-composer .c-composer{padding:4px 6px}#cider-canvas .c-task-row{min-height:84px}#cider-canvas .c-sidebar-date{flex-wrap:wrap}#cider-canvas .c-calendar-day{min-height:62px}#cider-canvas .c-calendar-task{display:none}#cider-canvas .c-titlebar .c-title{overflow-wrap:anywhere}}
+@media(prefers-reduced-transparency:reduce){#cider-canvas .c-sidebar,#cider-canvas .c-titlebar,#cider-canvas .c-glass-group{background:#191614;backdrop-filter:none}}
+@media(pointer:coarse) and (max-width:580px){#cider-canvas .c-day-page{padding-inline:4px}#cider-canvas .c-week-strip,#cider-canvas .c-month-grid{gap:0}#cider-canvas .c-day-heading,#cider-canvas .c-inline-date{margin-inline:8px}#cider-canvas .c-titlebar .c-icon-button{width:44px;min-width:44px}#cider-canvas .c-pin{width:44px;height:44px;min-height:44px!important}}
+
+/* Shared action controls and the inset workspace sidebar. */
+#cider-canvas {
+  --c-control-top: #33281f;
+  --c-control-bottom: #211c19;
+  --c-control-border: #72543c66;
+  --c-control-shadow: 0 2px 3px #0003, 0 6px 12px #0003, inset 0 1px #ffe4c712;
+  --c-button-radius: 999px;
+  --c-icon-radius: 12px;
+  --c-sidebar-radius: 20px;
+}
+#cider-canvas .c-button {
+  border-radius: var(--c-button-radius);
+  border-color: var(--c-control-border);
+  background: linear-gradient(150deg, var(--c-control-top), var(--c-control-bottom));
+  box-shadow: var(--c-control-shadow);
+  transition: background .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+#cider-canvas .c-button:hover {
+  background: linear-gradient(150deg, #443326, #2d241e);
+  border-color: #a2775073;
+  box-shadow: 0 3px 5px #0004, 0 7px 15px #0004, inset 0 1px #ffe4c71c;
+}
+#cider-canvas .c-button:active { box-shadow: inset 0 2px 4px #0004; }
+#cider-canvas .c-button.c-quiet {
+  background: linear-gradient(150deg, #302822b3, #211d19cc);
+  border-color: #a0805f2b;
+}
+#cider-canvas .c-button.c-quiet:hover { background: linear-gradient(150deg, #483629, #30261e); }
+#cider-canvas .c-button.c-primary {
+  background: linear-gradient(18deg, var(--c-start), var(--c-orange) 60%, var(--c-end));
+  box-shadow: 0 2px 4px #0005, 0 5px 14px #cf58232b, inset 0 1px #fff4d466;
+}
+#cider-canvas .c-button.c-primary:hover { box-shadow: 0 3px 5px #0005, 0 7px 18px #ec702d40, inset 0 1px #fff4d47d; }
+#cider-canvas .c-icon-button { border-radius: var(--c-icon-radius); }
+#cider-canvas .c-icon-button[aria-pressed=true] {
+  background: linear-gradient(145deg, #80522d88, #3b2c22);
+  border-color: #b5824d59;
+  color: var(--c-end);
+}
+#cider-canvas .c-glass-group {
+  border-radius: 16px;
+  padding: 4px;
+  gap: 5px;
+  background: linear-gradient(145deg, #d6ac7021, #ffffff04);
+  border-color: #d6ac7024;
+  box-shadow: 0 4px 14px #0003, inset 0 1px #fff0d00c;
+}
+#cider-canvas .c-titlebar { padding-block: 10px; }
+#cider-canvas .c-titlebar .c-icon-button { width: 32px; min-width: 32px; height: 32px; min-height: 32px; }
+#cider-canvas .c-hud-tabs { border: 0; gap: 5px; padding: 2px 0 8px; margin-bottom: 0; }
+#cider-canvas .c-hud-tabs button { border: 1px solid transparent; border-radius: 999px; padding: 5px 12px; }
+#cider-canvas .c-hud-tabs button:hover { background: #211b16; }
+#cider-canvas .c-hud-tabs button[aria-pressed=true] {
+  color: var(--c-end); border-color: #72543c55;
+  background: linear-gradient(155deg, #49301f, #261d17);
+  box-shadow: 0 3px 8px #0007, inset 0 1px #e0b2741c;
+}
+#cider-canvas .c-app { grid-template-columns: 212px minmax(0, 1fr); gap: 12px; padding: 12px; min-height: 680px; }
+#cider-canvas .c-sidebar {
+  border: 1px solid #e1c6ac1c;
+  border-radius: var(--c-sidebar-radius);
+  background: linear-gradient(155deg, #302118a6, #171615ed 36%, #121313ed);
+  box-shadow: 0 8px 24px #0004, inset 0 1px #ffe5c909;
+  padding: 18px 9px 10px;
+  gap: 22px;
+  align-self: start;
+  min-height: 652px;
+}
+#cider-canvas .c-brand { padding: 0 5px 1px; gap: 11px; font-size: 16px; letter-spacing: -.3px; }
+#cider-canvas .c-brand-mark {
+  display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0;
+  border-radius: 11px; color: #201208;
+  background: linear-gradient(140deg, #ffbe77, #ff773b);
+  box-shadow: 0 3px 10px #ff702323, inset 0 1px #fff0cba1;
+}
+#cider-canvas .c-brand-mark svg { width: 21px; height: 21px; stroke-width: 1.8; }
+#cider-canvas .c-brand-name small { display: block; margin-top: 2px; font-size: 11px; font-weight: 400; color: #b5a69a; letter-spacing: 0; }
+#cider-canvas .c-nav { gap: 5px; }
+#cider-canvas .c-nav > button {
+  min-height: 40px; border: 1px solid transparent; border-radius: 12px;
+  padding: 9px 11px; gap: 12px; color: #c1b9b1; font-size: 12px;
+  transition: background .12s ease;
+}
+#cider-canvas .c-nav > button .c-icon svg { width: 18px; height: 18px; stroke-width: 1.6; }
+#cider-canvas .c-nav > button:hover { background: #e9ccae09; color: var(--c-text); }
+#cider-canvas .c-nav > button[aria-current=page] {
+  background: linear-gradient(110deg, #ad703633, #d0c0a312);
+  border-color: #e7bf8e18;
+  box-shadow: 0 3px 8px #0002, inset 0 1px #ffe9cb0b;
+  color: var(--c-text);
+}
+#cider-canvas .c-nav > button[aria-current=page] .c-icon { color: var(--c-end); }
+#cider-canvas .c-nav > button[aria-current=page]:before { display: none; }
+#cider-canvas .c-badge { border-radius: 50%; box-shadow: 0 2px 8px #eb6c2333; }
+#cider-canvas .c-sidebar-date { margin: -1px 7px 5px 35px; padding: 0; gap: 4px; }
+#cider-canvas .c-sidebar-date .c-icon-button {
+  min-height: 24px; height: 24px; width: 24px; min-width: 24px;
+  border-radius: 9px; padding: 0; justify-content: center;
+  background: linear-gradient(150deg, #34281e, #211c18);
+  border: 1px solid #99734826; box-shadow: 0 2px 4px #0003, inset 0 1px #ffffff08;
+}
+#cider-canvas .c-sidebar-date .c-date-label { min-width: 39px; font-size: 11px; }
+#cider-canvas .c-folder-group { padding: 0 4px; }
+#cider-canvas .c-folder-group summary {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; padding: 0 6px 10px; color: #ada499; font-size: 11px; cursor: pointer; list-style: none;
+}
+#cider-canvas .c-folder-group summary::-webkit-details-marker { display: none; }
+#cider-canvas .c-folder-group summary svg { width: 13px; height: 13px; }
+#cider-canvas .c-folder-group:not([open]) summary svg { transform: rotate(-90deg); }
+#cider-canvas .c-folder { padding: 8px 6px; gap: 9px; border-radius: 9px; font-size: 12px; color: #bfb7af; }
+#cider-canvas .c-folder:hover { color: var(--c-text); background: #ffffff05; }
+#cider-canvas .c-folder .c-icon { width: 18px; color: #9c9084; }
+#cider-canvas .c-note-tree { border-left: 1px solid #ac8a6133; margin: 0 0 7px 14px; padding-left: 10px; }
+#cider-canvas .c-note-link {
+  display: flex; width: 100%; align-items: center; gap: 7px; min-height: 33px;
+  background: transparent; border: 0; border-radius: 8px; padding: 6px;
+  color: #a89f96; text-align: left; font-size: 11px;
+}
+#cider-canvas .c-note-link svg { width: 13px; height: 13px; }
+#cider-canvas .c-note-link span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#cider-canvas .c-note-link:hover { color: var(--c-text); background: #ffffff05; }
+#cider-canvas .c-note-link[aria-current=true] { background: #ad703617; color: #e8c3a1; }
+#cider-canvas .c-sidebar-bottom { gap: 9px; padding-top: 6px; }
+#cider-canvas .c-sidebar-tools { border-top: 1px solid #e2c2a414; padding: 13px 5px 2px; display: flex; align-items: center; gap: 5px; }
+#cider-canvas .c-sidebar-hint { color: #ada499; font-size: 11px; min-width: 0; flex: 1; }
+#cider-canvas .c-sidebar-bottom .c-action-group { width: auto; gap: 6px; }
+#cider-canvas .c-sidebar-bottom .c-button { justify-content: center; }
+#cider-canvas .c-app.c-compact { grid-template-columns: 64px minmax(0, 1fr); }
+#cider-canvas .c-app.c-compact .c-sidebar { padding: 18px 8px 10px; gap: 23px; border-radius: 20px; min-height: 570px; }
+#cider-canvas .c-app.c-compact .c-nav { width: 100%; }
+#cider-canvas .c-app.c-compact .c-nav > button { padding: 9px; justify-content: center; }
+#cider-canvas .c-app.c-compact .c-sidebar-hint { display: none; }
+#cider-canvas .c-app.c-compact .c-sidebar-tools { padding: 12px 0 0; justify-content: center; }
+#cider-canvas .c-app.c-compact .c-sidebar-bottom { width: 100%; }
+@media (max-width: 850px) {
+  #cider-canvas .c-app { grid-template-columns: 198px minmax(0, 1fr); gap: 2px; }
+  #cider-canvas .c-sidebar-date { margin-left: 25px; }
+  #cider-canvas .c-sidebar-hint { max-width: 74px; }
+}
+@media (max-width: 580px) {
+  #cider-canvas .c-app, #cider-canvas .c-app.c-compact { display: block; padding: 0; }
+  #cider-canvas .c-sidebar, #cider-canvas .c-app.c-compact .c-sidebar {
+    display: flex; flex-direction: row; flex-wrap: wrap; min-height: 0; margin: 10px 9px 0; padding: 5px;
+    border: 1px solid #e1c6ac1c; border-radius: 17px; gap: 3px;
+  }
+  #cider-canvas .c-sidebar .c-brand, #cider-canvas .c-sidebar .c-folder-group, #cider-canvas .c-sidebar-tools { display: none; }
+  #cider-canvas .c-sidebar .c-nav, #cider-canvas .c-sidebar-bottom { display: contents; }
+  #cider-canvas .c-sidebar .c-nav > button, #cider-canvas .c-app.c-compact .c-nav > button { flex: 1; min-width: 0; padding: 8px 2px; justify-content: center; }
+  #cider-canvas .c-sidebar .c-nav-label, #cider-canvas .c-app.c-compact .c-nav-label { display: none; }
+  #cider-canvas .c-sidebar .c-icon { width: 20px; }
+  #cider-canvas .c-titlebar .c-title .c-muted { display: none; }
+  #cider-canvas .c-titlebar .c-traffic { margin-right: 5px; }
+  #cider-canvas .c-hud-tabs { gap: 3px; }
+  #cider-canvas .c-hud-tabs button { padding-inline: 9px; }
+}
+@media (pointer: coarse) {
+  #cider-canvas .c-titlebar .c-icon-button, #cider-canvas .c-sidebar-date .c-icon-button { width: 44px; min-width: 44px; height: 44px; }
+  #cider-canvas .c-sidebar-date { margin-left: 6px; }
+  #cider-canvas .c-sidebar-tools { flex-wrap: wrap; }
+  #cider-canvas .c-sidebar-hint { display: none; }
+}
+@media (pointer: coarse) and (max-width: 580px) {
+  #cider-canvas .c-sidebar, #cider-canvas .c-app.c-compact .c-sidebar { margin-inline: 6px; padding: 5px; gap: 2px; }
+  #cider-canvas .c-sidebar .c-nav > button { min-width: 44px; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  #cider-canvas .c-sidebar, #cider-canvas .c-titlebar, #cider-canvas .c-glass-group { background: #191614; backdrop-filter: none; }
+}
+
+/* One open writing plane. The editor has no field chrome in any focus state. */
+#cider-canvas .c-notes-page { padding: 12px 24px 18px; }
+#cider-canvas .c-note-top { gap: 12px; border: 0; padding: 0; margin: 0; min-height: 43px; }
+#cider-canvas .c-note-location { display: flex; align-items: center; flex: 1; min-width: 150px; gap: 7px; font-size: 11px; color: var(--c-muted); }
+#cider-canvas .c-note-location > svg { width: 14px; height: 14px; flex-shrink: 0; color: #b49a85; }
+#cider-canvas #c-note-filename { color: #c4b8ad; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#cider-canvas #c-note-folder { white-space: nowrap; }
+#cider-canvas .c-note-sheet { max-width: 720px; margin: 38px auto 0; padding: 0 14px; min-height: 515px; cursor: text; }
+#cider-canvas .c-note-context { display: flex; align-items: center; gap: 14px; font-size: 11px; color: #bb9d85; margin-bottom: 16px; }
+#cider-canvas .c-writing-state { display: inline-flex; align-items: center; gap: 5px; opacity: 0; color: #c1b4a7; }
+#cider-canvas .c-writing-state svg { width: 12px; height: 12px; }
+#cider-canvas .c-note-sheet:focus-within .c-writing-state { opacity: 1; }
+#cider-canvas .c-note-title {
+  position: relative; min-height: 48px; padding: 0; margin: 0 0 19px;
+  font-size: 34px; font-weight: 600; line-height: 1.3; letter-spacing: -1.1px;
+  overflow-wrap: anywhere;
+}
+#cider-canvas .c-note-title, #cider-canvas .c-document {
+  outline: none; border: 0; border-radius: 0; background: transparent;
+  box-shadow: none; caret-color: var(--c-orange);
+}
+#cider-canvas .c-note-title:focus-visible, #cider-canvas .c-document:focus-visible { outline: none; }
+#cider-canvas .c-note-title[data-empty=true]:before,
+#cider-canvas .c-document[data-empty=true]:before {
+  content: attr(data-placeholder); position: absolute; left: 0; top: 0; pointer-events: none; color: #aaa097;
+}
+#cider-canvas .c-note-title[data-empty=true]:before { color: #c5b4a5; }
+#cider-canvas .c-note-meta { margin: 0 0 26px; }
+#cider-canvas .c-document { position: relative; min-height: 0; font-size: 16px; line-height: 1.75; padding: 0; }
+#cider-canvas .c-note-sheet.is-draft .c-document { min-height: 345px; }
+#cider-canvas .c-document p { margin-bottom: 18px; }
+#cider-canvas .c-document h2 { font-size: 21px; margin: 28px 0 12px; font-weight: 500; }
+#cider-canvas .c-note-bottom { display: flex; align-items: center; gap: 15px; min-height: 41px; padding-top: 16px; margin-top: 12px; cursor: default; }
+#cider-canvas .c-note-paste-hint { margin-left: auto; color: var(--c-muted); font-size: 11px; }
+#cider-canvas .c-note-source { border: 0; background: transparent; box-shadow: none; padding: 36px 14px; min-height: 520px; resize: vertical; }
+@media (max-width: 850px) {
+  #cider-canvas .c-notes-page { padding: 10px 20px 20px; }
+  #cider-canvas .c-note-sheet { padding: 0 3px; margin-top: 35px; }
+  #cider-canvas .c-note-title { font-size: 30px; }
+}
+@media (max-width: 580px) {
+  #cider-canvas .c-notes-page { padding: 17px 17px 24px; }
+  #cider-canvas .c-note-location { min-width: 125px; }
+  #cider-canvas .c-note-top { gap: 9px; }
+  #cider-canvas .c-note-sheet { margin-top: 31px; padding: 0; min-height: 480px; }
+  #cider-canvas .c-note-title { font-size: 30px; }
+  #cider-canvas .c-note-bottom { gap: 7px; }
+  #cider-canvas .c-note-paste-hint { font-size: 11px; }
+}
+</style>
+<div id="cider-canvas" aria-label="Cider native Mac app design preview">
+  <section class="c-screen" aria-label="MacBook display with configurable notch">
+    <div class="c-menubar"><span><strong>Cider</strong> &nbsp; File &nbsp; Edit &nbsp; View</span><span>Sun 6 Sep &nbsp; 9:41</span></div>
+    <div class="c-hud" id="c-hud" data-edge="top" aria-label="Cider notch HUD">
+      <div class="c-hud-header">
+        <button class="c-hud-trigger" id="c-hud-toggle" aria-label="Expand or collapse notch" aria-expanded="true"><span class="c-dot"></span><span class="c-hud-name">Cider</span></button>
+        <div class="c-camera" aria-label="Reserved camera housing area"></div>
+        <span class="c-hud-count">3 need you</span>
+      </div>
+      <div class="c-hud-body" id="c-hud-body">
+        <div class="c-hud-tabs" aria-label="Notch sections">
+          <button data-hud-tab="inbox" aria-pressed="false">Inbox</button><button data-hud-tab="today" aria-pressed="true">Today</button><button data-hud-tab="notes" aria-pressed="false">Notes</button><button data-hud-tab="usage" aria-pressed="false">Usage</button>
+        </div>
+        <div id="c-hud-content">
+          <button class="c-hud-row" data-attention="schema"><span class="c-dot"></span>Schema decision needed<span>8m</span></button>
+          <button class="c-hud-row" data-attention="worker"><span class="c-dot"></span>Worker retry check failed<span>14m</span></button>
+          <button class="c-hud-row" data-attention="ui"><span class="c-dot"></span>UI lane ready to test<span>2m</span></button>
+        </div>
+        <div class="c-hud-footer"><button class="c-button c-quiet c-icon-button" id="c-pin-hud" aria-pressed="false" aria-label="Pin notch" data-tooltip="Pin notch"><i data-lucide="pin" aria-hidden="true"></i></button><span class="c-small c-muted" id="c-hud-day-label">Today</span><div class="c-action-group"><button class="c-button c-quiet c-icon-button" data-action="hud-task" aria-label="New task in notch" data-tooltip="New task"><i data-lucide="list-plus" aria-hidden="true"></i></button><button class="c-button c-quiet c-icon-button" data-action="new-note" aria-label="Quick note" data-tooltip="Quick note"><i data-lucide="square-pen" aria-hidden="true"></i></button><button class="c-button c-primary c-icon-button" data-page="today" aria-label="Open workspace" data-tooltip="Open workspace"><i data-lucide="arrow-up-right" aria-hidden="true"></i></button></div></div>
+      </div>
+    </div>
+    <div class="c-display-label"><i data-lucide="laptop" aria-hidden="true"></i><span id="c-anchor-label">Built-in display · top</span></div>
+    <div class="c-external"><span id="c-focus-label">External display in use</span><button class="c-icon-button" id="c-focus-switch" aria-label="Switch display focus" data-tooltip="Switch display focus"><i data-lucide="monitor" aria-hidden="true"></i></button></div>
+  </section>
+  <section class="c-window" aria-label="Cider workspace">
+    <header class="c-titlebar">
+      <div class="c-traffic" aria-hidden="true"><span></span><span></span><span></span></div>
+      <button class="c-button c-quiet c-icon-button" id="c-sidebar-toggle" aria-label="Toggle compact sidebar" data-tooltip="Toggle sidebar" aria-pressed="false"><i data-lucide="panel-left" aria-hidden="true"></i></button>
+      <span class="c-title">Cider <span class="c-muted">/ Personal workspace</span></span>
+      <div class="c-action-group c-glass-group"><button class="c-button c-quiet c-icon-button" data-action="quick-task" aria-label="Quick task" data-tooltip="Quick task"><i data-lucide="list-plus" aria-hidden="true"></i></button><button class="c-button c-quiet c-icon-button" data-action="new-note" aria-label="Quick note" data-tooltip="Quick note"><i data-lucide="square-pen" aria-hidden="true"></i></button></div>
+    </header>
+    <section class="c-quick-capture" id="c-quick-capture" aria-label="Quick task capture" hidden></section>
+    <div class="c-app" id="c-app">
+      <aside class="c-sidebar" aria-label="Workspace sidebar">
+        <div class="c-brand"><span class="c-brand-mark"><i data-lucide="flame" aria-hidden="true"></i></span><span class="c-brand-name">Cider<small>Personal workspace</small></span></div>
+        <nav class="c-nav" aria-label="Workspace navigation">
+          <button data-page="inbox" aria-label="Inbox"><span class="c-icon"><i data-lucide="inbox" aria-hidden="true"></i></span><span class="c-nav-label">Inbox</span><span class="c-badge">3</span></button>
+          <button data-page="features" aria-label="Features"><span class="c-icon"><i data-lucide="layers-2" aria-hidden="true"></i></span><span class="c-nav-label">Features</span></button>
+          <button data-page="today" aria-current="page" aria-label="Today"><span class="c-icon"><i data-lucide="calendar-days" aria-hidden="true"></i></span><span class="c-nav-label">Today</span></button>
+          <div class="c-sidebar-date" id="c-sidebar-date" aria-label="Browse task dates"></div>
+          <button data-page="notes" aria-label="Notes"><span class="c-icon"><i data-lucide="file-text" aria-hidden="true"></i></span><span class="c-nav-label">Notes</span></button>
+          <button data-page="usage" aria-label="Usage"><span class="c-icon"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i></span><span class="c-nav-label">Usage</span></button>
+        </nav>
+        <details class="c-folder-group" open>
+          <summary>Workspace folders<i data-lucide="chevron-down" aria-hidden="true"></i></summary>
+          <button class="c-folder" data-folder="Reviews"><span class="c-icon"><i data-lucide="folder-open" aria-hidden="true"></i></span>Reviews</button>
+          <div class="c-note-tree">
+            <button class="c-note-link" data-action="review-note" data-note-link="review"><i data-lucide="file-text" aria-hidden="true"></i><span>Orchestration review</span></button>
+            <button class="c-note-link" data-action="new-note" data-note-link="draft"><i data-lucide="file-pen-line" aria-hidden="true"></i><span id="c-draft-label">Untitled</span></button>
+          </div>
+          <button class="c-folder" data-folder="Session engine"><span class="c-icon"><i data-lucide="folder" aria-hidden="true"></i></span>Session engine</button>
+          <button class="c-folder" data-folder="Agent workspace"><span class="c-icon"><i data-lucide="folder" aria-hidden="true"></i></span>Agent workspace</button>
+          <button class="c-folder" data-folder="Trace pipeline"><span class="c-icon"><i data-lucide="folder" aria-hidden="true"></i></span>Trace pipeline</button>
+        </details>
+        <div class="c-sidebar-bottom">
+          <nav class="c-nav c-sidebar-settings" aria-label="Workspace preferences"><button data-page="settings" aria-label="Settings"><span class="c-icon"><i data-lucide="settings-2" aria-hidden="true"></i></span><span class="c-nav-label">Settings</span></button></nav>
+          <div class="c-sidebar-tools"><span class="c-sidebar-hint">Capture a thought</span><div class="c-action-group"><button class="c-button c-quiet c-icon-button" data-action="quick-task" aria-label="Quick task" data-tooltip="Quick task"><i data-lucide="list-plus" aria-hidden="true"></i></button><button class="c-button c-quiet c-icon-button" data-action="new-note" aria-label="Quick note" data-tooltip="Quick note"><i data-lucide="square-pen" aria-hidden="true"></i></button></div></div>
+        </div>
+      </aside>
+      <main>
+        <section class="c-page" data-pane="inbox" hidden>
+          <div class="c-heading"><div><div class="c-eyebrow">Attention inbox</div><h1>Your move.</h1><p>Three things need you. The rest can keep running.</p></div><span class="c-pill c-warm">3 unresolved</span></div>
+          <div class="c-inbox-grid">
+            <div><div class="c-section-label">Needs attention</div>
+              <button class="c-attention" data-attention="schema" aria-pressed="false"><div class="c-attention-top"><span class="c-attention-title">Schema decision needed</span><span class="c-attention-age">8m ago</span></div><div class="c-attention-summary">Choose how worker checkpoints should resume.</div><div class="c-attention-meta"><span class="c-pill c-warm">Input</span><span>Claude Code · Session engine</span></div></button>
+              <button class="c-attention" data-attention="worker" aria-pressed="false"><div class="c-attention-top"><span class="c-attention-title">Worker retry check failed</span><span class="c-attention-age">14m ago</span></div><div class="c-attention-summary">One timeout still leaves a duplicate event.</div><div class="c-attention-meta"><span class="c-pill">Failure</span><span>Codex · Trace pipeline</span></div></button>
+              <button class="c-attention" data-attention="ui" aria-pressed="true"><div class="c-attention-top"><span class="c-attention-title">UI lane ready to test</span><span class="c-attention-age">2m ago</span></div><div class="c-attention-summary">The agent finished. Your review is next.</div><div class="c-attention-meta"><span class="c-pill c-warm">Verify</span><span>Codex · Agent workspace</span></div></button>
+              <div class="c-running"><span class="c-dot"></span>6 other runs active across 3 features</div>
+            </div>
+            <aside class="c-inspector" aria-label="Selected attention details"><div class="c-inspector-section"><div class="c-eyebrow" id="c-detail-provider">Codex · UI lane</div><h2 id="c-detail-title">Ready for your eyes.</h2><p id="c-detail-message">The stream view is in place. Unit tests passed. Please check the empty state and reconnect behavior.</p><div style="margin-top:12px"><span class="c-pill c-warm" id="c-detail-state">Awaiting your test</span></div></div><div class="c-inspector-section"><div class="c-eyebrow">Worktree</div><div class="c-codepath" id="c-detail-path">feature/stream-ui<br>Head 7a4c2e1 · Phase 03</div><button class="c-button c-icon-button" id="c-open-origin" aria-label="Open run" data-tooltip="Open run"><i data-lucide="arrow-up-right" aria-hidden="true"></i></button></div><div class="c-inspector-section"><div class="c-eyebrow">Your verification</div><label class="c-check"><input type="checkbox" data-verify="empty">Empty state is clear</label><label class="c-check"><input type="checkbox" data-verify="reconnect">Reconnect preserves the work</label><button class="c-button c-primary c-icon-button" data-action="review-note" aria-label="Create review note" data-tooltip="Create review note"><i data-lucide="square-pen" aria-hidden="true"></i></button></div></aside>
+          </div>
+        </section>
+        <section class="c-page" data-pane="features" hidden>
+          <div class="c-heading"><div><div class="c-eyebrow">Parallel work</div><h1>A place for every phase.</h1><p>Plans, lanes, worktrees, and the gate that comes next.</p></div></div>
+          <div class="c-phase-grid"><button class="c-feature" data-feature="workspace" aria-pressed="true"><div class="c-eyebrow">Phase 03</div><h2>Agent workspace</h2><div class="c-small">3 lanes · 1 ready to test</div></button><button class="c-feature" data-feature="session" aria-pressed="false"><div class="c-eyebrow">Phase 02</div><h2>Session engine</h2><div class="c-small">3 lanes · 1 needs input</div></button><button class="c-feature" data-feature="trace" aria-pressed="false"><div class="c-eyebrow">Phase 04</div><h2>Trace pipeline</h2><div class="c-small">3 lanes · 1 failed check</div></button></div>
+          <div class="c-section-label" id="c-feature-label">Agent workspace · Phase 03 lanes</div><div class="c-lanes" id="c-lanes"></div>
+          <div class="c-flow" aria-label="Phase flow: plan to parallel lanes to human verification"><span>Plan</span>→<span>Parallel lanes</span>→<span>Human verification</span></div>
+        </section>
+        <section class="c-page c-day-page" data-pane="today">
+          <div class="c-heading c-day-heading"><div><div class="c-eyebrow" id="c-day-relative">Today</div><h1 id="c-day-title">Sunday, September 6</h1><p id="c-task-count">3 to do · 1 completed</p></div><div class="c-day-actions"><div class="c-action-group c-glass-group" aria-label="Task view"><button class="c-button c-quiet c-icon-button" data-task-view="list" aria-label="List view" data-tooltip="List view" aria-pressed="true"><i data-lucide="list" aria-hidden="true"></i></button><button class="c-button c-quiet c-icon-button" data-task-view="calendar" aria-label="Calendar view" data-tooltip="Calendar view" aria-pressed="false"><i data-lucide="calendar-days" aria-hidden="true"></i></button></div><button class="c-button c-primary c-icon-button" data-action="focus-task" aria-label="Add a task" data-tooltip="Add a task"><i data-lucide="plus" aria-hidden="true"></i></button></div></div>
+          <div class="c-inline-date" id="c-inline-date" aria-label="Browse task dates"></div>
+          <div id="c-week-strip" class="c-week-strip" aria-label="Week of tasks"></div>
+          <div id="c-month-view" hidden><div class="c-month-heading"><h2 id="c-month-title">September 2026</h2><div class="c-action-group"><button class="c-button c-quiet c-icon-button" data-month-shift="-1" aria-label="Previous month" data-tooltip="Previous month"><i data-lucide="chevron-left" aria-hidden="true"></i></button><button class="c-button c-quiet c-icon-button" data-month-shift="1" aria-label="Next month" data-tooltip="Next month"><i data-lucide="chevron-right" aria-hidden="true"></i></button></div></div><div class="c-month-weekdays" aria-hidden="true"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div><div id="c-month-grid" class="c-month-grid" aria-label="Monthly task calendar"></div></div>
+          <div id="c-day-composer" class="c-day-composer"></div>
+          <div id="c-tasks"></div>
+          <section class="c-task-detail" id="c-task-detail" aria-label="Edit task" hidden></section>
+        </section>
+        <section class="c-page c-notes-page" data-pane="notes" hidden>
+          <div class="c-note-top">
+            <div class="c-note-location"><i data-lucide="file-text" aria-hidden="true"></i><span id="c-note-folder">Reviews /</span><span id="c-note-filename">phase-03-review.md</span></div>
+            <div class="c-action-group c-glass-group"><button class="c-button c-quiet c-icon-button" id="c-note-mode" aria-pressed="false" aria-label="Markdown source" data-tooltip="Markdown source"><i data-lucide="code-2" aria-hidden="true"></i></button><button class="c-button c-quiet c-icon-button" id="c-annotate" aria-pressed="false" aria-label="Annotate image" data-tooltip="Annotate image"><i data-lucide="pencil" aria-hidden="true"></i></button><button class="c-button c-icon-button" id="c-insert-image" aria-label="Insert image" data-tooltip="Insert image"><i data-lucide="image-plus" aria-hidden="true"></i></button></div>
+            <input type="file" id="c-image-file" accept="image/*" hidden>
+          </div>
+          <article class="c-note-sheet" id="c-note-rendered" aria-label="Note editor">
+            <div class="c-note-context"><span id="c-note-kind">Review</span><span class="c-writing-state" id="c-writing-state"><i data-lucide="pen-line" aria-hidden="true"></i>Editing</span></div>
+            <div class="c-note-title" id="c-note-title" contenteditable="plaintext-only" role="textbox" aria-label="Note title" aria-multiline="false" data-placeholder="Untitled" spellcheck="true">Orchestration review</div>
+            <div class="c-note-meta" id="c-note-meta"><span class="c-pill">phase <b style="color:var(--c-end)">03</b></span><span class="c-pill">status <b style="color:var(--c-end)">verification</b></span><span class="c-pill">agent <b>Codex</b></span></div>
+            <div class="c-document" id="c-document" contenteditable="true" role="textbox" aria-label="Note body" aria-multiline="true" data-placeholder="Start writing…" spellcheck="true"><p>The happy path looks good. A couple of details need another pass before this phase is ready.</p><h2>Reconnect needs a clearer state</h2><p>When the stream drops, keep the existing work visible. Show the retry state beside the run, and explain what will happen next.</p></div>
+            <div class="c-shot" id="c-demo-shot" data-review-only aria-label="Sample UI evidence with two numbered annotation pins"><div class="c-shot-chrome"><span>Agent workspace / Stream</span><span>Reconnect</span></div><div class="c-shot-content"><div class="c-shot-side">Overview<br>Runs<br>Settings</div><div class="c-shot-main">UI lane <span class="c-muted">/ phase 03</span><div class="c-shot-bar"></div><div class="c-shot-bar" style="max-width:42%"></div><div class="c-shot-alert">Connection closed · retrying</div></div></div><button class="c-pin" style="left:25%;top:39%" aria-label="Annotation 1: preserve content on reconnect">1</button><button class="c-pin" style="left:81%;top:75%" aria-label="Annotation 2: explain retry status">2</button></div>
+            <div class="c-asset-caption" data-review-only><span id="c-asset-path">phase-03-review.assets/reconnect.png</span><span id="c-pin-count">Original preserved · 2 pins</span></div>
+            <div id="c-pasted-images"></div>
+            <pre class="c-code" data-review-only aria-label="Swift syntax highlighting design sample"><span class="kw">func</span> reconnect() <span class="kw">async throws</span> {
+    <span class="kw">try await</span> stream.resume(from: checkpoint)
+    status = .ready
+}</pre>
+            <div class="c-note-diagram" data-review-only role="img" aria-label="Mermaid diagram design preview: Plan, Build, Verify"><span>Plan</span>→<span>Build</span>→<span>Verify</span></div>
+            <div class="c-note-bottom"><span class="c-small c-muted" id="c-note-word-count">0 words</span><span class="c-note-paste-hint">⌘V to paste an image</span><button class="c-button c-icon-button" data-action="finding-task" aria-label="Turn finding into task" data-tooltip="Turn finding into task"><i data-lucide="list-plus" aria-hidden="true"></i></button></div>
+          </article>
+          <textarea class="c-input c-note-source" id="c-note-source" aria-label="Read-only Markdown source design preview" readonly hidden></textarea>
+        </section>
+        <section class="c-page" data-pane="usage" hidden>
+          <div class="c-heading"><div><div class="c-eyebrow">Agent usage</div><h1>Know your runway.</h1><p>Per account. Per window. Always with a timestamp.</p></div><button class="c-button c-icon-button" id="c-refresh-usage" aria-label="Refresh usage" data-tooltip="Refresh usage"><i data-lucide="refresh-cw" aria-hidden="true"></i></button></div>
+          <div class="c-usage-grid">
+            <article class="c-usage"><div class="c-ring" style="--used:21" role="img" aria-label="Codex example quota 21 percent used"><span>CX</span></div><div><h2>Codex</h2><p>5-hour window · personal account</p><p>Resets in 1h 54m · <span class="c-fresh-label">updated just now</span></p></div><div class="c-usage-value"><strong>21%</strong><small>used</small></div></article>
+            <article class="c-usage"><div class="c-ring" style="--used:73" role="img" aria-label="Claude Code example quota 73 percent used"><span>CL</span></div><div><h2>Claude Code</h2><p>Current session · personal account</p><p>Resets in 51m · <span class="c-fresh-label">updated 1m ago</span></p></div><div class="c-usage-value"><strong>73%</strong><small>used</small></div></article>
+            <article class="c-usage is-stale" id="c-cursor-usage"><div class="c-ring" style="--used:52" role="img" aria-label="Cursor example last known quota 52 percent, stale"><span>CU</span></div><div><h2>Cursor <span class="c-pill" id="c-cursor-state">Stale</span></h2><p>Billing window · work account</p><p id="c-cursor-freshness">Last known value · updated 2h ago</p></div><div class="c-usage-value"><strong>52%</strong><small id="c-cursor-unit">last known used</small></div></article>
+          </div>
+          <div class="c-running"><i data-lucide="info" aria-hidden="true"></i>These are quota windows. Run token and cost estimates stay separate.</div>
+        </section>
+        <section class="c-page" data-pane="settings" hidden>
+          <div class="c-heading"><div><div class="c-eyebrow">Make it yours</div><h1>Always within reach.</h1><p>The notch stays on your MacBook when you work on another display.</p></div></div>
+          <label class="c-setting"><span>Notch edge<p>Opens inward from the edge you choose.</p></span><select class="c-input" id="c-edge"><option value="top">Top · default</option><option value="left">Left</option><option value="right">Right</option><option value="bottom">Bottom</option></select></label>
+          <div class="c-setting"><span>Display anchor<p>Independent of the focused app.</p></span><span class="c-pill">Built-in display</span></div>
+          <label class="c-setting"><span>Sidebar<p>Keep labels visible or use the compact rail.</p></span><select class="c-input" id="c-sidebar-mode"><option value="expanded">Expanded</option><option value="compact">Compact rail</option></select></label>
+          <label class="c-setting"><span>Image asset folder<p>Choose where this note keeps its images.</p></span><select class="c-input" id="c-asset-policy"><option value="file">Per note · name.assets/</option><option value="workspace">Workspace · assets/</option><option value="custom">Custom · evidence/phase-03/</option></select></label>
+          <div class="c-setting"><span>Hover to open<p>Open with a short pause over the notch.</p></span><button class="c-button c-icon-button" id="c-hover-mode" aria-pressed="true" aria-label="Disable hover opening" data-tooltip="Disable hover opening"><i data-lucide="mouse-pointer-2" aria-hidden="true"></i></button></div>
+        </section>
+      </main>
+    </div>
+    <footer class="c-footbar" aria-live="polite"><span id="c-feedback">Personal workspace</span></footer>
+  </section>
+</div>
+<script>
+/* Shared task components used by the workspace, toolbar capture, and HUD. */
+function createCiderTasks(root, options) {
+  const q=s=>root.querySelector(s), qa=s=>Array.from(root.querySelectorAll(s));
+  const dayKey=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
+  const dayDate=k=>{const p=k.split('-').map(Number);return new Date(p[0],p[1]-1,p[2],12);};
+  const shift=(key,n)=>{const d=dayDate(key);d.setDate(d.getDate()+n);return dayKey(d);};
+  const fmt=(key,opts)=>dayDate(key).toLocaleDateString('en-US',opts);
+  const today='2026-09-06';
+  const state={day:today,month:today,view:'list',editing:null};
+  let nextID=8;
+  const items=[
+    {id:1,title:'Review the stream experience',project:'Agent workspace',tag:'Review',date:today,done:false},
+    {id:2,title:'Decide how interrupted work resumes',project:'Session engine',tag:'Decision',date:today,done:false},
+    {id:3,title:'Check repeated events after a timeout',project:'Trace pipeline',tag:'Issue',date:today,done:false},
+    {id:4,title:'Write down the next phase',project:'Agent workspace',tag:'Planning',date:today,done:true},
+    {id:5,title:'Test the revised empty state',project:'Agent workspace',tag:'Review',date:shift(today,1),done:false},
+    {id:6,title:'Clear a little space for deep work',project:'Personal',tag:'Focus',date:shift(today,2),done:false},
+    {id:7,title:'Review this week’s progress',project:'Personal',tag:'Review',date:shift(today,5),done:false}
+  ];
+  const drafts={day:'',quick:'',hud:''};
+  function node(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;}
+  function IconButton(icon,label,action,kind='c-quiet') {
+    const b=node('button','c-button c-icon-button '+kind);b.type='button';b.setAttribute('aria-label',label);b.dataset.tooltip=label;
+    const i=node('i');i.dataset.lucide=icon;i.setAttribute('aria-hidden','true');b.append(i);if(action)b.addEventListener('click',action);return b;
+  }
+  function changed(){render();options.changed();}
+  function createTask(title,date,project='Personal',tag='Task'){
+    if(!title.trim())return;items.push({id:nextID++,title:title.trim(),project,tag,date,done:false});changed();options.announce('Added to '+(date===today?'Today':fmt(date,{month:'short',day:'numeric'})));
+  }
+  function TaskComposer(context,dateProvider,placeholder){
+    const wrap=node('div','c-composer');const glyph=node('i');glyph.dataset.lucide='plus';glyph.setAttribute('aria-hidden','true');
+    const input=node('input');input.type='text';input.placeholder=placeholder;input.autocomplete='off';input.id='c-'+context+'-task-input';input.value=drafts[context];input.setAttribute('aria-label',context==='hud'?'New task in notch':context==='quick'?'Quick task title':'New task for selected day');
+    input.addEventListener('input',()=>{drafts[context]=input.value;});
+    const submit=()=>{const value=input.value.trim();if(!value)return;drafts[context]='';input.value='';createTask(value,dateProvider());root.querySelector('#c-'+context+'-task-input')?.focus();};
+    input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submit();}});
+    const add=IconButton('arrow-up','Add task',submit,'c-primary');add.id='c-'+context+'-task-add';wrap.append(glyph,input,add);return wrap;
+  }
+  function DateNavigator(compact){
+    const wrap=node('div','c-date-controls');wrap.style.display='contents';
+    const prev=IconButton('chevron-left','Previous day',()=>selectDay(shift(state.day,-1)));
+    const label=node('span','c-date-label',fmt(state.day,{month:'short',day:'numeric'}));
+    const next=IconButton('chevron-right','Next day',()=>selectDay(shift(state.day,1)));
+    const reset=IconButton('rotate-ccw','Return to today',()=>selectDay(today));
+    wrap.append(prev,label,next,reset);return wrap;
+  }
+  function selectDay(key){state.day=key;state.month=key;state.editing=null;q('#c-task-detail').hidden=true;options.openDay();render();options.announce(fmt(key,{weekday:'long',month:'long',day:'numeric'}));}
+  function DayDots(day){const dots=node('span','c-day-dots');dots.setAttribute('aria-hidden','true');items.filter(t=>t.date===day&&!t.done).slice(0,3).forEach(()=>dots.append(node('i')));return dots;}
+  function WeekStrip(){
+    const container=q('#c-week-strip');container.replaceChildren();const start=shift(state.day,-dayDate(state.day).getDay());
+    for(let i=0;i<7;i++){const key=shift(start,i);const button=node('button','c-week-day');button.dataset.day=key;button.setAttribute('aria-pressed',String(key===state.day));button.setAttribute('aria-label',fmt(key,{weekday:'long',month:'long',day:'numeric'}));button.append(node('span','c-small',fmt(key,{weekday:'short'})),node('span','c-week-number',String(dayDate(key).getDate())),DayDots(key));button.addEventListener('click',()=>selectDay(key));container.append(button);}
+  }
+  function MonthCalendar(){
+    const month=dayDate(state.month);month.setDate(1);const first=dayKey(month);q('#c-month-title').textContent=fmt(first,{month:'long',year:'numeric'});
+    const start=shift(first,-month.getDay()),grid=q('#c-month-grid');grid.replaceChildren();
+    for(let i=0;i<42;i++){
+      const key=shift(start,i),date=dayDate(key),tasks=items.filter(t=>t.date===key&&!t.done);const button=node('button','c-calendar-day'+(date.getMonth()!==month.getMonth()?' is-outside':'')+(key===today?' is-today':''));button.dataset.calendarDay=key;button.setAttribute('aria-pressed',String(key===state.day));button.setAttribute('aria-label',fmt(key,{month:'long',day:'numeric'})+', '+tasks.length+' tasks');button.append(node('span','c-calendar-number',String(date.getDate())));
+      tasks.slice(0,1).forEach(t=>button.append(node('span','c-calendar-task',t.title)));if(tasks.length)button.append(DayDots(key));if(tasks.length>1)button.append(node('span','c-calendar-more','+'+(tasks.length-1)));
+      button.addEventListener('click',()=>selectDay(key));grid.append(button);
+    }
+  }
+  function TaskRow(task){
+    const row=node('div','c-task-row'+(task.done?' is-done':''));row.dataset.taskId=task.id;
+    const check=node('input','c-task-check');check.type='checkbox';check.checked=task.done;check.setAttribute('aria-label',(task.done?'Reopen ':'Complete ')+task.title);check.addEventListener('change',()=>{task.done=check.checked;changed();options.announce(task.done?'Task completed':'Task reopened');});
+    const content=node('button','c-task-content');content.type='button';content.setAttribute('aria-label','Edit '+task.title);const title=node('div','c-task-title',task.title);const meta=node('div','c-task-meta');const icon=node('i');icon.dataset.lucide=task.project==='Personal'?'circle':'folder';icon.setAttribute('aria-hidden','true');meta.append(icon,node('span','',task.project),node('span','c-task-tag',task.tag));content.append(title,meta);content.addEventListener('click',()=>openEditor(task));
+    const more=IconButton('ellipsis','Edit '+task.title,()=>openEditor(task));row.append(check,content,more);return row;
+  }
+  function openEditor(task){
+    state.editing=task.id;const host=q('#c-task-detail');host.hidden=false;host.replaceChildren();const head=node('div','c-capture-heading');head.append(node('span','','Edit task'),IconButton('x','Close task details',()=>{host.hidden=true;state.editing=null;}));
+    const title=node('input','c-input');title.value=task.title;title.setAttribute('aria-label','Task title');const label=node('label','c-capture-date','Planned for');const date=node('input','c-input');date.type='date';date.value=task.date;date.setAttribute('aria-label','Task planned date');label.append(date);const actions=node('div','c-task-detail-actions');actions.append(IconButton('check','Save task',()=>{if(!title.value.trim()||!date.value)return;task.title=title.value.trim();task.date=date.value;host.hidden=true;state.editing=null;changed();options.announce('Task updated');},'c-primary'));host.append(head,title,label,actions);options.icons();title.focus();
+  }
+  function render(){
+    const dayItems=items.filter(t=>t.date===state.day),todo=dayItems.filter(t=>!t.done),done=dayItems.filter(t=>t.done);
+    const relative=state.day===today?'Today':state.day===shift(today,1)?'Tomorrow':state.day===shift(today,-1)?'Yesterday':'Your day';
+    q('#c-day-relative').textContent=relative;q('#c-day-title').textContent=fmt(state.day,{weekday:'long',month:'long',day:'numeric'});q('#c-task-count').textContent=todo.length+' to do'+(done.length?' · '+done.length+' completed':'');
+    q('#c-sidebar-date').replaceChildren(DateNavigator(true));q('#c-inline-date').replaceChildren(DateNavigator(false));WeekStrip();MonthCalendar();
+    q('#c-week-strip').hidden=state.view!=='list';q('#c-month-view').hidden=state.view!=='calendar';qa('[data-task-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.taskView===state.view)));
+    q('#c-day-composer').replaceChildren(TaskComposer('day',()=>state.day,'Add something to this day…'));
+    const host=q('#c-tasks');host.replaceChildren();const heading=node('div','c-task-section-title',state.view==='calendar'?fmt(state.day,{month:'short',day:'numeric'}):'To do');heading.append(node('span','c-total',String(todo.length)));host.append(heading);
+    if(todo.length)todo.forEach(task=>host.append(TaskRow(task)));else{const empty=node('div','c-empty-day','A little breathing room.');empty.append(node('p','','Add a task whenever you’re ready.'));host.append(empty);}
+    if(done.length){const completed=node('details','c-completed');completed.open=true;completed.append(node('summary','',done.length+' completed'));done.forEach(task=>completed.append(TaskRow(task)));host.append(completed);}
+    options.icons();
+  }
+  function renderHUD(host){
+    host.replaceChildren();const todo=items.filter(t=>t.date===today&&!t.done);
+    todo.slice(0,3).forEach(task=>{const row=node('label','c-hud-task');const check=node('input','c-task-check');check.type='checkbox';check.setAttribute('aria-label','Complete '+task.title+' in notch');check.addEventListener('change',()=>{task.done=check.checked;changed();options.announce('Task completed');});row.append(check,node('span','',task.title));host.append(row);});
+    if(!todo.length)host.append(node('p','c-small c-muted','Everything on your list is done.'));
+    const compose=node('div','c-hud-composer');compose.append(TaskComposer('hud',()=>today,'Add a task for today…'));host.append(compose);q('#c-hud-day-label').textContent=todo.length+' to do';options.icons();
+  }
+  function quickCapture(){
+    const host=q('#c-quick-capture');if(!host.hidden){host.hidden=true;return;}host.hidden=false;host.replaceChildren();
+    const heading=node('div','c-capture-heading');heading.append(node('span','','New task'),IconButton('x','Close quick task',()=>{host.hidden=true;}));
+    const label=node('label','c-capture-date','Planned for'),date=node('input','c-input');date.type='date';date.value=options.isDayView()?state.day:today;date.setAttribute('aria-label','Quick task date');label.append(date);host.append(heading,TaskComposer('quick',()=>date.value||today,'What’s on your mind?'),label);options.icons();q('#c-quick-task-input').focus();
+  }
+  root.addEventListener('click',event=>{
+    const b=event.target.closest('button');if(!b)return;
+    if(b.dataset.taskView){state.view=b.dataset.taskView;state.month=state.day;render();}
+    if(b.dataset.monthShift){const d=dayDate(state.month);d.setDate(1);d.setMonth(d.getMonth()+Number(b.dataset.monthShift));state.month=dayKey(d);MonthCalendar();options.icons();}
+    if(b.dataset.action==='quick-task')quickCapture();
+    if(b.dataset.action==='focus-task'){state.view='list';render();q('#c-day-task-input').focus();}
+  });
+  return {render,renderHUD,selectDay,quickCapture,IconButton,addFinding(title,project){createTask(title,state.day,project,'Finding');},focusHUD(){q('#c-hud-task-input')?.focus();},closeCapture(){q('#c-quick-capture').hidden=true;q('#c-task-detail').hidden=true;},day:()=>state.day};
+}
+(function(){
+  const root=document.getElementById('cider-canvas');
+  const q=function(s){return root.querySelector(s);};
+  const qa=function(s){return Array.from(root.querySelectorAll(s));};
+  const state={page:'notes',hudTab:'today',edge:'top',expanded:true,pinned:false,compact:false,hover:true,external:true,feature:'workspace',annotating:false,source:false,accent:'#ff8a3d',radius:16};
+  const details={
+    ui:{provider:'Codex · UI lane',title:'Ready for your eyes.',message:'The stream view is in place. Unit tests passed. Please check the empty state and reconnect behavior.',status:'Awaiting your test',path:'feature/stream-ui · Head 7a4c2e1 · Phase 03'},
+    schema:{provider:'Claude Code · Architect',title:'A decision before the next run.',message:'Should checkpoints resume the entire phase, or only the interrupted worker? The other lanes can continue while you decide.',status:'Waiting for your input',path:'feature/checkpoints · Head a63e9d0 · Phase 02'},
+    worker:{provider:'Codex · Worker lane',title:'One case needs another look.',message:'The timeout fixture reproduces a duplicate event after retry. The agent left the failing test and a proposed fix for review.',status:'Failed check · needs review',path:'feature/event-retry · Head c73f15b · Phase 04'}
+  };
+  let selected='ui',dwell,leave,activeNote='review';
+  const notes={review:{title:'Orchestration review',filename:'phase-03-review.md',body:q('#c-document').innerHTML,images:[]},draft:{title:'',filename:'untitled.md',body:'',images:[]}};
+  const taskKit=createCiderTasks(root,{announce,icons,isDayView:()=>state.page==='today',openDay:()=>showPage('today'),changed:()=>{if(state.hudTab==='today')renderHUD();}});
+  const lanes={workspace:[['UI lane','Codex · feature/stream-ui','Awaiting test'],['API lane','Codex · feature/stream-api','Running'],['Contract review','Claude Code · phase-03','Running']],session:[['Architect','Claude Code · feature/checkpoints','Needs input'],['Persistence','Codex · feature/session-db','Running'],['Recovery','Codex · feature/recovery','Running']],trace:[['Worker retry','Codex · feature/event-retry','Failed check'],['Ingest adapter','Codex · feature/trace-ingest','Running'],['Replay checks','Claude Code · feature/replay','Running']]};
+  function icons(){if(globalThis.lucide){globalThis.lucide.createIcons({attrs:{width:15,height:15}});}}
+  function announce(text){q('#c-feedback').textContent=text;}
+  function updateNotePresentation(){
+    const title=q('#c-note-title'),body=q('#c-document');
+    title.dataset.empty=String(!title.textContent.trim());
+    body.dataset.empty=String(!body.textContent.trim()&&!body.querySelector('img,hr,table'));
+    const text=body.innerText.trim(),words=text?text.split(/\s+/u).length:0;
+    q('#c-note-word-count').textContent=words+' '+(words===1?'word':'words');
+    notes[activeNote].title=title.textContent.trim();
+    q('#c-draft-label').textContent=activeNote==='draft'?(title.textContent.trim()||'Untitled'):(notes.draft.title||'Untitled');
+  }
+  function openNote(id,focusEditor=false){
+    notes[activeNote].title=q('#c-note-title').textContent.trim();
+    notes[activeNote].body=q('#c-document').innerHTML;
+    notes[activeNote].images=Array.from(q('#c-pasted-images').children);
+    activeNote=id;const note=notes[id];
+    q('#c-note-title').textContent=note.title;q('#c-note-filename').textContent=note.filename;
+    q('#c-document').innerHTML=note.body;q('#c-pasted-images').replaceChildren(...note.images);
+    q('#c-note-meta').hidden=id!=='review';qa('[data-review-only]').forEach(function(x){x.hidden=id!=='review';});
+    q('#c-note-rendered').classList.toggle('is-draft',id==='draft');
+    q('#c-note-kind').textContent=id==='draft'?'New note':'Review';
+    qa('[data-note-link]').forEach(function(x){if(x.dataset.noteLink===id)x.setAttribute('aria-current','true');else x.removeAttribute('aria-current');});
+    state.source=false;q('#c-note-mode').setAttribute('aria-pressed','false');q('#c-note-mode').setAttribute('aria-label','Markdown source');q('#c-note-mode').dataset.tooltip='Markdown source';q('#c-note-rendered').hidden=false;q('#c-note-source').hidden=true;
+    updateNotePresentation();
+    showPage('notes');
+    if(focusEditor)q(note.title?'#c-document':'#c-note-title').focus();
+  }
+  function renderShell(){
+    q('#c-app').classList.toggle('c-compact',state.compact);
+    q('#c-sidebar-toggle').setAttribute('aria-pressed',String(state.compact));
+    qa('.c-nav > button').forEach(function(button){button.dataset.tooltip=button.getAttribute('aria-label');button.dataset.tooltipPlacement='right';});
+    q('#c-sidebar-mode').value=state.compact?'compact':'expanded';
+    const hud=q('#c-hud');hud.dataset.edge=state.edge;hud.classList.toggle('c-collapsed',!state.expanded);
+    q('#c-hud-body').hidden=!state.expanded;q('#c-hud-toggle').setAttribute('aria-expanded',String(state.expanded));
+    q('#c-pin-hud').setAttribute('aria-pressed',String(state.pinned));
+    q('#c-pin-hud').dataset.tooltip=state.pinned?'Unpin notch':'Pin notch';q('#c-pin-hud').setAttribute('aria-label',state.pinned?'Unpin notch':'Pin notch');
+    q('#c-anchor-label').textContent='Built-in display · '+state.edge;
+    q('#c-edge').value=state.edge;
+    q('#c-focus-label').textContent=state.external?'External display in use':'MacBook in use';
+    root.style.setProperty('--c-orange',state.accent);root.style.setProperty('--c-radius',state.radius+'px');
+    icons();
+  }
+  function showPage(page){state.page=page;qa('[data-pane]').forEach(function(p){p.hidden=p.dataset.pane!==page;});qa('.c-nav [data-page]').forEach(function(b){if(b.dataset.page===page)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});if(page==='features')renderLanes();}
+  function selectAttention(id){selected=id;const d=details[id];if(!d)return;showPage('inbox');qa('.c-attention').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.attention===id));});q('#c-detail-provider').textContent=d.provider;q('#c-detail-title').textContent=d.title;q('#c-detail-message').textContent=d.message;q('#c-detail-state').textContent=d.status;q('#c-detail-path').textContent=d.path;qa('[data-verify]').forEach(function(c){c.checked=false;});announce('Selected '+d.provider+' · source and human verification are separate');}
+  function renderLanes(){qa('[data-feature]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.feature===state.feature));});const names={workspace:'Agent workspace · Phase 03',session:'Session engine · Phase 02',trace:'Trace pipeline · Phase 04'};q('#c-feature-label').textContent=names[state.feature]+' lanes';q('#c-lanes').replaceChildren();lanes[state.feature].forEach(function(l){const row=document.createElement('div');row.className='c-lane';const title=document.createElement('span');title.textContent=l[0];const small=document.createElement('small');small.textContent=l[1];title.append(small);const mid=document.createElement('span');mid.className='c-muted';mid.textContent='Plan linked';const tag=document.createElement('span');tag.className='c-pill'+(l[2]!=='Running'?' c-warm':'');tag.textContent=l[2];row.append(title,mid,tag);q('#c-lanes').append(row);});}
+  function renderHUD(){
+    qa('[data-hud-tab]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.hudTab===state.hudTab));});
+    const el=q('#c-hud-content');el.replaceChildren();
+    if(state.hudTab==='inbox'){[['schema','Schema decision needed','8m'],['worker','Worker retry check failed','14m'],['ui','UI lane ready to test','2m']].forEach(function(r){const b=document.createElement('button');b.className='c-hud-row';b.dataset.attention=r[0];b.innerHTML='<span class="c-dot"></span>';b.append(document.createTextNode(r[1]));const age=document.createElement('span');age.textContent=r[2];b.append(age);el.append(b);});}
+    q('#c-hud-day-label').textContent=state.hudTab==='inbox'?'3 need you':state.hudTab==='notes'?'Notes':state.hudTab==='usage'?'Usage':'Today';
+    if(state.hudTab==='today')taskKit.renderHUD(el);
+    if(state.hudTab==='notes'){const wrap=document.createElement('div');wrap.innerHTML='<p class="c-small c-muted" style="padding:9px 0">A thought, a screenshot, a quick finding.</p><button class="c-hud-row" data-page="notes">Orchestration review<span>Recent</span></button>';el.append(wrap);}
+    if(state.hudTab==='usage'){[['Codex','21% used'],['Claude Code','73% used'],['Cursor','52% · stale']].forEach(function(r){const b=document.createElement('button');b.className='c-hud-row';b.dataset.page='usage';b.textContent=r[0];const n=document.createElement('span');n.textContent=r[1];b.append(n);el.append(b);});}
+  }
+  root.addEventListener('click',function(e){
+    const b=e.target.closest('button');if(!b||!root.contains(b))return;
+    if(b.dataset.page){showPage(b.dataset.page);}
+    if(b.dataset.attention){selectAttention(b.dataset.attention);}
+    if(b.dataset.hudTab){state.hudTab=b.dataset.hudTab;renderHUD();}
+    if(b.dataset.feature){state.feature=b.dataset.feature;renderLanes();}
+    if(b.dataset.folder){showPage('notes');q('#c-note-folder').textContent=b.dataset.folder+' /';announce('Folder selected · '+b.dataset.folder);}
+    if(b.dataset.action==='new-note'){openNote('draft',true);announce('New note');}
+    if(b.dataset.action==='review-note'){openNote('review');announce('Review notes');}
+    if(b.dataset.action==='hud-task'){state.hudTab='today';state.expanded=true;renderShell();renderHUD();taskKit.focusHUD();}
+    if(b.dataset.action==='finding-task'){taskKit.addFinding(activeNote==='review'?'Make reconnect state clearer':q('#c-document').innerText.trim().slice(0,100)||'Review my note',notes[activeNote].title||'Untitled');showPage('today');}
+    if(b.classList.contains('c-pin')){announce(b.getAttribute('aria-label'));}
+  });
+  q('#c-sidebar-toggle').addEventListener('click',function(){state.compact=!state.compact;renderShell();});
+  q('#c-sidebar-mode').addEventListener('change',function(e){state.compact=e.target.value==='compact';renderShell();});
+  q('#c-edge').addEventListener('change',function(e){state.edge=e.target.value;state.expanded=true;renderShell();announce('Notch moved to '+state.edge+' · still on the built-in display');});
+  q('#c-focus-switch').addEventListener('click',function(){state.external=!state.external;renderShell();announce('Focus changed · the notch stays on the MacBook');});
+  q('#c-hud-toggle').addEventListener('click',function(){clearTimeout(dwell);clearTimeout(leave);state.expanded=!state.expanded;renderShell();});
+  q('#c-pin-hud').addEventListener('click',function(){state.pinned=!state.pinned;state.expanded=true;renderShell();});
+  q('#c-hud').addEventListener('mouseenter',function(){clearTimeout(leave);if(state.hover&&!state.expanded)dwell=setTimeout(function(){state.expanded=true;renderShell();},250);});
+  q('#c-hud').addEventListener('mouseleave',function(){clearTimeout(dwell);if(state.hover&&!state.pinned)leave=setTimeout(function(){const focus=document.activeElement;if(q('#c-hud').contains(focus)&&focus.matches('input,textarea,[contenteditable]'))return;state.expanded=false;renderShell();},450);});
+  q('#c-hover-mode').addEventListener('click',function(){state.hover=!state.hover;q('#c-hover-mode').setAttribute('aria-pressed',String(state.hover));q('#c-hover-mode').setAttribute('aria-label',state.hover?'Disable hover opening':'Enable hover opening');q('#c-hover-mode').dataset.tooltip=state.hover?'Disable hover opening':'Enable hover opening';clearTimeout(dwell);clearTimeout(leave);});
+  root.addEventListener('keydown',function(e){if(e.key==='Escape'){taskKit.closeCapture();state.pinned=false;state.expanded=false;renderShell();}});
+  q('#c-open-origin').addEventListener('click',function(){announce(details[selected].provider+' · '+details[selected].path);});
+  qa('[data-verify]').forEach(function(c){c.addEventListener('change',function(){const n=qa('[data-verify]').filter(function(x){return x.checked;}).length;announce(n+' of 2 checks completed');});});
+  q('#c-document').addEventListener('input',function(){updateNotePresentation();announce('Note updated');});
+  q('#c-note-title').addEventListener('input',function(){updateNotePresentation();announce('Note title updated');});
+  q('#c-note-title').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.isComposing){e.preventDefault();q('#c-document').focus();}});
+  q('#c-note-rendered').addEventListener('click',function(e){if(e.target===q('#c-note-rendered'))q('#c-document').focus();});
+  q('#c-annotate').addEventListener('click',function(){state.annotating=!state.annotating;root.classList.toggle('c-annotation-on',state.annotating);q('#c-annotate').setAttribute('aria-pressed',String(state.annotating));announce(state.annotating?'Click an image to place a numbered annotation':'Annotation mode off');});
+  root.addEventListener('click',function(e){if(!state.annotating||e.target.closest('.c-pin'))return;const shot=e.target.closest('.c-shot');if(!shot)return;const rect=shot.getBoundingClientRect();const count=shot.querySelectorAll('.c-pin').length+1;const pin=document.createElement('button');pin.className='c-pin';pin.style.left=Math.min(96,Math.max(4,100*(e.clientX-rect.left)/rect.width))+'%';pin.style.top=Math.min(89,Math.max(11,100*(e.clientY-rect.top)/rect.height))+'%';pin.textContent=String(count);pin.setAttribute('aria-label','Annotation '+count+': new review finding');shot.append(pin);if(shot.id==='c-demo-shot')q('#c-pin-count').textContent='Original preserved · '+count+' pins';announce('Annotation '+count+' added · original image unchanged');});
+  function addImage(file){if(!file||!file.type.startsWith('image/'))return;if(file.size>25*1024*1024){announce('Choose an image smaller than 25 MB');return;}const targetNote=activeNote;const reader=new FileReader();reader.onload=function(){const box=document.createElement('div');box.className='c-shot';box.setAttribute('aria-label','Pasted review image');const img=document.createElement('img');img.src=String(reader.result);img.alt='Pasted review evidence';box.append(img);if(targetNote===activeNote)q('#c-pasted-images').append(box);else notes[targetNote].images.push(box);announce('Image added to '+(notes[targetNote].title||'Untitled'));};reader.readAsDataURL(file);}
+  q('#c-insert-image').addEventListener('click',function(){q('#c-image-file').click();});
+  q('#c-image-file').addEventListener('change',function(e){addImage(e.target.files[0]);e.target.value='';});
+  q('#c-document').addEventListener('paste',function(e){const items=e.clipboardData?Array.from(e.clipboardData.items):[];const item=items.find(function(i){return i.type.startsWith('image/');});if(item){e.preventDefault();addImage(item.getAsFile());}});
+  q('#c-asset-policy').addEventListener('change',function(e){const path={file:'phase-03-review.assets/reconnect.png',workspace:'assets/reconnect.png',custom:'evidence/phase-03/reconnect.png'};q('#c-asset-path').textContent=path[e.target.value];announce('Image folder selected');});
+  q('#c-note-mode').addEventListener('click',function(){state.source=!state.source;q('#c-note-mode').setAttribute('aria-pressed',String(state.source));q('#c-note-mode').dataset.tooltip=state.source?'Live view':'Markdown source';q('#c-note-mode').setAttribute('aria-label',state.source?'Live view':'Markdown source');q('#c-note-rendered').hidden=state.source;q('#c-note-source').hidden=!state.source;if(state.source){const review=activeNote==='review';q('#c-note-source').value=(review?'---\nphase: 03\nstatus: verification\nagent: Codex\n---\n\n':'')+(q('#c-note-title').textContent.trim()?'# '+q('#c-note-title').textContent.trim()+'\n\n':'')+q('#c-document').innerText+(review?'\n\n![Reconnect evidence]('+q('#c-asset-path').textContent+')\n\n'+String.fromCharCode(96).repeat(3)+'mermaid\nflowchart LR\n  Plan --> Build --> Verify\n'+String.fromCharCode(96).repeat(3):'');}announce(state.source?'Markdown source':'Live view');});
+  q('#c-refresh-usage').addEventListener('click',function(){qa('.c-fresh-label').forEach(function(x){x.textContent='updated just now';});q('#c-cursor-usage').classList.remove('is-stale');q('#c-cursor-state').textContent='Current';q('#c-cursor-freshness').textContent='Resets in 12 days · updated just now';q('#c-cursor-unit').textContent='used';announce('Usage updated');});
+  renderShell();renderLanes();taskKit.render();renderHUD();openNote('draft');icons();
+  if(globalThis.Tweak){const tweak=new Tweak({container:root,onChange:renderShell});tweak.addSelect(state,'edge',{options:['top','left','right','bottom'],label:'Notch edge'});tweak.addToggle(state,'compact',{label:'Compact sidebar'});tweak.addToggle(state,'expanded',{label:'Expanded notch'});tweak.addColorPicker(state,'accent',{label:'Ember accent',reference:'--c-orange'});}
+})();
+</script>

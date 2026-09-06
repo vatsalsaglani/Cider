@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src cider: 'unsafe-inline'; style-src cider: 'unsafe-inline'; img-src cider: data:; font-src cider: data:; connect-src cider:; object-src 'none'; frame-src 'none'">
+<link rel="stylesheet" href="dist/index.css"><link rel="stylesheet" href="cider-tables.css"><style>
+html,body,#editor{height:100%;margin:0;background:transparent;color:#f5f2ed;font-family:-apple-system} .vditor{border:0;background:transparent} .vditor-toolbar{background:transparent;border:0;opacity:.7} .vditor-ir,.vditor-wysiwyg,.vditor-reset{background:transparent!important;color:#f5f2ed!important} .vditor-reset{font-size:16px!important;line-height:1.8!important;padding:30px 46px!important} .vditor-reset:focus{outline:none} .vditor-reset h1{font-size:32px} .vditor-toolbar svg{color:#b8aca0}.vditor-panel{background:#202020} pre{background:#191a1d!important} .language-mermaid{padding:20px 12px;background:#101011;border-radius:14px;overflow:auto} .language-mermaid svg{display:block;margin:auto;max-width:100%} .cider-diagram-error{color:#efb27c;font:14px/1.6 -apple-system;text-align:left}
+</style></head><body><div id="editor"></div><script id="vditorMermaidScript" src="dist/js/mermaid/mermaid.min.js"></script><script src="dist/cider-mermaid.js"></script><script src="dist/index.js"></script><script>
+let loading=true;let timer;const send=v=>window.webkit.messageHandlers.editor.postMessage(v);
+const editor=new Vditor('editor',{cdn:'cider://document',mode:'ir',theme:'dark',height:'100%',lang:'en_US',cache:{enable:false},placeholder:'Let a thought unfold…',toolbar:['headings','bold','italic','link','list','check','code','table','edit-mode','undo','redo'],preview:{hljs:{enable:true,style:'github-dark'},markdown:{sanitize:true}},input:()=>{if(!loading){send({type:'changed',text:editor.getValue()})}},after:()=>send({type:'ready'})});
+window.loadNote=text=>{loading=true;editor.setValue(text);loading=false};
+document.addEventListener('paste',e=>{const f=[...(e.clipboardData?.files||[])].find(f=>f.type.startsWith('image/'));if(!f)return;e.preventDefault();e.stopImmediatePropagation();if(f.size>25000000)return;const reader=new FileReader();reader.onload=()=>{const name=crypto.randomUUID()+'.png';send({type:'image',name,data:String(reader.result).split(',')[1]});};reader.readAsDataURL(f)},true);
+window.ciderLinkTarget=target=>{
+ const anchor=target.closest?.('a[href]');
+ if(anchor)return anchor.getAttribute('href');
+ const label=target.closest?.('.vditor-ir__link');
+ return label?.closest('[data-type="a"]')?.querySelector('.vditor-ir__marker--link')?.textContent || null;
+};
+document.addEventListener('click', event => {
+ const href=window.ciderLinkTarget(event.target);
+ if(!href || !event.isTrusted)return;
+ event.preventDefault();event.stopImmediatePropagation();
+ send({type:'link',href});
+},true);
+window.scrollToNoteAnchor=anchor=>{
+ if(!anchor)return;
+ const slug=text=>text.toLowerCase().trim().replace(/[^\p{L}\p{N}\s-]/gu,'').replace(/\s+/g,'-');
+ const node=document.getElementById(anchor)||[...document.querySelectorAll('h1,h2,h3,h4,h5,h6')].find(n=>slug(n.textContent.replace(/^H[1-6]\s*#*\s*/,''))===anchor);
+ node?.scrollIntoView({block:'start'});
+};
+window.assetFolder='assets';
+</script></body></html>

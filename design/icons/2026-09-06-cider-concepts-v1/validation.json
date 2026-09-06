@@ -1,0 +1,80 @@
+{
+  "date": "2026-09-06",
+  "checks": [
+    "Visual inspection of the selected concepts",
+    "PNG decoding, dimensions and channel inspection",
+    "Byte-preserving workspace copy verified by SHA-256"
+  ],
+  "assets": [
+    {
+      "file": "01-ember-c-app-v1.png",
+      "path": "/Users/vatsals/Desktop/qyrus/random/notch-scratchpad/design/icons/2026-09-06-cider-concepts-v1/01-ember-c-app-v1.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "corner_pixel": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sha256": "dd05bc8b79d30957ccfd92ec99e2c2af6e49946034f7529c7d8b81182ccc9fbd"
+    },
+    {
+      "file": "02-ember-notch-app-v1.png",
+      "path": "/Users/vatsals/Desktop/qyrus/random/notch-scratchpad/design/icons/2026-09-06-cider-concepts-v1/02-ember-notch-app-v1.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "corner_pixel": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sha256": "19971006ccd1eaec89c2cca8672b6a77e88a359531fe5278ee33af3d0c3742f2"
+    },
+    {
+      "file": "03-ember-c-notch-orange-on-black-v4.png",
+      "path": "/Users/vatsals/Desktop/qyrus/random/notch-scratchpad/design/icons/2026-09-06-cider-concepts-v1/03-ember-c-notch-orange-on-black-v4.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGB",
+      "alpha_range": null,
+      "corner_pixel": [
+        1,
+        1,
+        1
+      ],
+      "sha256": "09b441aae03377b8f34ad8054afd6f3ab6499cc6ec661098d2a31d3022d7f262"
+    },
+    {
+      "file": "04-ember-c-notch-mono-on-black-v4.png",
+      "path": "/Users/vatsals/Desktop/qyrus/random/notch-scratchpad/design/icons/2026-09-06-cider-concepts-v1/04-ember-c-notch-mono-on-black-v4.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGB",
+      "alpha_range": null,
+      "corner_pixel": [
+        1,
+        0,
+        0
+      ],
+      "sha256": "b42da5038caa90b294356cdee26fe8071ad63a7fbe4173f28b54339f564c737a"
+    }
+  ],
+  "limitations": [
+    "These are raster design concepts, not a compiled macOS icon catalog or an icns bundle.",
+    "The notch previews have opaque near-black backgrounds. Clean shared vector geometry and small-size optical tuning are still needed for native notch/template assets.",
+    "Intermediate transparent notch generations contained fringe pixels; background cleanup attempts also produced baked checkerboards. Those attempts were not selected."
+  ]
+}
+

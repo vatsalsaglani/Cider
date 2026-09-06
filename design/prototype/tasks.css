@@ -1,0 +1,100 @@
+/* Workspace materials and task components. */
+#cider-canvas .c-window{background:radial-gradient(ellipse 85% 340px at 20% 0%,#85422175,transparent 78%),radial-gradient(ellipse 65% 240px at 90% 0%,#5c281b45,transparent 85%),var(--c-bg)}
+#cider-canvas .c-titlebar{background:#191411a8;border-bottom-color:#ffffff0d;backdrop-filter:blur(20px)}
+#cider-canvas .c-sidebar{background:#171310b3;border-right-color:#ffffff12;backdrop-filter:blur(18px)}
+#cider-canvas .c-footbar{background:#101011d9;border-top-color:#ffffff0c}
+#cider-canvas .c-app{min-height:615px}
+#cider-canvas .c-page{background:transparent}
+#cider-canvas .c-screen{height:374px}
+#cider-canvas .c-external{display:flex;align-items:center;gap:10px;max-width:none;padding:4px 9px;background:#191616;border-color:#5e4332;font-size:11px;bottom:12px;right:14px}
+#cider-canvas .c-display-label{bottom:19px}
+#cider-canvas .c-action-group{display:inline-flex;align-items:center;gap:5px;flex-shrink:0}
+#cider-canvas .c-icon-button{width:32px;min-width:32px;height:32px;min-height:32px;padding:0!important;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+#cider-canvas .c-icon-button svg{width:16px;height:16px}
+#cider-canvas .c-glass-group{padding:3px;border:1px solid #ffffff17;border-radius:12px;background:linear-gradient(160deg,#ffffff0c,#ffffff03);box-shadow:inset 0 1px #ffffff07;backdrop-filter:blur(16px)}
+#cider-canvas .c-icon-button[aria-pressed=true]{background:#ffffff15;color:var(--c-end)}
+#cider-canvas .c-titlebar .c-icon-button{min-height:29px;height:29px;width:30px;min-width:30px}
+#cider-canvas .c-sidebar-bottom .c-action-group{justify-content:space-evenly;width:100%}
+#cider-canvas .c-sidebar-date{display:flex;align-items:center;justify-content:space-between;gap:1px;margin:-1px 5px 9px 6px;padding:2px;color:var(--c-muted)}
+#cider-canvas .c-sidebar-date .c-icon-button{width:23px;min-width:23px;height:26px;min-height:26px;border:0;background:none;padding:0}
+#cider-canvas .c-sidebar-date .c-date-label{font-size:11px;text-align:center;min-width:45px;color:#d0bcb0}
+#cider-canvas .c-sidebar-date button:hover{background:#ffffff0a}
+#cider-canvas .c-app.c-compact .c-sidebar-date{display:none}
+#cider-canvas .c-app.c-compact .c-sidebar-bottom .c-action-group{flex-direction:column}
+#cider-canvas .c-inline-date{display:none;align-items:center;gap:6px;margin-top:-10px;margin-bottom:18px}
+#cider-canvas .c-app.c-compact .c-inline-date{display:flex}
+#cider-canvas .c-day-page{padding:28px 32px 32px}
+#cider-canvas .c-day-heading{align-items:center;margin-bottom:22px}
+#cider-canvas .c-day-heading h1{font-size:26px;line-height:1.2;letter-spacing:-.8px;margin-top:7px}
+#cider-canvas .c-day-heading .c-eyebrow{color:#d7af96;letter-spacing:1.7px;font-size:11px}
+#cider-canvas .c-day-actions{display:flex;gap:12px;align-items:center;flex-shrink:0}
+#cider-canvas .c-week-strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;padding:0 0 23px;border-bottom:1px solid #ffffff12;margin-bottom:24px}
+#cider-canvas .c-week-day{border:1px solid transparent;background:none;border-radius:12px;padding:11px 3px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;color:var(--c-muted)}
+#cider-canvas .c-week-day:hover{background:#ffffff08}
+#cider-canvas .c-week-day[aria-pressed=true]{background:linear-gradient(160deg,#ffb66b25,#ff6a3210);border-color:#ffb66b38;box-shadow:inset 0 1px #ffc69215;color:var(--c-text)}
+#cider-canvas .c-week-day .c-week-number{font-size:21px;font-weight:500;line-height:1.4}
+#cider-canvas .c-week-day[aria-pressed=true] .c-week-number{color:var(--c-end)}
+#cider-canvas .c-day-dots{display:flex;gap:3px;height:5px;align-items:center}
+#cider-canvas .c-day-dots i{width:3px;height:3px;border-radius:50%;background:var(--c-orange);display:block}
+#cider-canvas .c-composer{display:flex;align-items:center;gap:10px;min-width:0;border:1px solid #ffffff18;background:#151311b3;box-shadow:inset 0 1px #ffffff04;border-radius:12px;padding:7px 8px 7px 13px}
+#cider-canvas .c-composer>svg{width:16px;height:16px;flex-shrink:0;color:var(--c-muted)}
+#cider-canvas .c-composer input{border:0;background:none;padding:5px 0;min-width:0;width:100%;color:var(--c-text);font:inherit;outline-offset:3px}
+#cider-canvas .c-composer input::placeholder{color:#b5a396}
+#cider-canvas .c-composer .c-icon-button{width:29px;min-width:29px;height:29px;min-height:29px}
+#cider-canvas .c-day-composer{margin-bottom:24px}
+#cider-canvas .c-task-section-title{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--c-muted);padding:0 0 8px}
+#cider-canvas .c-task-section-title .c-total{color:#716d68}
+#cider-canvas .c-task-row{display:flex;align-items:center;gap:12px;padding:15px 5px;border-bottom:1px solid #ffffff0b;min-height:76px}
+#cider-canvas .c-task-check{appearance:none!important;position:relative;width:18px!important;height:18px!important;margin:0!important;border:1.5px solid #81786f;border-radius:50%;background:none;cursor:pointer}
+#cider-canvas .c-task-check:checked{background:var(--c-orange);border-color:var(--c-orange)}
+#cider-canvas .c-task-check:checked:after{content:'✓';position:absolute;inset:-1px;display:grid;place-items:center;color:var(--c-on);font-size:12px;font-weight:600}
+#cider-canvas .c-task-content{border:0;background:none;text-align:left;flex:1;min-width:0;padding:0;display:block;color:var(--c-text)}
+#cider-canvas .c-task-content:hover .c-task-title{color:var(--c-end)}
+#cider-canvas .c-task-row .c-task-title{font-size:13px;line-height:1.6;font-weight:500;overflow-wrap:anywhere}
+#cider-canvas .c-task-row .c-task-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:var(--c-muted);font-size:11px;line-height:1.5;margin-top:5px}
+#cider-canvas .c-task-row .c-task-meta svg{width:12px;height:12px}
+#cider-canvas .c-task-tag{padding:2px 7px;border-radius:5px;background:#ffffff06;color:#c6a58e;font-size:11px}
+#cider-canvas .c-task-row.is-done{opacity:.8}
+#cider-canvas .c-task-row.is-done .c-task-title{text-decoration:line-through}
+#cider-canvas .c-task-row.is-done .c-task-check{background:#6f6962;border-color:#6f6962}
+#cider-canvas .c-completed{margin-top:23px}
+#cider-canvas .c-completed summary{cursor:pointer;font-size:12px;color:var(--c-muted);padding:4px 0}
+#cider-canvas .c-completed summary::marker{color:#8d7c6d}
+#cider-canvas .c-empty-day{padding:32px 0 20px;color:var(--c-muted);text-align:center;font-size:13px}
+#cider-canvas .c-empty-day p{margin-top:6px;font-size:12px}
+#cider-canvas .c-month-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+#cider-canvas .c-month-heading h2{font-size:15px;font-weight:500}
+#cider-canvas .c-month-weekdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center;color:var(--c-muted);font-size:11px;margin-bottom:9px}
+#cider-canvas .c-month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-bottom:23px}
+#cider-canvas .c-calendar-day{border:1px solid #ffffff07;display:flex;flex-direction:column;gap:6px;align-items:flex-start;background:#11121488;min-height:82px;padding:8px;border-radius:7px;text-align:left;min-width:0}
+#cider-canvas .c-calendar-day:hover{background:#302018}
+#cider-canvas .c-calendar-day[aria-pressed=true]{border-color:#ffb66b55;background:#302018b3}
+#cider-canvas .c-calendar-day.is-outside{opacity:.38}
+#cider-canvas .c-calendar-day.is-today .c-calendar-number{background:var(--c-orange);color:var(--c-on);border-radius:50%;width:23px;height:23px;display:grid;place-items:center}
+#cider-canvas .c-calendar-number{font-size:12px;font-weight:500;min-height:23px}
+#cider-canvas .c-calendar-task{max-width:100%;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#cdb09b}
+#cider-canvas .c-calendar-more{color:var(--c-muted);font-size:11px}
+#cider-canvas .c-quick-capture{padding:16px 22px;background:#211a16ee;border-bottom:1px solid #ffffff14}
+#cider-canvas .c-capture-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;font-size:13px}
+#cider-canvas .c-capture-date{display:flex;gap:10px;align-items:center;margin-top:10px;color:var(--c-muted);font-size:12px}
+#cider-canvas .c-capture-date input{width:auto;padding:5px 9px;font-size:12px}
+#cider-canvas .c-task-detail{background:#1b1714;border:1px solid #665041;border-radius:12px;padding:18px;margin-top:20px}
+#cider-canvas .c-task-detail .c-input{margin-bottom:10px;background:#151311}
+#cider-canvas .c-task-detail-actions{display:flex;justify-content:flex-end;gap:7px}
+#cider-canvas .c-hud-task{display:flex;align-items:center;gap:9px;font-size:12px;border-bottom:1px solid #202022;padding:9px 0}
+#cider-canvas .c-hud-task .c-task-check{width:15px!important;height:15px!important;flex-shrink:0}
+#cider-canvas .c-hud-task span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#cider-canvas .c-hud-composer{margin-top:10px}
+#cider-canvas .c-hud-composer .c-composer{border-radius:9px;padding:3px 5px 3px 10px;font-size:12px;background:#151311}
+#cider-canvas .c-hud-composer .c-composer>svg{display:none}
+#cider-canvas .c-hud-footer{margin-top:9px}
+#cider-canvas .c-hud-footer .c-icon-button{height:27px;min-height:27px;width:29px;min-width:29px}
+#cider-canvas .c-note-meta b{font-weight:500}
+#cider-canvas .c-inspector .c-icon-button{width:32px;min-height:32px;display:flex;margin-top:12px}
+#cider-canvas .c-setting>.c-icon-button{justify-self:end}
+#cider-canvas .c-footbar #c-feedback{display:inline;margin-left:0}
+@media(max-width:850px){#cider-canvas .c-day-page{padding:25px 23px}#cider-canvas .c-day-heading{flex-wrap:wrap}#cider-canvas .c-week-strip{gap:4px}#cider-canvas .c-calendar-day{padding:5px;min-height:67px}#cider-canvas .c-calendar-task{display:none}}
+@media(max-width:580px){#cider-canvas .c-sidebar-date{display:none}#cider-canvas .c-inline-date{display:flex}#cider-canvas .c-screen{height:370px}#cider-canvas .c-external{display:none}#cider-canvas .c-day-page{padding:22px 16px}#cider-canvas .c-day-heading h1{font-size:24px}#cider-canvas .c-day-actions{gap:10px}#cider-canvas .c-week-strip{gap:3px;margin-bottom:20px}#cider-canvas .c-week-day{padding:8px 2px;border-radius:9px}#cider-canvas .c-week-day .c-week-number{font-size:18px}#cider-canvas .c-day-composer{margin-bottom:18px}#cider-canvas .c-calendar-day{min-height:54px;gap:3px;padding:3px}#cider-canvas .c-calendar-more{font-size:11px}#cider-canvas .c-task-row{gap:9px}#cider-canvas .c-quick-capture{padding:15px}#cider-canvas .c-task-meta .c-task-tag{padding:1px 4px}#cider-canvas .c-titlebar .c-title{font-size:11px}}
+@media(pointer:coarse){#cider-canvas .c-icon-button{width:44px;min-width:44px;height:44px;min-height:44px!important}#cider-canvas .c-screen{height:440px}#cider-canvas .c-hud-composer .c-composer{padding:4px 6px}#cider-canvas .c-task-row{min-height:84px}#cider-canvas .c-sidebar-date{flex-wrap:wrap}#cider-canvas .c-calendar-day{min-height:62px}#cider-canvas .c-calendar-task{display:none}#cider-canvas .c-titlebar .c-title{overflow-wrap:anywhere}}
+@media(prefers-reduced-transparency:reduce){#cider-canvas .c-sidebar,#cider-canvas .c-titlebar,#cider-canvas .c-glass-group{background:#191614;backdrop-filter:none}}
+@media(pointer:coarse) and (max-width:580px){#cider-canvas .c-day-page{padding-inline:4px}#cider-canvas .c-week-strip,#cider-canvas .c-month-grid{gap:0}#cider-canvas .c-day-heading,#cider-canvas .c-inline-date{margin-inline:8px}#cider-canvas .c-titlebar .c-icon-button{width:44px;min-width:44px}#cider-canvas .c-pin{width:44px;height:44px;min-height:44px!important}}

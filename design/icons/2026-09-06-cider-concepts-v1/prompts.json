@@ -1,0 +1,95 @@
+{
+  "date": "2026-09-06",
+  "mode": "Built-in imagegen",
+  "selected": [
+    {
+      "id": "01-ember-c-app-v1",
+      "file": "01-ember-c-app-v1.png"
+    },
+    {
+      "id": "02-ember-notch-app-v1",
+      "file": "02-ember-notch-app-v1.png"
+    },
+    {
+      "id": "03-ember-c-notch-orange-black-v4",
+      "file": "03-ember-c-notch-orange-on-black-v4.png"
+    },
+    {
+      "id": "04-ember-c-notch-mono-black-v4",
+      "file": "04-ember-c-notch-mono-on-black-v4.png"
+    }
+  ],
+  "attempts": [
+    {
+      "id": "01-ember-c-app-v1",
+      "prompt": "Use case: logo-brand\nAsset type: a single premium macOS application icon, square 1024 x 1024.\nPrimary request: design an original icon for a calm personal work companion named Cider, which lives in a MacBook notch and gathers agent work, tasks and notes. The icon must work without any wordmark.\nSubject: one exceptionally simple sculpted ember-orange C mark. A thick continuous open ring curves around a generous black central aperture; its upper terminal subtly folds inward like a luminous ribbon, its lower terminal ends with a clean confident cut. It should read as one strong C-shaped ember silhouette, not a spiral, flame emoji, power button or generic code brackets.\nScene/backdrop: a near-black rounded square macOS icon tile, viewed absolutely straight on, isolated against genuine transparent alpha outside the tile.\nComposition: one centered symbol filling roughly 62 percent of the tile; tile fills about 88 percent of the square image; ample breathing room, strong silhouette and optical balance. No mockup, no desktop or device.\nStyle: beautifully restrained modern Apple-quality app icon, vector-friendly geometry rendered as subtly sculpted orange enamel with a fine warm edge highlight. Premium physical depth but very little detail; black satin tile, barely visible edge, soft and controlled lighting.\nColor palette: black #08090B and #111214; orange gradient #FF6A32 through #FF8A3D to warm apricot #FFB66B. Orange remains saturated and rich, readable against black.\nText: none.\nConstraints: one icon only; true transparent surroundings; no letters other than the abstract C-shaped symbol; no tiny nodes, sparks, badges, circuitry, outlines within the mark, watermarks, extra graphics or branding. No blue, green, purple, rainbow, Qyrus branding, dramatic glow or smoky effects. Every detail must survive at small Dock size.",
+      "reference": null,
+      "generated_path": "/Users/vatsals/.codex/generated_images/01a07345-e855-7863-8d40-a0af726d7a1f/exec-7eda4880-c947-40bf-a68a-d82c9b9a8e56.png",
+      "selected": true
+    },
+    {
+      "id": "02-ember-notch-app-v1",
+      "prompt": "Use case: logo-brand\nAsset type: a single premium macOS application icon, square 1024 x 1024.\nPrimary request: create an original alternative icon for Cider, a personal work companion accessed through a MacBook notch. A restrained geometric mark should express a small warm place where work comes together.\nSubject: a bold sculpted orange notch cradle: one thick smoothly rounded U-shaped tray, with short straight uprights and a wide gently curved bottom, enclosing a single small horizontal rounded ember capsule suspended near the upper center. The black negative space between the cradle and ember capsule is generous. The three simple elements of the silhouette should feel unified and intentional, like a compact HUD aperture holding an ember. Do not make a letter C in this direction.\nScene/backdrop: an almost-black satin rounded-square macOS app icon tile, strictly straight-on, with genuine transparent alpha outside the tile.\nComposition: one centered graphic, precisely balanced, occupying about 60 percent of the tile width. Tile occupies 88 percent of the square image. Keep bold clear geometry, no fine strokes.\nStyle: refined minimal physical icon design, soft orange enamel depth, subtle translucent amber edge on the short ember capsule, restrained high-end macOS finish. Simple enough for a recognizable tiny monochrome counterpart.\nColor palette: black #08090B and #111214; rich warm gradient #FF6A32 through #FF8A3D to #FFB66B, highest warm highlight at upper right.\nText: none.\nConstraints: one icon only, no wordmark, no mockup, no desktop, no device, no tiny constellation dots, no fireworks or flaming emoji, no power button, no extra symbols, no borders drawn inside the orange shape, no watermark. No blue, green, purple, rainbow or Qyrus branding. Soft controlled light, no excessive glow.",
+      "reference": null,
+      "generated_path": "/Users/vatsals/.codex/generated_images/01a07345-e855-7863-8d40-a0af726d7a1f/exec-0ae1697d-2051-47e0-8810-60d8197e7701.png",
+      "selected": true
+    },
+    {
+      "id": "03-ember-c-notch-orange-v1",
+      "prompt": "Use case: style-transfer\nAsset type: simplified transparent notch HUD icon for Cider, a tiny active-state mark.\nInput image: reference brand mark. Preserve the identity and silhouette of its orange open C.\nPrimary request: extract the C symbol from the supplied application icon and turn it into a clean flat graphic for a 16–22 point black notch HUD. Completely remove the black rounded-square tile, all lighting, shadows, bevels, reflected edges, 3D depth and internal surface detail. Keep the broad flowing C shape, generous center, opening on the right, rounded upper terminal and clean diagonal lower cut. Use a single broad continuous silhouette. The upper terminal should not have an internal fold line in this simplified version.\nColor: one subtle flat linear orange-to-apricot gradient, #FF6A32 at lower left to #FFB66B at upper right; no highlight line or luminous border.\nComposition: exactly one centered C glyph filling approximately 74 percent of the image width and height, consistent generous transparent margins.\nBackground: genuinely transparent alpha, including the central aperture and gap. No black or white backdrop, no checkerboard baked into the image.\nConstraints: crisp clean antialiased silhouette, vector-like flat artwork, no text, no tile, no border, no halo or glow, no other marks, no mockup, no badges. Shape must remain bold and legible when tiny.",
+      "reference": "/Users/vatsals/.codex/generated_images/01a07345-e855-7863-8d40-a0af726d7a1f/exec-7eda4880-c947-40bf-a68a-d82c9b9a8e56.png",
+      "generated_path": "/Users/vatsals/.codex/generated_images/01a07345-e855-7863-8d40-a0af726d7a1f/exec-cac08d5b-236e-4c4c-a1d4-cddfa7b584c4.png",
+      "selected": false
+    },
+    {
+      "id": "04-ember-c-notch-mono-v1",
+      "prompt": "Use case: style-transfer\nAsset type: monochrome transparent notch HUD icon for Cider, a quiet idle-state/template-style mark.\nInput image: reference brand mark. Preserve the identity and silhouette of its orange open C.\nPrimary request: extract the C symbol from the supplied application icon and turn it into a clean flat white silhouette for a 16–22 point black notch HUD. Completely remove the black rounded-square tile, all lighting, shadows, bevels, reflected edges, 3D depth and internal surface detail. Keep the broad flowing C shape, generous center, opening on the right, rounded upper terminal and clean diagonal lower cut. Use a single broad continuous silhouette. The upper terminal should not have an internal fold line in this simplified version.\nColor: one uniform solid white #FFFFFF fill only. No gradients, gray shading, black outlines or internal lines.\nComposition: exactly one centered C glyph filling approximately 74 percent of the image width and height, consistent generous transparent margins.\nBackground: genuinely transparent alpha, including the central aperture and gap. No black or white backdrop, no checkerboard baked into the image.\nConstraints: crisp clean antialiased silhouette, vector-like flat artwork, no text, no tile, no border, no halo or glow, no other marks, no mockup, no badges. Shape must remain bold and legible when tiny.",
+      "reference": "/Users/vatsals/.codex/generated_images/01a07345-e855-7863-8d40-a0af726d7a1f/exec-7eda4880-c947-40bf-a68a-d82c9b9a8e56.png",
+      "generated_path": "/Users/vatsals/.codex/generated_images/01a07345-e855-7863-8d40-a0af726d7a1f/exec-9442de83-60ea-412b-a93b-f5c7b8620730.png",
+      "selected": false
+    },
+    {
+      "id": "03-ember-c-notch-orange-v2",
+      "prompt": "Use case: precise-object-edit\nAsset type: transparent application glyph.\nInput image is the edit target.\nPrimary request: clean and precisely redraw the outer and inner contours of this C glyph. Remove every stray speck, fleck, rough patch, scattered pixel, edge bump and extraction artifact outside the main C shape and inside its central aperture. The result must contain exactly one uninterrupted continuous solid C silhouette with pristine smooth geometric curves, a rounded upper-right terminal, and the existing diagonal flat lower-right terminal. The smooth antialiasing must follow the shape alone, no detached pixels anywhere.\nPreserve the existing smooth orange to warm apricot fill. No highlights or texture.\nKeep the same broad C identity, opening to the right, original proportions, centered placement, scale and transparent margins. Keep the center and outside truly transparent alpha. Fully opaque interior fill. No black background, no baked checkerboard, no shadow, no blur, no stroke, no distressed texture, no additional content or text.\nThis is a precision edge cleanup; change nothing else.",
+      "reference": "/Users/vatsals/.codex/generated_images/01a07345-e855-7863-8d40-a0af726d7a1f/exec-cac08d5b-236e-4c4c-a1d4-cddfa7b584c4.png",
+      "generated_path": "/Users/vatsals/.codex/generated_images/01a07345-e855-7863-8d40-a0af726d7a1f/exec-2cb0e81a-e475-4735-b961-70afca4ce31c.png",
+      "selected": false
+    },
+    {
+      "id": "04-ember-c-notch-mono-v2",
+      "prompt": "Use case: precise-object-edit\nAsset type: transparent application glyph.\nInput image is the edit target.\nPrimary request: clean and precisely redraw the outer and inner contours of this C glyph. Remove every stray speck, fleck, rough patch, scattered pixel, edge bump and extraction artifact outside the main C shape and inside its central aperture. The result must contain exactly one uninterrupted continuous solid C silhouette with pristine smooth geometric curves, a rounded upper-right terminal, and the existing diagonal flat lower-right terminal. The smooth antialiasing must follow the shape alone, no detached pixels anywhere.\nThe entire symbol must be a completely uniform pure white #FFFFFF fill. No gradients or shading.\nKeep the same broad C identity, opening to the right, original proportions, centered placement, scale and transparent margins. Keep the center and outside truly transparent alpha. Fully opaque interior fill. No black background, no baked checkerboard, no shadow, no blur, no stroke, no distressed texture, no additional content or text.\nThis is a precision edge cleanup; change nothing else.",
+      "reference": "/Users/vatsals/.codex/generated_images/01a07345-e855-7863-8d40-a0af726d7a1f/exec-9442de83-60ea-412b-a93b-f5c7b8620730.png",
+      "generated_path": "/Users/vatsals/.codex/generated_images/01a07345-e855-7863-8d40-a0af726d7a1f/exec-f1d02b7c-de09-4cc9-bfb7-13bd4b6c39d2.png",
+      "selected": false
+    },
+    {
+      "id": "03-ember-c-notch-orange-v3",
+      "prompt": "Use case: background-extraction\nCreate a transparent PNG cutout of the orange gradient C icon in the supplied image. REMOVE THE CHECKERBOARD BACKGROUND, including inside the C. Return a genuinely transparent background with an actual alpha channel, not an illustration of transparency. Keep only the single solid C glyph. Preserve the exact clean silhouette, color, shape, smooth edges, size and centered position. All pixels outside the glyph must have zero alpha. No additional artwork, backdrop, texture, shadow, specks or text.",
+      "reference": "/Users/vatsals/.codex/generated_images/01a07345-e855-7863-8d40-a0af726d7a1f/exec-2cb0e81a-e475-4735-b961-70afca4ce31c.png",
+      "generated_path": "/Users/vatsals/.codex/generated_images/01a07345-e855-7863-8d40-a0af726d7a1f/exec-9e82b027-da6a-49eb-ad96-eba1a5730a48.png",
+      "selected": false
+    },
+    {
+      "id": "04-ember-c-notch-mono-v3",
+      "prompt": "Use case: background-extraction\nCreate a transparent PNG cutout of the solid white C icon in the supplied image. REMOVE THE CHECKERBOARD BACKGROUND, including inside the C. Return a genuinely transparent background with an actual alpha channel, not an illustration of transparency. Keep only the single solid C glyph. Preserve the exact clean silhouette, color, shape, smooth edges, size and centered position. All pixels outside the glyph must have zero alpha. No additional artwork, backdrop, texture, shadow, specks or text.",
+      "reference": "/Users/vatsals/.codex/generated_images/01a07345-e855-7863-8d40-a0af726d7a1f/exec-f1d02b7c-de09-4cc9-bfb7-13bd4b6c39d2.png",
+      "generated_path": "/Users/vatsals/.codex/generated_images/01a07345-e855-7863-8d40-a0af726d7a1f/exec-45ae0908-e82c-44fb-80ce-05a9708c7430.png",
+      "selected": false
+    },
+    {
+      "id": "03-ember-c-notch-orange-black-v4",
+      "prompt": "Use case: precise-object-edit\nChange ONLY the checkerboard background in the provided image to perfectly uniform opaque solid black #000000. Black must fill every area outside the C symbol and inside its central aperture. Keep the existing orange gradient C mark, exact silhouette, clean smooth curves, proportions, centered placement and all margins unchanged. Crisp antialiased graphic. Preserve only the one clean C; remove any stray tiny marks. Output a square image with an opaque black background, not transparency. No checkerboard, shadows, texture, text or new elements.",
+      "reference": "/Users/vatsals/.codex/generated_images/01a07345-e855-7863-8d40-a0af726d7a1f/exec-2cb0e81a-e475-4735-b961-70afca4ce31c.png",
+      "generated_path": "/Users/vatsals/.codex/generated_images/01a07345-e855-7863-8d40-a0af726d7a1f/exec-b308e0f5-3ab6-4800-a82d-9a3182045f6d.png",
+      "selected": true
+    },
+    {
+      "id": "04-ember-c-notch-mono-black-v4",
+      "prompt": "Use case: precise-object-edit\nChange ONLY the checkerboard background in the provided image to perfectly uniform opaque solid black #000000. Black must fill every area outside the C symbol and inside its central aperture. Keep the existing pure white C mark, exact silhouette, clean smooth curves, proportions, centered placement and all margins unchanged. Crisp antialiased graphic. Preserve only the one clean C; remove any stray tiny marks. Output a square image with an opaque black background, not transparency. No checkerboard, shadows, texture, text or new elements.",
+      "reference": "/Users/vatsals/.codex/generated_images/01a07345-e855-7863-8d40-a0af726d7a1f/exec-f1d02b7c-de09-4cc9-bfb7-13bd4b6c39d2.png",
+      "generated_path": "/Users/vatsals/.codex/generated_images/01a07345-e855-7863-8d40-a0af726d7a1f/exec-af165760-4b48-411a-b763-41db4fda2346.png",
+      "selected": true
+    }
+  ]
+}
+

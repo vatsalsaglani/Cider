@@ -1,0 +1,49 @@
+/* One open writing plane. The editor has no field chrome in any focus state. */
+#cider-canvas .c-notes-page { padding: 12px 24px 18px; }
+#cider-canvas .c-note-top { gap: 12px; border: 0; padding: 0; margin: 0; min-height: 43px; }
+#cider-canvas .c-note-location { display: flex; align-items: center; flex: 1; min-width: 150px; gap: 7px; font-size: 11px; color: var(--c-muted); }
+#cider-canvas .c-note-location > svg { width: 14px; height: 14px; flex-shrink: 0; color: #b49a85; }
+#cider-canvas #c-note-filename { color: #c4b8ad; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#cider-canvas #c-note-folder { white-space: nowrap; }
+#cider-canvas .c-note-sheet { max-width: 720px; margin: 38px auto 0; padding: 0 14px; min-height: 515px; cursor: text; }
+#cider-canvas .c-note-context { display: flex; align-items: center; gap: 14px; font-size: 11px; color: #bb9d85; margin-bottom: 16px; }
+#cider-canvas .c-writing-state { display: inline-flex; align-items: center; gap: 5px; opacity: 0; color: #c1b4a7; }
+#cider-canvas .c-writing-state svg { width: 12px; height: 12px; }
+#cider-canvas .c-note-sheet:focus-within .c-writing-state { opacity: 1; }
+#cider-canvas .c-note-title {
+  position: relative; min-height: 48px; padding: 0; margin: 0 0 19px;
+  font-size: 34px; font-weight: 600; line-height: 1.3; letter-spacing: -1.1px;
+  overflow-wrap: anywhere;
+}
+#cider-canvas .c-note-title, #cider-canvas .c-document {
+  outline: none; border: 0; border-radius: 0; background: transparent;
+  box-shadow: none; caret-color: var(--c-orange);
+}
+#cider-canvas .c-note-title:focus-visible, #cider-canvas .c-document:focus-visible { outline: none; }
+#cider-canvas .c-note-title[data-empty=true]:before,
+#cider-canvas .c-document[data-empty=true]:before {
+  content: attr(data-placeholder); position: absolute; left: 0; top: 0; pointer-events: none; color: #aaa097;
+}
+#cider-canvas .c-note-title[data-empty=true]:before { color: #c5b4a5; }
+#cider-canvas .c-note-meta { margin: 0 0 26px; }
+#cider-canvas .c-document { position: relative; min-height: 0; font-size: 16px; line-height: 1.75; padding: 0; }
+#cider-canvas .c-note-sheet.is-draft .c-document { min-height: 345px; }
+#cider-canvas .c-document p { margin-bottom: 18px; }
+#cider-canvas .c-document h2 { font-size: 21px; margin: 28px 0 12px; font-weight: 500; }
+#cider-canvas .c-note-bottom { display: flex; align-items: center; gap: 15px; min-height: 41px; padding-top: 16px; margin-top: 12px; cursor: default; }
+#cider-canvas .c-note-paste-hint { margin-left: auto; color: var(--c-muted); font-size: 11px; }
+#cider-canvas .c-note-source { border: 0; background: transparent; box-shadow: none; padding: 36px 14px; min-height: 520px; resize: vertical; }
+@media (max-width: 850px) {
+  #cider-canvas .c-notes-page { padding: 10px 20px 20px; }
+  #cider-canvas .c-note-sheet { padding: 0 3px; margin-top: 35px; }
+  #cider-canvas .c-note-title { font-size: 30px; }
+}
+@media (max-width: 580px) {
+  #cider-canvas .c-notes-page { padding: 17px 17px 24px; }
+  #cider-canvas .c-note-location { min-width: 125px; }
+  #cider-canvas .c-note-top { gap: 9px; }
+  #cider-canvas .c-note-sheet { margin-top: 31px; padding: 0; min-height: 480px; }
+  #cider-canvas .c-note-title { font-size: 30px; }
+  #cider-canvas .c-note-bottom { gap: 7px; }
+  #cider-canvas .c-note-paste-hint { font-size: 11px; }
+}

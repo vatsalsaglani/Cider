@@ -1,0 +1,36 @@
+{
+  "date": "2026-09-06",
+  "scope": "Design refinement 03: canvas and native design contracts only",
+  "browser": "152.0.7977.82",
+  "checks": [
+    "Borderless full-page note, real empty draft, title-to-body focus, word count, source, folder disclosure, note preservation and tinted/shadowed control style",
+    "Week/month/list navigation, selected agenda, month arrows, sidebar previous/next/reset, empty day",
+    "Day entry and completion; quick task context/date; direct notch entry while another date is selected; focus holds notch open",
+    "Task details edit/reschedule updates day membership",
+    "Feature lanes, attention details and checks, note drafts, source illustration, image import/annotation, finding to task",
+    "Usage freshness, all notch edges, focus anchor, compact/date fallback, hover/click/pin/Escape, HUD tabs",
+    "48 pane/width/theme checks with reduced motion; no horizontal overflow or implementation copy",
+    "Visible icon action names, tooltip attributes, and rendered icon presence",
+    "320 px coarse-pointer calendar targets >=44 px"
+  ],
+  "layoutCombinations": 48,
+  "runtimeErrors": [],
+  "finalSourceChecks": [
+    "Empty draft source is empty, without placeholder text or a blank heading",
+    "Source-to-draft mode and toolbar accessible label reset",
+    "Focused document without border/outline/shadow at 1024, 736, 360, 320 px"
+  ],
+  "canvasSHA256": "a097e6ed5135a1e0625258ea137cd20ef402dfa493eda575013b25bf0e37a56e",
+  "supersedesCanvasSHA256": "9196dbbeeb4fd8def93d43dbc8f289ed7d74b012f0b3bc3e8d26e507a0bfde5b",
+  "notRun": [
+    "Native app build",
+    "Physical multi-monitor/focus checks",
+    "Native Liquid Glass and accessibility",
+    "Vditor or Mermaid runtime",
+    "Filesystem persistence",
+    "Live agent/quota/Jira integration",
+    "Memory/CPU/energy measurements"
+  ],
+  "localMarkdownLinks": 128,
+  "brokenLinks": []
+}

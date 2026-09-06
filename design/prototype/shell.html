@@ -1,0 +1,132 @@
+<div id="cider-canvas" aria-label="Cider native Mac app design preview">
+  <section class="c-screen" aria-label="MacBook display with configurable notch">
+    <div class="c-menubar"><span><strong>Cider</strong> &nbsp; File &nbsp; Edit &nbsp; View</span><span>Sun 6 Sep &nbsp; 9:41</span></div>
+    <div class="c-hud" id="c-hud" data-edge="top" aria-label="Cider notch HUD">
+      <div class="c-hud-header">
+        <button class="c-hud-trigger" id="c-hud-toggle" aria-label="Expand or collapse notch" aria-expanded="true"><span class="c-dot"></span><span class="c-hud-name">Cider</span></button>
+        <div class="c-camera" aria-label="Reserved camera housing area"></div>
+        <span class="c-hud-count">3 need you</span>
+      </div>
+      <div class="c-hud-body" id="c-hud-body">
+        <div class="c-hud-tabs" aria-label="Notch sections">
+          <button data-hud-tab="inbox" aria-pressed="false">Inbox</button><button data-hud-tab="today" aria-pressed="true">Today</button><button data-hud-tab="notes" aria-pressed="false">Notes</button><button data-hud-tab="usage" aria-pressed="false">Usage</button>
+        </div>
+        <div id="c-hud-content">
+          <button class="c-hud-row" data-attention="schema"><span class="c-dot"></span>Schema decision needed<span>8m</span></button>
+          <button class="c-hud-row" data-attention="worker"><span class="c-dot"></span>Worker retry check failed<span>14m</span></button>
+          <button class="c-hud-row" data-attention="ui"><span class="c-dot"></span>UI lane ready to test<span>2m</span></button>
+        </div>
+        <div class="c-hud-footer"><button class="c-button c-quiet c-icon-button" id="c-pin-hud" aria-pressed="false" aria-label="Pin notch" data-tooltip="Pin notch"><i data-lucide="pin" aria-hidden="true"></i></button><span class="c-small c-muted" id="c-hud-day-label">Today</span><div class="c-action-group"><button class="c-button c-quiet c-icon-button" data-action="hud-task" aria-label="New task in notch" data-tooltip="New task"><i data-lucide="list-plus" aria-hidden="true"></i></button><button class="c-button c-quiet c-icon-button" data-action="new-note" aria-label="Quick note" data-tooltip="Quick note"><i data-lucide="square-pen" aria-hidden="true"></i></button><button class="c-button c-primary c-icon-button" data-page="today" aria-label="Open workspace" data-tooltip="Open workspace"><i data-lucide="arrow-up-right" aria-hidden="true"></i></button></div></div>
+      </div>
+    </div>
+    <div class="c-display-label"><i data-lucide="laptop" aria-hidden="true"></i><span id="c-anchor-label">Built-in display · top</span></div>
+    <div class="c-external"><span id="c-focus-label">External display in use</span><button class="c-icon-button" id="c-focus-switch" aria-label="Switch display focus" data-tooltip="Switch display focus"><i data-lucide="monitor" aria-hidden="true"></i></button></div>
+  </section>
+  <section class="c-window" aria-label="Cider workspace">
+    <header class="c-titlebar">
+      <div class="c-traffic" aria-hidden="true"><span></span><span></span><span></span></div>
+      <button class="c-button c-quiet c-icon-button" id="c-sidebar-toggle" aria-label="Toggle compact sidebar" data-tooltip="Toggle sidebar" aria-pressed="false"><i data-lucide="panel-left" aria-hidden="true"></i></button>
+      <span class="c-title">Cider <span class="c-muted">/ Personal workspace</span></span>
+      <div class="c-action-group c-glass-group"><button class="c-button c-quiet c-icon-button" data-action="quick-task" aria-label="Quick task" data-tooltip="Quick task"><i data-lucide="list-plus" aria-hidden="true"></i></button><button class="c-button c-quiet c-icon-button" data-action="new-note" aria-label="Quick note" data-tooltip="Quick note"><i data-lucide="square-pen" aria-hidden="true"></i></button></div>
+    </header>
+    <section class="c-quick-capture" id="c-quick-capture" aria-label="Quick task capture" hidden></section>
+    <div class="c-app" id="c-app">
+      <aside class="c-sidebar" aria-label="Workspace sidebar">
+        <div class="c-brand"><span class="c-brand-mark"><i data-lucide="flame" aria-hidden="true"></i></span><span class="c-brand-name">Cider<small>Personal workspace</small></span></div>
+        <nav class="c-nav" aria-label="Workspace navigation">
+          <button data-page="inbox" aria-label="Inbox"><span class="c-icon"><i data-lucide="inbox" aria-hidden="true"></i></span><span class="c-nav-label">Inbox</span><span class="c-badge">3</span></button>
+          <button data-page="features" aria-label="Features"><span class="c-icon"><i data-lucide="layers-2" aria-hidden="true"></i></span><span class="c-nav-label">Features</span></button>
+          <button data-page="today" aria-current="page" aria-label="Today"><span class="c-icon"><i data-lucide="calendar-days" aria-hidden="true"></i></span><span class="c-nav-label">Today</span></button>
+          <div class="c-sidebar-date" id="c-sidebar-date" aria-label="Browse task dates"></div>
+          <button data-page="notes" aria-label="Notes"><span class="c-icon"><i data-lucide="file-text" aria-hidden="true"></i></span><span class="c-nav-label">Notes</span></button>
+          <button data-page="usage" aria-label="Usage"><span class="c-icon"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i></span><span class="c-nav-label">Usage</span></button>
+        </nav>
+        <details class="c-folder-group" open>
+          <summary>Workspace folders<i data-lucide="chevron-down" aria-hidden="true"></i></summary>
+          <button class="c-folder" data-folder="Reviews"><span class="c-icon"><i data-lucide="folder-open" aria-hidden="true"></i></span>Reviews</button>
+          <div class="c-note-tree">
+            <button class="c-note-link" data-action="review-note" data-note-link="review"><i data-lucide="file-text" aria-hidden="true"></i><span>Orchestration review</span></button>
+            <button class="c-note-link" data-action="new-note" data-note-link="draft"><i data-lucide="file-pen-line" aria-hidden="true"></i><span id="c-draft-label">Untitled</span></button>
+          </div>
+          <button class="c-folder" data-folder="Session engine"><span class="c-icon"><i data-lucide="folder" aria-hidden="true"></i></span>Session engine</button>
+          <button class="c-folder" data-folder="Agent workspace"><span class="c-icon"><i data-lucide="folder" aria-hidden="true"></i></span>Agent workspace</button>
+          <button class="c-folder" data-folder="Trace pipeline"><span class="c-icon"><i data-lucide="folder" aria-hidden="true"></i></span>Trace pipeline</button>
+        </details>
+        <div class="c-sidebar-bottom">
+          <nav class="c-nav c-sidebar-settings" aria-label="Workspace preferences"><button data-page="settings" aria-label="Settings"><span class="c-icon"><i data-lucide="settings-2" aria-hidden="true"></i></span><span class="c-nav-label">Settings</span></button></nav>
+          <div class="c-sidebar-tools"><span class="c-sidebar-hint">Capture a thought</span><div class="c-action-group"><button class="c-button c-quiet c-icon-button" data-action="quick-task" aria-label="Quick task" data-tooltip="Quick task"><i data-lucide="list-plus" aria-hidden="true"></i></button><button class="c-button c-quiet c-icon-button" data-action="new-note" aria-label="Quick note" data-tooltip="Quick note"><i data-lucide="square-pen" aria-hidden="true"></i></button></div></div>
+        </div>
+      </aside>
+      <main>
+        <section class="c-page" data-pane="inbox" hidden>
+          <div class="c-heading"><div><div class="c-eyebrow">Attention inbox</div><h1>Your move.</h1><p>Three things need you. The rest can keep running.</p></div><span class="c-pill c-warm">3 unresolved</span></div>
+          <div class="c-inbox-grid">
+            <div><div class="c-section-label">Needs attention</div>
+              <button class="c-attention" data-attention="schema" aria-pressed="false"><div class="c-attention-top"><span class="c-attention-title">Schema decision needed</span><span class="c-attention-age">8m ago</span></div><div class="c-attention-summary">Choose how worker checkpoints should resume.</div><div class="c-attention-meta"><span class="c-pill c-warm">Input</span><span>Claude Code · Session engine</span></div></button>
+              <button class="c-attention" data-attention="worker" aria-pressed="false"><div class="c-attention-top"><span class="c-attention-title">Worker retry check failed</span><span class="c-attention-age">14m ago</span></div><div class="c-attention-summary">One timeout still leaves a duplicate event.</div><div class="c-attention-meta"><span class="c-pill">Failure</span><span>Codex · Trace pipeline</span></div></button>
+              <button class="c-attention" data-attention="ui" aria-pressed="true"><div class="c-attention-top"><span class="c-attention-title">UI lane ready to test</span><span class="c-attention-age">2m ago</span></div><div class="c-attention-summary">The agent finished. Your review is next.</div><div class="c-attention-meta"><span class="c-pill c-warm">Verify</span><span>Codex · Agent workspace</span></div></button>
+              <div class="c-running"><span class="c-dot"></span>6 other runs active across 3 features</div>
+            </div>
+            <aside class="c-inspector" aria-label="Selected attention details"><div class="c-inspector-section"><div class="c-eyebrow" id="c-detail-provider">Codex · UI lane</div><h2 id="c-detail-title">Ready for your eyes.</h2><p id="c-detail-message">The stream view is in place. Unit tests passed. Please check the empty state and reconnect behavior.</p><div style="margin-top:12px"><span class="c-pill c-warm" id="c-detail-state">Awaiting your test</span></div></div><div class="c-inspector-section"><div class="c-eyebrow">Worktree</div><div class="c-codepath" id="c-detail-path">feature/stream-ui<br>Head 7a4c2e1 · Phase 03</div><button class="c-button c-icon-button" id="c-open-origin" aria-label="Open run" data-tooltip="Open run"><i data-lucide="arrow-up-right" aria-hidden="true"></i></button></div><div class="c-inspector-section"><div class="c-eyebrow">Your verification</div><label class="c-check"><input type="checkbox" data-verify="empty">Empty state is clear</label><label class="c-check"><input type="checkbox" data-verify="reconnect">Reconnect preserves the work</label><button class="c-button c-primary c-icon-button" data-action="review-note" aria-label="Create review note" data-tooltip="Create review note"><i data-lucide="square-pen" aria-hidden="true"></i></button></div></aside>
+          </div>
+        </section>
+        <section class="c-page" data-pane="features" hidden>
+          <div class="c-heading"><div><div class="c-eyebrow">Parallel work</div><h1>A place for every phase.</h1><p>Plans, lanes, worktrees, and the gate that comes next.</p></div></div>
+          <div class="c-phase-grid"><button class="c-feature" data-feature="workspace" aria-pressed="true"><div class="c-eyebrow">Phase 03</div><h2>Agent workspace</h2><div class="c-small">3 lanes · 1 ready to test</div></button><button class="c-feature" data-feature="session" aria-pressed="false"><div class="c-eyebrow">Phase 02</div><h2>Session engine</h2><div class="c-small">3 lanes · 1 needs input</div></button><button class="c-feature" data-feature="trace" aria-pressed="false"><div class="c-eyebrow">Phase 04</div><h2>Trace pipeline</h2><div class="c-small">3 lanes · 1 failed check</div></button></div>
+          <div class="c-section-label" id="c-feature-label">Agent workspace · Phase 03 lanes</div><div class="c-lanes" id="c-lanes"></div>
+          <div class="c-flow" aria-label="Phase flow: plan to parallel lanes to human verification"><span>Plan</span>→<span>Parallel lanes</span>→<span>Human verification</span></div>
+        </section>
+        <section class="c-page c-day-page" data-pane="today">
+          <div class="c-heading c-day-heading"><div><div class="c-eyebrow" id="c-day-relative">Today</div><h1 id="c-day-title">Sunday, September 6</h1><p id="c-task-count">3 to do · 1 completed</p></div><div class="c-day-actions"><div class="c-action-group c-glass-group" aria-label="Task view"><button class="c-button c-quiet c-icon-button" data-task-view="list" aria-label="List view" data-tooltip="List view" aria-pressed="true"><i data-lucide="list" aria-hidden="true"></i></button><button class="c-button c-quiet c-icon-button" data-task-view="calendar" aria-label="Calendar view" data-tooltip="Calendar view" aria-pressed="false"><i data-lucide="calendar-days" aria-hidden="true"></i></button></div><button class="c-button c-primary c-icon-button" data-action="focus-task" aria-label="Add a task" data-tooltip="Add a task"><i data-lucide="plus" aria-hidden="true"></i></button></div></div>
+          <div class="c-inline-date" id="c-inline-date" aria-label="Browse task dates"></div>
+          <div id="c-week-strip" class="c-week-strip" aria-label="Week of tasks"></div>
+          <div id="c-month-view" hidden><div class="c-month-heading"><h2 id="c-month-title">September 2026</h2><div class="c-action-group"><button class="c-button c-quiet c-icon-button" data-month-shift="-1" aria-label="Previous month" data-tooltip="Previous month"><i data-lucide="chevron-left" aria-hidden="true"></i></button><button class="c-button c-quiet c-icon-button" data-month-shift="1" aria-label="Next month" data-tooltip="Next month"><i data-lucide="chevron-right" aria-hidden="true"></i></button></div></div><div class="c-month-weekdays" aria-hidden="true"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div><div id="c-month-grid" class="c-month-grid" aria-label="Monthly task calendar"></div></div>
+          <div id="c-day-composer" class="c-day-composer"></div>
+          <div id="c-tasks"></div>
+          <section class="c-task-detail" id="c-task-detail" aria-label="Edit task" hidden></section>
+        </section>
+        <section class="c-page c-notes-page" data-pane="notes" hidden>
+          <div class="c-note-top">
+            <div class="c-note-location"><i data-lucide="file-text" aria-hidden="true"></i><span id="c-note-folder">Reviews /</span><span id="c-note-filename">phase-03-review.md</span></div>
+            <div class="c-action-group c-glass-group"><button class="c-button c-quiet c-icon-button" id="c-note-mode" aria-pressed="false" aria-label="Markdown source" data-tooltip="Markdown source"><i data-lucide="code-2" aria-hidden="true"></i></button><button class="c-button c-quiet c-icon-button" id="c-annotate" aria-pressed="false" aria-label="Annotate image" data-tooltip="Annotate image"><i data-lucide="pencil" aria-hidden="true"></i></button><button class="c-button c-icon-button" id="c-insert-image" aria-label="Insert image" data-tooltip="Insert image"><i data-lucide="image-plus" aria-hidden="true"></i></button></div>
+            <input type="file" id="c-image-file" accept="image/*" hidden>
+          </div>
+          <article class="c-note-sheet" id="c-note-rendered" aria-label="Note editor">
+            <div class="c-note-context"><span id="c-note-kind">Review</span><span class="c-writing-state" id="c-writing-state"><i data-lucide="pen-line" aria-hidden="true"></i>Editing</span></div>
+            <div class="c-note-title" id="c-note-title" contenteditable="plaintext-only" role="textbox" aria-label="Note title" aria-multiline="false" data-placeholder="Untitled" spellcheck="true">Orchestration review</div>
+            <div class="c-note-meta" id="c-note-meta"><span class="c-pill">phase <b style="color:var(--c-end)">03</b></span><span class="c-pill">status <b style="color:var(--c-end)">verification</b></span><span class="c-pill">agent <b>Codex</b></span></div>
+            <div class="c-document" id="c-document" contenteditable="true" role="textbox" aria-label="Note body" aria-multiline="true" data-placeholder="Start writing…" spellcheck="true"><p>The happy path looks good. A couple of details need another pass before this phase is ready.</p><h2>Reconnect needs a clearer state</h2><p>When the stream drops, keep the existing work visible. Show the retry state beside the run, and explain what will happen next.</p></div>
+            <div class="c-shot" id="c-demo-shot" data-review-only aria-label="Sample UI evidence with two numbered annotation pins"><div class="c-shot-chrome"><span>Agent workspace / Stream</span><span>Reconnect</span></div><div class="c-shot-content"><div class="c-shot-side">Overview<br>Runs<br>Settings</div><div class="c-shot-main">UI lane <span class="c-muted">/ phase 03</span><div class="c-shot-bar"></div><div class="c-shot-bar" style="max-width:42%"></div><div class="c-shot-alert">Connection closed · retrying</div></div></div><button class="c-pin" style="left:25%;top:39%" aria-label="Annotation 1: preserve content on reconnect">1</button><button class="c-pin" style="left:81%;top:75%" aria-label="Annotation 2: explain retry status">2</button></div>
+            <div class="c-asset-caption" data-review-only><span id="c-asset-path">phase-03-review.assets/reconnect.png</span><span id="c-pin-count">Original preserved · 2 pins</span></div>
+            <div id="c-pasted-images"></div>
+            <pre class="c-code" data-review-only aria-label="Swift syntax highlighting design sample"><span class="kw">func</span> reconnect() <span class="kw">async throws</span> {
+    <span class="kw">try await</span> stream.resume(from: checkpoint)
+    status = .ready
+}</pre>
+            <div class="c-note-diagram" data-review-only role="img" aria-label="Mermaid diagram design preview: Plan, Build, Verify"><span>Plan</span>→<span>Build</span>→<span>Verify</span></div>
+            <div class="c-note-bottom"><span class="c-small c-muted" id="c-note-word-count">0 words</span><span class="c-note-paste-hint">⌘V to paste an image</span><button class="c-button c-icon-button" data-action="finding-task" aria-label="Turn finding into task" data-tooltip="Turn finding into task"><i data-lucide="list-plus" aria-hidden="true"></i></button></div>
+          </article>
+          <textarea class="c-input c-note-source" id="c-note-source" aria-label="Read-only Markdown source design preview" readonly hidden></textarea>
+        </section>
+        <section class="c-page" data-pane="usage" hidden>
+          <div class="c-heading"><div><div class="c-eyebrow">Agent usage</div><h1>Know your runway.</h1><p>Per account. Per window. Always with a timestamp.</p></div><button class="c-button c-icon-button" id="c-refresh-usage" aria-label="Refresh usage" data-tooltip="Refresh usage"><i data-lucide="refresh-cw" aria-hidden="true"></i></button></div>
+          <div class="c-usage-grid">
+            <article class="c-usage"><div class="c-ring" style="--used:21" role="img" aria-label="Codex example quota 21 percent used"><span>CX</span></div><div><h2>Codex</h2><p>5-hour window · personal account</p><p>Resets in 1h 54m · <span class="c-fresh-label">updated just now</span></p></div><div class="c-usage-value"><strong>21%</strong><small>used</small></div></article>
+            <article class="c-usage"><div class="c-ring" style="--used:73" role="img" aria-label="Claude Code example quota 73 percent used"><span>CL</span></div><div><h2>Claude Code</h2><p>Current session · personal account</p><p>Resets in 51m · <span class="c-fresh-label">updated 1m ago</span></p></div><div class="c-usage-value"><strong>73%</strong><small>used</small></div></article>
+            <article class="c-usage is-stale" id="c-cursor-usage"><div class="c-ring" style="--used:52" role="img" aria-label="Cursor example last known quota 52 percent, stale"><span>CU</span></div><div><h2>Cursor <span class="c-pill" id="c-cursor-state">Stale</span></h2><p>Billing window · work account</p><p id="c-cursor-freshness">Last known value · updated 2h ago</p></div><div class="c-usage-value"><strong>52%</strong><small id="c-cursor-unit">last known used</small></div></article>
+          </div>
+          <div class="c-running"><i data-lucide="info" aria-hidden="true"></i>These are quota windows. Run token and cost estimates stay separate.</div>
+        </section>
+        <section class="c-page" data-pane="settings" hidden>
+          <div class="c-heading"><div><div class="c-eyebrow">Make it yours</div><h1>Always within reach.</h1><p>The notch stays on your MacBook when you work on another display.</p></div></div>
+          <label class="c-setting"><span>Notch edge<p>Opens inward from the edge you choose.</p></span><select class="c-input" id="c-edge"><option value="top">Top · default</option><option value="left">Left</option><option value="right">Right</option><option value="bottom">Bottom</option></select></label>
+          <div class="c-setting"><span>Display anchor<p>Independent of the focused app.</p></span><span class="c-pill">Built-in display</span></div>
+          <label class="c-setting"><span>Sidebar<p>Keep labels visible or use the compact rail.</p></span><select class="c-input" id="c-sidebar-mode"><option value="expanded">Expanded</option><option value="compact">Compact rail</option></select></label>
+          <label class="c-setting"><span>Image asset folder<p>Choose where this note keeps its images.</p></span><select class="c-input" id="c-asset-policy"><option value="file">Per note · name.assets/</option><option value="workspace">Workspace · assets/</option><option value="custom">Custom · evidence/phase-03/</option></select></label>
+          <div class="c-setting"><span>Hover to open<p>Open with a short pause over the notch.</p></span><button class="c-button c-icon-button" id="c-hover-mode" aria-pressed="true" aria-label="Disable hover opening" data-tooltip="Disable hover opening"><i data-lucide="mouse-pointer-2" aria-hidden="true"></i></button></div>
+        </section>
+      </main>
+    </div>
+    <footer class="c-footbar" aria-live="polite"><span id="c-feedback">Personal workspace</span></footer>
+  </section>
+</div>

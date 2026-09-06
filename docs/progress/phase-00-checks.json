@@ -1,0 +1,29 @@
+{
+  "date": "2026-09-06",
+  "scope": "Phase 00 canvas and documentation only",
+  "browser": "152.0.7977.82",
+  "checks": [
+    "Week/month/list navigation, selected agenda, month arrows, sidebar previous/next/reset, empty day",
+    "Day entry and completion; quick task context/date; direct notch entry while another date is selected; focus holds notch open",
+    "Task details edit/reschedule updates day membership",
+    "Feature lanes, attention details and checks, note drafts, source illustration, image import/annotation, finding to task",
+    "Usage freshness, all notch edges, focus anchor, compact/date fallback, hover/click/pin/Escape, HUD tabs",
+    "48 pane/width/theme checks with reduced motion; no horizontal overflow or implementation copy",
+    "Visible icon action names, tooltip attributes, and rendered icon presence",
+    "320 px coarse-pointer calendar targets >=44 px"
+  ],
+  "layoutCombinations": 48,
+  "runtimeErrors": [],
+  "localMarkdownLinks": 108,
+  "brokenLinks": [],
+  "canvasSHA256": "9196dbbeeb4fd8def93d43dbc8f289ed7d74b012f0b3bc3e8d26e507a0bfde5b",
+  "notRun": [
+    "Native app build",
+    "Physical multi-monitor/focus checks",
+    "Native Liquid Glass and accessibility",
+    "Vditor or Mermaid runtime",
+    "Filesystem persistence",
+    "Live agent/quota/Jira integration",
+    "Memory/CPU/energy measurements"
+  ]
+}

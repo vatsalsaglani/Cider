@@ -1,0 +1,30 @@
+/* Shared by instant rendering, rich editing, and Markdown preview. */
+#editor .vditor-reset table {
+  color: #f5f2ed;
+  color-scheme: dark;
+  max-width: 100%;
+  overflow-x: auto;
+  word-break: normal;
+  scrollbar-color: #665044 #151516;
+}
+#editor .vditor-reset table tr {
+  background-color: #151516;
+  border-color: #40352f;
+}
+#editor .vditor-reset table tbody tr:nth-child(2n) {
+  background-color: #1c1a19;
+}
+#editor .vditor-reset table th {
+  background-color: #30231c;
+  color: #ffd3ad;
+}
+#editor .vditor-reset table td,
+#editor .vditor-reset table th {
+  border-color: #40352f;
+  padding: 10px 14px;
+  min-width: 120px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  vertical-align: top;
+}
+#editor .vditor-reset table td { color: #f5f2ed; }
