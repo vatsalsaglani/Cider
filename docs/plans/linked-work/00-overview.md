@@ -41,7 +41,7 @@ flowchart TD
     P02["02 Store + migration<br/>DONE"]:::done
     P03["03 TODO detail + chats<br/>DONE"]:::done
     P04["04 Notes + backlinks<br/>DONE"]:::done
-    P05["05 Foundation integration · local<br/>TODO"]:::todo
+    P05["05 Foundation integration · local<br/>DONE"]:::done
     P06["06 Durable response journal<br/>TODO"]:::todo
     P07["07 Relationship graph<br/>TODO"]:::todo
     P08["08 CLI + workflow skill<br/>TODO"]:::todo
@@ -402,3 +402,15 @@ Merged `linked-work/04-note-links` through `9e0a6e3`. Coordinator accepted and i
 ### Plan 02 merge verification
 
 Merged `linked-work/02-store` through `cb88b43` after scoped graph, transaction, migration and bounded-query corrections. Coordinator restored all-workspaces contributor edges and retained isolated chat nodes omitted by the last rewrite, with a regression covering attach/detach and deterministic graph output. Native build, LinkedStoreTests (11), LinkedMigrationTests (3), LinkedContractTests (8), full Swift tests (95 across 11 suites), and diff checks passed on the merged checkout. No live data migration, app relaunch or provider checks were run. Plans 01–04 are DONE; run Plan 05 locally next to wire and verify these foundations before starting 06–08.
+
+
+### Plan 05 integration in progress
+
+Local branch `linked-work/05-foundation-integration` starts at `1b18d43`. The first app wiring replaces the legacy task writer, connects detail/chat/note entry points, introduces checkpoint receipt recovery, and adds compact notch contributor actions. Native build, 99 Swift tests, 16 editor checks, and the standalone fixture smoke passed before the latest sidebar connection actions; the four foundation tests passed again afterward. Native packaging and isolated fixture launch passed after correcting schema resource placement. CUA could not inspect the app because the Mac was locked; an unlock request is pending. This is not a completed Plan 05 handoff: finish native interaction checks, remaining recovery/pagination coverage, and review before pinning round B. Plans 06–08 have not been started and no round B base is recorded.
+
+
+Plan 05 review checkpoint: pagination, duplicate-submit, modal-transition, rename and checkpoint retry tests now pass (103 total Swift tests). Latest fixture packaging/launch and strict signature verification pass; the 16 editor checks pass again. Native CUA remains blocked by the locked Mac. See the Plan 05 implementation checkpoint for the exact remaining acceptance sequence. No round B tasks or base yet.
+
+### Plan 05 complete with user-deferred UI acceptance
+
+Implementation checkpoint `59eb149` passed native build, 103 Swift tests, 16 editor checks, isolated fixture smoke/launch and strict code-sign verification. On 2026-09-07 the user explicitly deferred UI acceptance to their final review. This supersedes the earlier locked-screen gate and unblocks round B; manual UI, physical notch and accessibility checks remain unverified. The implementation and recovery review is complete.

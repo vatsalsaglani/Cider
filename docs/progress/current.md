@@ -1,6 +1,6 @@
 # Current progress
 
-**Linked work foundation:** Plans 02–04 are reviewed and merged, with a native build and all 95 Swift tests passing. Store/migration, TODO detail and note connections are ready for Plan 05 app wiring and live integration checks. The note append receipt includes refreshed file identity for persistence through registerNote. See [parallel plan status](../plans/linked-work/00-overview.md).
+**Linked work foundation:** Plans 01–05 are implemented and verified. SQLite task cutover, detail/chat/note entry points, checkpoint receipt recovery and compact notch links passed native build, 103 Swift tests, 16 editor checks, isolated fixture smoke/launch and strict signature verification. The user deferred UI acceptance to their final review; it is not claimed passed. Plans 06–08 can now run in parallel before final Plan 09 integration. See [parallel plan status](../plans/linked-work/00-overview.md).
 
 **Activity and agent connections:** the Agents workspace now separates Activity from Agents setup with shared pill tabs. Activity is the default when a provider is configured or receiving fresh activity; otherwise Agents opens first. Explicit selection and activity filters survive tab switches. Native build/relaunch and live tab/filter/default-navigation checks passed. See [behavior and verification](agents-tabs-13.md).
 

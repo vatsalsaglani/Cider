@@ -7,6 +7,7 @@ struct NotchHUDView: View {
     @Bindable var model: AppModel
     @Bindable var usage: UsageModel
     @Bindable var agents: AgentTrackingModel
+    @Bindable var linked: LinkedWorkCoordinator
     var state: NotchPresentation
     @AppStorage("notchTab") private var tab: NotchTab = .todo
     let toggle: () -> Void
@@ -88,10 +89,8 @@ struct NotchHUDView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ForEach(tasks.prefix(3)) { task in
-                    Button { Task { await model.toggle(task) } } label: {
-                        HStack { Image(systemName: "circle"); Text(task.title).lineLimit(1); Spacer() }
-                            .frame(minHeight: 26)
-                    }.buttonStyle(.plain).disabled(model.saving)
+                    LinkedNotchTaskRow(task: task, app: model, linked: linked)
+
                 }
                 Spacer(minLength: 0)
             }
@@ -103,6 +102,33 @@ struct NotchHUDView: View {
         }
     }
 
+}
+
+private struct LinkedNotchTaskRow: View {
+    let task: TaskItem
+    let app: AppModel
+    let linked: LinkedWorkCoordinator
+    @State private var detail: TaskDetail?
+    var body: some View {
+        HStack(spacing: 8) {
+            Button { Task { await app.toggle(task) } } label: { Image(systemName: "circle") }
+                .help("Complete TODO").accessibilityLabel("Complete " + task.title)
+            Button { linked.selectedTask = task.id; app.openWorkspace?() } label: {
+                Text(task.title).lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
+            }.help("Open TODO details")
+            if let detail, !detail.chats.isEmpty {
+                Menu {
+                    ForEach(Array(detail.chats.enumerated()), id: \.offset) { _, chat in
+                        Button(chat.title ?? chat.identity.sessionID) { linked.route(.chat(chat.identity)) }
+                    }
+                } label: {
+                    Label(String(detail.chats.count), systemImage: "link")
+                        .font(.caption).foregroundStyle(detail.chats.contains { $0.attention != nil } ? CiderColor.accent : Color.secondary)
+                }.help("Linked contributors")
+            }
+        }.buttonStyle(.plain).frame(minHeight: 28).disabled(app.saving)
+        .task(id: linked.revision) { detail = try? await linked.model?.repository.detail(task.id) }
+    }
 }
 
 struct NotchCaptureView: View {

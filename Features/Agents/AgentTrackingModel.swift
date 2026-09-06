@@ -5,6 +5,7 @@ import CiderData
 
 @MainActor @Observable
 final class AgentTrackingModel {
+    private let fixtureMode = ProcessInfo.processInfo.environment["CIDER_LINKED_FIXTURE_ROOT"] != nil
     var sessions: [TrackedSession] = []
     var now = Date.now
     var error: String?
@@ -32,6 +33,7 @@ final class AgentTrackingModel {
         TrackedProvider.allCases.contains { configured.contains($0.rawValue) }
             || active.contains { !$0.stale(at: now) }
     }
+    @ObservationIgnored var onSessionsChanged: (([TrackedSession]) async -> Void)?
     func start() async {
         guard clock == nil else { return }
         await refresh()
@@ -54,6 +56,7 @@ final class AgentTrackingModel {
     }
     func stop() { watcher?.cancel(); watcher = nil; clock?.cancel(); clock = nil }
     func refresh() async {
+        guard !fixtureMode else { return }
         if reading { again = true; return }
         reading = true
         repeat {
@@ -80,6 +83,7 @@ final class AgentTrackingModel {
                     return $0.updated > $1.updated
                 }
                 await refreshTitles()
+                await onSessionsChanged?(sessions)
             } catch { self.error = "Tracking could not be refreshed. Saved activity has been kept." }
         } while again
         reading = false
@@ -106,6 +110,7 @@ final class AgentTrackingModel {
         }
     }
     func prepare(_ provider: TrackedProvider, removing: Bool = false) {
+        guard !fixtureMode else { return }
         guard !busy else { return }; busy = true
         let home = FileManager.default.homeDirectoryForCurrentUser
         let env = ProcessInfo.processInfo.environment
@@ -119,6 +124,7 @@ final class AgentTrackingModel {
         }
     }
     func apply() {
+        guard !fixtureMode else { return }
         guard let proposal, !busy else { return }; busy = true
         let bundled = Bundle.main.bundleURL.appending(path: "Contents/Helpers/cider-events")
         Task {

@@ -94,6 +94,10 @@ After fixture gates pass, coordinator only: run `script/build_and_run.sh --verif
 
 ## Deviations
 
+- Coordinator extends Plan 05 ownership to `Sources/CiderData/LinkedWork/WorkDatabaseIO.swift` for resource lookup only. SwiftPM's generated accessor searches the bundle root, but codesign rejects a resource bundle there as unsealed content. Resolve the sealed `Contents/Resources` bundle first, retaining SwiftPM lookup for tests and CLI builds. No schema or repository interface changes.
+
+- Coordinator extends Plan 05 ownership to `script/build_and_run.sh` before editing: native QA requires the database schema resource in the staged app and an explicit isolated fixture launch. Plan 09 retains later sequential packaging ownership.
+
 ## Agent start prompt
 
 > Read `docs/plans/linked-work/00-overview.md` and `docs/plans/linked-work/05-foundation-integration.md`, plus `.agents/skills/working-with-cider/SKILL.md`. Implement plan 05 on `linked-work/05-foundation-integration`. Run locally as the coordinator; do not create a lane worktree for this plan. Goal: Integrate round A locally into a working TODO/chat/note workflow and migrate app task writes to the new store. Edit only the files in this plan's File ownership list, including its own Deviations section; keep all frozen contracts and sibling files unchanged. Follow the overview's data, hook, isolation and local-commit rules. Run these verification commands from the repo root: `swift build --product Cider; swift test; script/verify_editor.sh; script/verify_linked_work.sh --fixtures; git diff --check`. Also complete the plan's explicit integration/manual gates when applicable; never claim unrun checks passed. Commit locally without pushing. Finish with what works, base/head IDs, changed files, each verification result, merge risks, and Deviations (or state none).
@@ -101,3 +105,22 @@ After fixture gates pass, coordinator only: run `script/build_and_run.sh --verif
 ## Coordinator amendment from Plan 04 review
 
 NoteFileSnapshot now includes optional fileIdentity. After confirmed applyAppend, copy that returned identity and modifiedAt into the same-ID NoteReference and persist through registerNote before success is reported. Keep the receipt for retry if registration fails; do not repeat the append. Test repository reopen and a fresh note service reading the refreshed reference, plus a failed registration retry without duplicate Markdown. See contract-spec.md.
+
+
+## Implementation checkpoint — 2026-09-07
+
+Base: `1b18d43`. Local branch: `linked-work/05-foundation-integration`. This is an implementation checkpoint, not the round B approval/base.
+
+Implemented: the database-only AppModel task writer and paginated compatibility projection; shared LinkedWorkCoordinator/NotesModel; TODO detail and exact-identity Activity attachment/draft actions; note/tab/tree connections and create-TODO actions; explicit rename and removed-root metadata reconciliation; checkpoint preview/confirm with retained post-write receipt; independent notch checkbox/detail/contributor actions; revision refresh and modal-transition guards; synthetic CLI smoke and fixture-only native startup.
+
+Verification on this checkpoint:
+
+- `swift build --product Cider`: pass.
+- `swift test`: 103 tests across 12 suites pass. The eight foundation tests cover rich-field migration and legacy byte preservation, malformed migration failure, failed-save navigation recovery, 505-task pagination, duplicate create/sheet transitions, checkpoint restart identity, failed-registration retry without duplicate append, and rename identity/backlinks/collision preservation.
+- `script/verify_linked_work.sh --fixtures`: pass, including a temporary store with two exact chats, a note, read-only reopen and backlinks.
+- `script/verify_editor.sh`: 16 checks pass.
+- `CIDER_LINKED_FIXTURE_ROOT=/tmp/cider-linked-plan05-fixture script/build_and_run.sh --verify`: pass. The fixture app loads only its isolated store and two synthetic chats; observer ingestion/setup and automatic usage refresh are disabled for this explicit mode. The workspace visibly labels sample data.
+- `codesign --verify --deep --strict dist/Cider.app`: pass.
+- `git diff --check`: pass before this documentation update.
+
+Manual acceptance deferred by the user on 2026-09-07: the user will review UI at the end of Plan 09. This supersedes the locked-screen acceptance dependency and permits finalizing Plan 05 and dispatching round B. Native interactions, physical notch behavior and accessibility are not claimed passed. Final review includes task/detail save, chat attach/create, note picker/open/backlinks, rename and compact notch actions. No live task migration, real note edits, hook changes or real chat messages were performed.
