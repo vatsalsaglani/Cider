@@ -107,4 +107,48 @@ public struct TaskDraftConflict: Sendable, Equatable {
         self.saved = saved
     }
     public var rebasedDraft: TaskDraft { local.rebased(onto: saved) }
+
+    /// The view may remain editable after a failed save. Rebase its newest draft, not the
+    /// historical snapshot retained solely for comparison.
+    public func rebasedDraft(using latest: TaskDraft) -> TaskDraft {
+        guard latest.taskID == saved.id else { return rebasedDraft }
+        return latest.rebased(onto: saved)
+    }
+
+    /// Bounded, source-only comparison values; nothing here is executable content.
+    public func comparison(using latest: TaskDraft) -> [TaskDraftComparison] {
+        let savedDraft = TaskDraft(task: saved)
+        var rows: [TaskDraftComparison] = []
+        func append(_ field: String, _ saved: String, _ local: String) {
+            guard saved != local else { return }
+            rows.append(TaskDraftComparison(field: field, saved: bounded(saved), local: bounded(local)))
+        }
+        append("Title", saved.title, latest.title)
+        append("Description", saved.descriptionMarkdown, latest.descriptionMarkdown)
+        append("Status", saved.status.rawValue, latest.status.rawValue)
+        append("Planned day", saved.plannedDay.date().formatted(date: .abbreviated, time: .omitted), latest.plannedDay.date().formatted(date: .abbreviated, time: .omitted))
+        append("Due date", saved.dueAt?.formatted(date: .abbreviated, time: .shortened) ?? "None", latest.dueAt?.formatted(date: .abbreviated, time: .shortened) ?? "None")
+        append("Criteria", criteriaText(savedDraft.criteria), criteriaText(latest.criteria))
+        return rows
+    }
+
+    private func criteriaText(_ criteria: [WorkCriterion]) -> String {
+        criteria.map { "\($0.checked ? "[x]" : "[ ]") \($0.text)" }.joined(separator: "\n")
+    }
+    private func bounded(_ value: String) -> String {
+        let limit = 600
+        return value.count > limit ? String(value.prefix(limit)) + "…" : value
+    }
+}
+
+public struct TaskDraftComparison: Sendable, Equatable, Identifiable {
+    public let field: String
+    public let saved: String
+    public let local: String
+    public var id: String { field }
+    public init(field: String, saved: String, local: String) {
+        self.field = field
+        self.saved = saved
+        self.local = local
+    }
 }

@@ -55,10 +55,25 @@ import CiderUI
         #expect(conflict.rebasedDraft.title == "Saved elsewhere")
         #expect(conflict.rebasedDraft.descriptionMarkdown == "Keep this local text")
 
-        #expect(await model.perform(try conflict.rebasedDraft.saveMutation()))
+        var editedAfterConflict = draft
+        editedAfterConflict.descriptionMarkdown = "Keep this newer text typed after the conflict"
+        editedAfterConflict.status = .readyForReview
+        editedAfterConflict.criteria.append(WorkCriterion(text: "Check the merged version"))
+        let comparison = conflict.comparison(using: editedAfterConflict)
+        #expect(comparison.map(\.field) == ["Title", "Description", "Status", "Criteria"])
+        #expect(comparison.first(where: { $0.field == "Description" })?.local == "Keep this newer text typed after the conflict")
+
+        let rebased = conflict.rebasedDraft(using: editedAfterConflict)
+        #expect(rebased.originalRevision == saved.revision)
+        #expect(rebased.descriptionMarkdown == "Keep this newer text typed after the conflict")
+        #expect(rebased.status == .readyForReview)
+        #expect(rebased.criteria.count == fixture.tasks[0].criteria.count + 1)
+        #expect(await model.perform(try rebased.saveMutation()))
         let resolved = try await repository.detail(fixture.tasks[0].id).task
         #expect(resolved.title == "Saved elsewhere")
-        #expect(resolved.descriptionMarkdown == "Keep this local text")
+        #expect(resolved.descriptionMarkdown == "Keep this newer text typed after the conflict")
+        #expect(resolved.status == .readyForReview)
+        #expect(resolved.criteria.count == fixture.tasks[0].criteria.count + 1)
         #expect(model.error == nil)
     }
 

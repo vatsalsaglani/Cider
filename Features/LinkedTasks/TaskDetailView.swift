@@ -118,17 +118,29 @@ struct TaskDetailView: LinkedTaskDetailFeature {
     }
     @ViewBuilder private var recoveryMessage: some View {
         if let conflict {
+            let latest = draft ?? conflict.local
+            let comparison = conflict.comparison(using: latest)
             VStack(alignment: .leading, spacing: 8) {
                 Text("This task changed while you were editing.").font(.caption).foregroundStyle(CiderColor.warning)
                 DisclosureGroup("Compare saved and local versions") {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Saved revision \(conflict.saved.revision): \(conflict.saved.title)")
-                        Text("Your draft from revision \(conflict.local.originalRevision): \(conflict.local.title)")
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Saved revision \(conflict.saved.revision) · your draft started at revision \(conflict.local.originalRevision)")
+                        if comparison.isEmpty {
+                            Text("The current draft matches the saved task.")
+                        } else {
+                            ForEach(comparison) { row in
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(row.field).font(.caption.weight(.semibold))
+                                    comparisonValue("Saved", row.saved)
+                                    comparisonValue("Your latest draft", row.local)
+                                }
+                            }
+                        }
                     }.font(.caption).foregroundStyle(.secondary)
                 }
                 HStack {
                     Button("Use saved version") { useSavedVersion(conflict) }
-                    Button("Rebase my edits") { rebase(conflict) }.buttonStyle(.borderedProminent)
+                    Button("Rebase my edits") { rebase(conflict, latest: latest) }.buttonStyle(.borderedProminent)
                 }
             }
         } else if let error = operationError ?? model.error {
@@ -138,8 +150,11 @@ struct TaskDetailView: LinkedTaskDetailFeature {
     private func useSavedVersion(_ conflict: TaskDraftConflict) {
         draft = TaskDraft(task: conflict.saved); self.conflict = nil; operationError = nil
     }
-    private func rebase(_ conflict: TaskDraftConflict) {
-        draft = conflict.rebasedDraft; self.conflict = nil; operationError = nil
+    private func rebase(_ conflict: TaskDraftConflict, latest: TaskDraft) {
+        draft = conflict.rebasedDraft(using: latest); self.conflict = nil; operationError = nil
+    }
+    @ViewBuilder private func comparisonValue(_ label: String, _ value: String) -> some View {
+        Text("\(label): \(value)").lineLimit(6).textSelection(.enabled)
     }
     private func validationError(for draft: TaskDraft) -> String? { draft.validationMessage }
     private func delete(_ detail: TaskDetail) {
