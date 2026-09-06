@@ -44,7 +44,7 @@ flowchart TD
     P05["05 Foundation integration · local<br/>DONE"]:::done
     P06["06 Durable response journal<br/>DONE"]:::done
     P07["07 Relationship graph<br/>DONE"]:::done
-    P08["08 CLI + workflow skill<br/>IN PROGRESS"]:::inprogress
+    P08["08 CLI + workflow skill<br/>DONE"]:::done
     P09["09 Package + end-to-end checks · local<br/>TODO"]:::todo
     P01 --> P02
     P01 --> P03
@@ -437,3 +437,7 @@ Merged `linked-work/07-graph` through `d176f8f817c76a3063cb0442aefcbb464d709953`
 Merged `9bbe6868fcfdae067c42b77fa9b5e937ce2daac4` after reviewing assignment episodes, delayed terminal events, question resolution, replay acknowledgement and timeline pagination. The integrated Swift suite passed 115 tests across 16 suites. Historical question resolution uses the documented bounded scan (4,096 entries per task); an index is a future scalability improvement, not an unbounded-history guarantee. Production ingestor injection and timeline navigation remain explicit Plan 09 composition work. UI acceptance remains deferred by the user.
 
 Plan 09 additionally owns `Package.swift` for integration-resource exclusion and `Features/LinkedTasks/TaskTimelineView.swift` sequentially after Plan 06, for live timeline revision refresh. No concurrent ownership changes.
+
+### Plan 08 merged — 2026-09-07
+
+Merged `1e42ef2f78351151ba983c90c61baff765f6d0b2` after correcting full-byte skill previews, managed-edit protection, symlink checks, bounded reads, shell quoting, stale actions and today-context data. All 122 integrated Swift tests and the app-closed synthetic CLI verifier passed. Plan 09 starts locally from this integrated source; native UI acceptance remains deferred.
