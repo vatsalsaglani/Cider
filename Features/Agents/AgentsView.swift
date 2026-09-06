@@ -11,6 +11,7 @@ private enum AgentsTab: String, CaseIterable {
 struct AgentsView: View {
     @Bindable var model: AgentTrackingModel
     var compact = false
+    var viewConnections: ((TrackedSession) -> Void)?
     var connectTask: ((TrackedSession, Bool) -> Void)?
     @State private var providerFilter = "All agents"
     @State private var projectFilter = ""
@@ -126,6 +127,7 @@ struct AgentsView: View {
                                                 Button("Create TODO from chat") { connectTask(row, true) }
                                             } label: { Image(systemName: "link") }.help("Connect this chat to a TODO")
                                         }
+                                        if let viewConnections { IconAction("View connections", symbol: "point.3.connected.trianglepath.dotted") { viewConnections(row) } }
                                         Text(String(row.session.prefix(12))).font(.caption.monospaced()).foregroundStyle(.secondary)
                                     }
                                 }

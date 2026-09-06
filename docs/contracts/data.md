@@ -1,5 +1,14 @@
 # Domain and event contracts
 
+## Implemented linked-work contract
+
+`Sources/CiderDomain/LinkedWork` and schema version 1 in `CiderData/LinkedWork/Schema.sql` define the shipped TODO/chat/note/journal graph. Broader Feature/Phase/Lane concepts below remain proposed. The app owns one SQLite writer at `~/Library/Application Support/Cider/work.sqlite`; CLI access is read-only and never creates or migrates a database. Legacy task IDs and descriptions survive one-time import, with a byte-preserving legacy backup.
+
+Journal ingestion commits attribution episodes, source event IDs and entries before the observer ledger/spool acknowledgement. Replays of the same source event are idempotent per task. Distinct hook invocations with new IDs are at-least-once. Identified delayed responses retain the original assignment after detach; directory equality never establishes attribution. Question resolution matches the original chat/link/question, with a bounded historical lookup of 4,096 journal entries per task. A limit failure preserves the spool rather than guessing.
+
+Context is capped at 256 KiB, notes at 64 KiB, today's summary at 20 tasks. Outputs expose revision, truncation and sequence information; unknown data is not fabricated. Graph queries are bounded at 1,000 nodes and 3,000 edges, with one/two-hop local scopes. Deleting a TODO removes its relationships and journal but leaves Markdown bytes and provider identities intact. See [linked-work evidence](../progress/linked-work-14.md).
+
+
 Status: proposed schema v1; freeze in Phase 01 before implementation fan-out.
 
 ## Entities

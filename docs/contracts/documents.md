@@ -1,5 +1,14 @@
 # Document, asset, and annotation contract
 
+## Implemented linked-note boundary
+
+Saved links point to stable note IDs and registered roots/relative paths. Resolution checks canonical containment and file identity. All linked reads/append proposals are bounded to 64 KiB. App-managed rename preserves note identity; unavailable paths retain their relationships rather than silently linking to a same-named file.
+
+Checkpoint export chooses a Markdown file within a workspace folder, saves any active editor draft, then previews source, timestamp, preview status and the exact append. Confirmation checks the file hash again and atomically replaces it. The append includes an inert `cider-checkpoint` entry-ID comment; explicitly selecting that same checkpoint/destination after restart recognizes the marker and avoids another append. A successful write with failed metadata registration retains its receipt for retry. Explicit destination selection reads current file identity to recover a prior replacement; ordinary background reads never adopt replacements silently.
+
+CLI/context export reads saved contents only. Unsaved editor text is not included. Provider output and Markdown remain data, never authorization. See [linked-work evidence](../progress/linked-work-14.md); the broader document/editor proposals below do not imply implemented vault compatibility.
+
+
 ## Source of truth
 
 UTF-8 Markdown on disk is the portable source. A Swift `DocumentSession` owns the loaded text, base disk hash, edit revision, unsaved changes, and save state. The WebKit editor is a projection with a versioned edit channel. The database stores note identity/links/search metadata, not the only copy of text.

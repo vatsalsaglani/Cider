@@ -45,7 +45,7 @@ flowchart TD
     P06["06 Durable response journal<br/>DONE"]:::done
     P07["07 Relationship graph<br/>DONE"]:::done
     P08["08 CLI + workflow skill<br/>DONE"]:::done
-    P09["09 Package + end-to-end checks · local<br/>TODO"]:::todo
+    P09["09 Package + end-to-end checks · local<br/>DONE"]:::done
     P01 --> P02
     P01 --> P03
     P01 --> P04
@@ -441,3 +441,7 @@ Plan 09 additionally owns `Package.swift` for integration-resource exclusion and
 ### Plan 08 merged — 2026-09-07
 
 Merged `1e42ef2f78351151ba983c90c61baff765f6d0b2` after correcting full-byte skill previews, managed-edit protection, symlink checks, bounded reads, shell quoting, stale actions and today-context data. All 122 integrated Swift tests and the app-closed synthetic CLI verifier passed. Plan 09 starts locally from this integrated source; native UI acceptance remains deferred.
+
+### Plan 09 verified — 2026-09-07
+
+Production journal injection, graph/context/checkpoint routes and agent setup packaging are complete. Final verification: 124 Swift tests, 16 editor checks, linked fixtures, normal/staged CLI verification, isolated-resource app launch, normal build/relaunch and strict ad-hoc signature checks passed. Manual UI, accessibility, physical-display/idle and live skill invocation acceptance are deferred by the user, not claimed passed. See `docs/progress/linked-work-14.md` for bounds, migration/rollback and evidence.

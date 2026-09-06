@@ -1,5 +1,12 @@
 # Product and interaction model
 
+## Shipped linked work (Plans 01–09)
+
+A TODO can have a description, criteria, an explicit state, multiple exact chat contributors, and shared Markdown notes. Attachments use host/provider/session identity rather than the workspace name. Observed responses and questions form a durable timeline; a Stop is reported evidence and never marks a TODO Done. Task, note and Activity actions open a native relationship graph with local/workspace scope and exact-source navigation.
+
+Copy saved context excludes note bodies by default; a separate action includes saved linked-note contents. The read-only `cider` CLI and reviewed project-local workflow skill let an agent summarize this context in its current conversation. They cannot update TODOs, approve tools or run other agents. Checkpoint-to-note writes require a chosen workspace note and explicit preview confirmation. See [implementation and verification](progress/linked-work-14.md) for bounds and deferred manual acceptance.
+
+
 ## Organizing work
 
 The hierarchy is Workspace → Feature → Phase → Lane. A lane can have several agent runs and several worktree revisions over time. Conversations can span phases, so associate individual run/turn references with lanes instead of forcing one conversation into one phase forever. Related notes, decisions, tasks, tests, and artifacts are linked entities.

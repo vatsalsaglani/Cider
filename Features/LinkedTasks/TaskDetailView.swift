@@ -78,7 +78,7 @@ struct TaskDetailView: LinkedTaskDetailFeature {
         case .notes:
             TaskLinksView(detail: detail, model: model, navigate: navigate, onChanged: reload)
         case .timeline:
-            TaskTimelineView(taskID: taskID, repository: model.repository)
+            TaskTimelineView(taskID: taskID, repository: model.repository, navigate: navigate, refreshRevision: detail.revision)
         }
     }
 

@@ -13,7 +13,7 @@ let package = Package(
         .executableTarget(name: "CiderCLI", dependencies: ["CiderDomain", "CiderData"]),
         .target(name: "CiderUI", dependencies: ["CiderDomain"]),
         .target(name: "CiderPlatform", dependencies: ["CiderDomain", "CiderUI"], resources: [.copy("Resources")]),
-        .executableTarget(name: "CiderApp", dependencies: ["CiderDomain", "CiderData", "CiderUI", "CiderPlatform"], path: ".", exclude: ["Vendor", "dist", "Sources", "Tests", "docs", "design", "output", "script", "AGENTS.md", "README.md"], sources: ["App", "Features"]),
+        .executableTarget(name: "CiderApp", dependencies: ["CiderDomain", "CiderData", "CiderUI", "CiderPlatform"], path: ".", exclude: ["Integrations", "Vendor", "dist", "Sources", "Tests", "docs", "design", "output", "script", "AGENTS.md", "README.md"], sources: ["App", "Features"]),
         .testTarget(name: "CiderDomainTests", dependencies: ["CiderDomain", "CiderData"]),
         .testTarget(name: "CiderPlatformTests", dependencies: ["CiderPlatform"]),
         .testTarget(name: "CiderLinkedWorkTests", dependencies: ["CiderDomain", "CiderData", "CiderUI", "CSQLite"], resources: [.copy("Fixtures")]),

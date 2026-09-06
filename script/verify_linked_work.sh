@@ -14,3 +14,5 @@ swiftc -parse-as-library -I "$CIDER_BIN/Modules" -I Sources/CSQLite \
     script/verification/LinkedWorkSmoke.swift "${CIDER_OBJECTS[@]}" -lsqlite3 -o "$CIDER_BIN/linked-work-smoke"
 "$CIDER_BIN/linked-work-smoke"
 swift test --filter LinkedFoundationTests
+swift test --filter LinkedWorkflowTests
+swift test --filter LinkedJournalRecoveryTests
