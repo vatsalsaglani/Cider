@@ -11,6 +11,7 @@ private enum AgentsTab: String, CaseIterable {
 struct AgentsView: View {
     @Bindable var model: AgentTrackingModel
     var compact = false
+    var connectTask: ((TrackedSession, Bool) -> Void)?
     @State private var providerFilter = "All agents"
     @State private var projectFilter = ""
     @State private var showEnded = false
@@ -119,6 +120,12 @@ struct AgentsView: View {
                                         IconAction(row.history.last(where: { $0.origin != nil })?.origin.map { AgentDestination.taskURL(provider: row.provider, session: row.session, origin: $0) != nil ? "Open this Codex task" : "Return to " + $0.name } ?? "Source app unavailable", symbol: "arrow.up.forward.app") { model.openSource(row) }
                                         IconAction("Reveal workspace", symbol: "folder") { if row.directory.hasPrefix("/") { NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: row.directory) } }
                                         IconAction("Copy session ID", symbol: "doc.on.doc") { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(row.session, forType: .string) }
+                                        if let connectTask {
+                                            Menu {
+                                                Button("Attach to TODO") { connectTask(row, false) }
+                                                Button("Create TODO from chat") { connectTask(row, true) }
+                                            } label: { Image(systemName: "link") }.help("Connect this chat to a TODO")
+                                        }
                                         Text(String(row.session.prefix(12))).font(.caption.monospaced()).foregroundStyle(.secondary)
                                     }
                                 }

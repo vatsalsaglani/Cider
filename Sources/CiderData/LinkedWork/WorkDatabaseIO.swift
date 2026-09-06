@@ -19,7 +19,12 @@ actor WorkDatabaseExecutor {
         connection = db
     }
     func close() { if let connection { sqlite3_close(connection) }; connection = nil }
-    static var schemaURL: URL { Bundle.module.url(forResource: "Schema", withExtension: "sql")! }
+    static var schemaURL: URL {
+        if let resources = Bundle.main.resourceURL,
+           let bundle = Bundle(url: resources.appending(path: "Cider_CiderData.bundle")),
+           let schema = bundle.url(forResource: "Schema", withExtension: "sql") { return schema }
+        return Bundle.module.url(forResource: "Schema", withExtension: "sql")!
+    }
     /// Narrow test seam retained from the frozen contract; production callers use typed methods.
     func perform<T: Sendable>(_ operation: @Sendable (OpaquePointer) throws -> T) throws -> T {
         guard let connection else { throw WorkStoreError.unavailable }

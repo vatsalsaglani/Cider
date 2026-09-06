@@ -140,7 +140,9 @@
         "Tests/CiderIntegrationTests/LinkedFoundationTests.swift",
         "script/verification/LinkedWorkSmoke.swift",
         "script/verify_linked_work.sh",
-        "docs/plans/linked-work/05-foundation-integration.md"
+        "docs/plans/linked-work/05-foundation-integration.md",
+        "script/build_and_run.sh",
+        "Sources/CiderData/LinkedWork/WorkDatabaseIO.swift"
       ]
     },
     "06": {

@@ -5,6 +5,12 @@ import CiderDomain
 
 @MainActor @Observable
 final class NotesModel {
+    @ObservationIgnored var onRename: ((URL, String) async -> Void)?
+    @ObservationIgnored var onCreateTask: ((URL) async -> Void)?
+    @ObservationIgnored var onConnections: ((URL) async -> Void)?
+    @ObservationIgnored var onScan: (([URL]) async -> Void)?
+    @ObservationIgnored var onFileOpened: ((URL) async -> Void)?
+    @ObservationIgnored var onFileSaved: ((URL) async -> Void)?
     var folders: [URL] = []
     var files: [URL] = []
     var trees: [WorkspaceNode] = []
@@ -22,12 +28,40 @@ final class NotesModel {
     private var saving = false
     private var original = ""
     private var saveTask: Task<Void, Never>?
-    init() { folders = (UserDefaults.standard.stringArray(forKey: "workspaceFolders") ?? []).map { URL(fileURLWithPath: $0) }; scan() }
+    init(folders: [URL]? = nil) { self.folders = folders ?? (UserDefaults.standard.stringArray(forKey: "workspaceFolders") ?? []).map { URL(fileURLWithPath: $0) }; scan() }
     func addFolder() {
         let picker = NSOpenPanel(); picker.canChooseDirectories = true; picker.canChooseFiles = false; picker.allowsMultipleSelection = true
         guard picker.runModal() == .OK else { return }
         for url in picker.urls where !folders.contains(url) { folders.append(url) }
         UserDefaults.standard.set(folders.map(\.path), forKey: "workspaceFolders"); scan()
+    }
+    func requestRename(_ url: URL) {
+        let alert = NSAlert()
+        alert.messageText = "Rename note"
+        alert.informativeText = "Related task connections will keep following this note."
+        let field = NSTextField(string: url.lastPathComponent)
+        field.frame = NSRect(x: 0, y: 0, width: 300, height: 24)
+        alert.accessoryView = field
+        alert.addButton(withTitle: "Rename"); alert.addButton(withTitle: "Cancel")
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        let name = field.stringValue
+        Task { await onRename?(url, name) }
+    }
+    func didRename(_ old: URL, to new: URL) {
+        tabs = tabs.map { $0 == old ? new : $0 }
+        if selected == old { selected = new; selectedFolder = new.deletingLastPathComponent(); generation = UUID() }
+        scan()
+    }
+    func removeFolder(_ url: URL) async {
+        guard await save() else { return }
+        folders.removeAll { $0 == url }
+        tabs.removeAll { $0.path.hasPrefix(url.path + "/") }
+        if selected?.path.hasPrefix(url.path + "/") == true {
+            selected = nil; body = ""; header = ""; original = ""
+        }
+        if selectedFolder?.path.hasPrefix(url.path) == true { selectedFolder = nil }
+        UserDefaults.standard.set(folders.map(\.path), forKey: "workspaceFolders")
+        scan()
     }
     func scan() {
         let roots = folders
@@ -44,7 +78,9 @@ final class NotesModel {
                 }
                 return result.sorted { $0.path < $1.path }
             }.value
+            guard roots == folders else { return }
             trees = roots.map { WorkspaceNode.tree(root: $0, files: files) }
+            await onScan?(files)
         }
     }
     func close(_ url: URL) async {
@@ -87,6 +123,7 @@ final class NotesModel {
             let parts = MarkdownParts(text); header = parts.header; body = parts.body
             if let draft = UserDefaults.standard.string(forKey: "noteDraft:" + url.path), draft != text { let parts = MarkdownParts(draft); header = parts.header; body = parts.body; status = "Recovered draft" } else { status = "Saved" }
             generation = UUID()
+            await onFileOpened?(url)
         } catch { self.error = "This note could not be opened." }
     }
     func create(in destination: URL? = nil) async {
@@ -126,7 +163,7 @@ final class NotesModel {
                 }
                 if let error = coordinationError ?? failure as NSError? { throw error }
             }.value
-            original = text; status = "Saved"; if header + body == text { UserDefaults.standard.removeObject(forKey: "noteDraft:" + url.path) }; if header + body != text { saveTask = Task { _ = await save() } }; return true
+            original = text; await onFileSaved?(url); status = "Saved"; if header + body == text { UserDefaults.standard.removeObject(forKey: "noteDraft:" + url.path) }; if header + body != text { saveTask = Task { _ = await save() } }; return true
         } catch { status = "Unsaved"; self.error = "The file changed or couldn’t be saved. Your writing remains open; copy it before closing."; return false }
     }
     func pasteImage(_ data: Data, name: String) -> Bool {

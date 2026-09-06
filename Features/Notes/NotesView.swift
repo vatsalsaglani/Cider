@@ -4,6 +4,7 @@ import CiderPlatform
 
 struct NotesView: View {
     @Bindable var notes: NotesModel
+    var showConnections: (() -> Void)?
     var body: some View {
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 14) {
@@ -16,7 +17,7 @@ struct NotesView: View {
             VStack(alignment: .leading, spacing: 0) {
                 if !notes.tabs.isEmpty { NoteTabStrip(notes: notes) }
                 if let file = notes.selected {
-                    HStack { Text(file.lastPathComponent).foregroundStyle(.secondary); Spacer(); Text(notes.status).font(.caption); IconAction("Save note", symbol: "checkmark") { Task { _ = await notes.save() } } }.padding(.horizontal, 20).padding(.vertical, 8)
+                    HStack { Text(file.lastPathComponent).foregroundStyle(.secondary); Spacer(); if let showConnections { IconAction("Note connections", symbol: "link", action: showConnections) }; Text(notes.status).font(.caption); IconAction("Save note", symbol: "checkmark") { Task { _ = await notes.save() } } }.padding(.horizontal, 20).padding(.vertical, 8)
                     if !notes.header.isEmpty { DisclosureGroup("Properties") { Text(notes.header).font(.system(.caption, design: .monospaced)).textSelection(.enabled) }.padding(.horizontal, 30) }
                     MarkdownEditor(text: notes.body, document: file, changed: notes.changed, imagePasted: notes.pasteImage, openLink: notes.openLink, fragment: notes.fragment).id(notes.generation)
                 } else { ContentUnavailableView("Room for your thoughts", systemImage: "doc.text", description: Text("Add a folder or create a note to begin.")).frame(maxWidth: .infinity, maxHeight: .infinity) }

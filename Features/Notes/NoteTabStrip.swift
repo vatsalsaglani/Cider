@@ -17,6 +17,9 @@ struct NoteTabStrip: View {
                             .accessibilityLabel("Close " + file.lastPathComponent)
                     }.id(file)
                         .contextMenu {
+                            Button("Create TODO from note") { Task { await notes.onCreateTask?(file) } }
+                            Button("Rename note") { notes.requestRename(file) }
+                            Button("Connections") { Task { await notes.onConnections?(file) } }
                             Button("Close Tab") { Task { await notes.close(file) } }
                             Button("Reveal in Finder") { notes.reveal(file) }
                             Button("Copy Path") { notes.copyPath(file) }

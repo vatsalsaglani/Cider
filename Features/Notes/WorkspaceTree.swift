@@ -43,6 +43,9 @@ struct WorkspaceTreeRow: View {
                     .contextMenu {
                         Button("New Note Here", systemImage: "square.and.pencil") { Task { await notes.create(in: node.url) } }
                         Button("Reveal in Finder", systemImage: "folder") { notes.reveal(node.url) }
+                        if notes.folders.contains(node.url) {
+                            Button("Remove from workspace") { Task { await notes.removeFolder(node.url) } }
+                        }
                         Button("Copy Path", systemImage: "doc.on.doc") { notes.copyPath(node.url) }
                     }
                 if expanded {
@@ -66,6 +69,9 @@ struct WorkspaceTreeRow: View {
                         .contentShape(Rectangle())
                 }.buttonStyle(.plain).help(node.url.path).disabled(notes.opening)
                 .contextMenu {
+                    Button("Create TODO from note") { Task { await notes.onCreateTask?(node.url) } }
+                    Button("Rename note") { notes.requestRename(node.url) }
+                    Button("Connections", systemImage: "link") { Task { await notes.onConnections?(node.url) } }
                     Button("Open", systemImage: "doc.text") { Task { await notes.open(node.url) } }
                     Button("New Note in This Folder", systemImage: "square.and.pencil") { Task { await notes.create(in: node.url.deletingLastPathComponent()) } }
                     Button("Reveal in Finder", systemImage: "folder") { notes.reveal(node.url) }

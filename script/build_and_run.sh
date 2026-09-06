@@ -13,6 +13,7 @@ pkill -x Cinder >/dev/null 2>&1 || true
 pkill -x Cider >/dev/null 2>&1 || true
 mkdir -p "$CIDER_APP/Contents/Resources"
 cp -R "$CIDER_BUILD/Cider_CiderPlatform.bundle" "$CIDER_APP/Contents/Resources/"
+cp -R "$CIDER_BUILD/Cider_CiderData.bundle" "$CIDER_APP/Contents/Resources/"
 cp "$CIDER_BUILD/Cider" "$CIDER_APP/Contents/MacOS/Cider"
 cat > "$CIDER_APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -42,7 +43,11 @@ cp "$CIDER_ROOT/Vendor/MediaRemoteAdapter/bin/mediaremote-adapter.pl" "$CIDER_AP
 cp "$CIDER_ROOT/Vendor/MediaRemoteAdapter/LICENSE" "$CIDER_APP/Contents/Helpers/MediaRemoteAdapter-LICENSE"
 codesign --force --deep --sign - "$CIDER_APP"
 if [[ "$MODE" == --debug ]]; then exec lldb -- "$CIDER_APP/Contents/MacOS/Cider"; fi
-/usr/bin/open -n "$CIDER_APP"
+if [[ -n "${CIDER_LINKED_FIXTURE_ROOT:-}" ]]; then
+    /usr/bin/open -n "$CIDER_APP" --env "CIDER_LINKED_FIXTURE_ROOT=$CIDER_LINKED_FIXTURE_ROOT"
+else
+    /usr/bin/open -n "$CIDER_APP"
+fi
 case "$MODE" in
  --verify) sleep 1; pgrep -x Cider >/dev/null ;;
  --logs) exec /usr/bin/log stream --info --style compact --predicate 'process == "Cider"' ;;

@@ -4,6 +4,7 @@ import CiderUI
 
 struct TodayView: View {
     @Bindable var model: AppModel
+    var openTask: ((UUID) -> Void)?
     @Binding var selectedDate: Date
     @State private var calendarMode = false
     @State private var month = Date.now
@@ -45,7 +46,7 @@ struct TodayView: View {
         .sheet(item: $editing) { item in TaskEditView(model: model, original: item) }
     }
     private func row(_ item: TaskItem) -> some View {
-        TaskRow(item: item, toggle: { Task { await model.toggle(item) } }, edit: { editing = item }).disabled(model.saving)
+        TaskRow(item: item, toggle: { Task { await model.toggle(item) } }, edit: { if let openTask { openTask(item.id) } else { editing = item } }).disabled(model.saving)
     }
 }
 
