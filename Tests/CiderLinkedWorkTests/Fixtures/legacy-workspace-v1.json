@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "tasks": [
+    {
+      "id": "00000000-0000-4000-8000-000000000010",
+      "title": "Synthetic task 10",
+      "plannedDay": {
+        "year": 2026,
+        "month": 9,
+        "day": 6
+      },
+      "completed": false,
+      "createdAt": 100
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000011",
+      "title": "Synthetic task 11",
+      "plannedDay": {
+        "year": 2026,
+        "month": 9,
+        "day": 6
+      },
+      "completed": true,
+      "createdAt": 100
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000012",
+      "title": "Synthetic task 12",
+      "plannedDay": {
+        "year": 2026,
+        "month": 9,
+        "day": 6
+      },
+      "completed": false,
+      "createdAt": 100
+    }
+  ],
+  "notch": {
+    "enabled": true,
+    "edge": "top",
+    "position": 0.5,
+    "hover": true
+  }
+}
