@@ -4,7 +4,7 @@ Design source: [linked TODOs, chats, notes, graph and CLI/skill](../../plan/05-l
 
 This plan set connects individual agent chats in **Activity** to TODOs, and TODOs to ordinary Markdown notes. A TODO gains a description, criteria, status, contributor assignments and durable response previews. Notes gain backlinks. The graph explores those same saved relationships. A read-only CLI and portable skill give Codex/Claude Code selected context to summarize in the current conversation.
 
-There are **two rounds of three parallel lanes**, with local contract/integration phases between them. This fits one coordinator plus three worktree agents. Plan 01 is implemented and verified locally. Plans 02–04 are running in separate worktree tasks using Terra with High reasoning, with goal mode requested in each start prompt.
+There are **two rounds of three parallel lanes**, with local contract/integration phases between them. This fits one coordinator plus three worktree agents. Plan 01 is implemented and verified locally. Plans 02–04 have been reviewed, merged and verified. Plan 05 foundation integration is now unblocked.
 
 ## Scope and delivery boundary
 
@@ -38,7 +38,7 @@ Only the coordinator updates statuses here: TODO, IN PROGRESS or DONE. A node is
 ```mermaid
 flowchart TD
     P01["01 Shared contracts · local<br/>DONE"]:::done
-    P02["02 Store + migration<br/>IN PROGRESS"]:::inprogress
+    P02["02 Store + migration<br/>DONE"]:::done
     P03["03 TODO detail + chats<br/>DONE"]:::done
     P04["04 Notes + backlinks<br/>DONE"]:::done
     P05["05 Foundation integration · local<br/>TODO"]:::todo
@@ -398,3 +398,7 @@ Merged `linked-work/03-task-detail` through `533d7f6` after reviewing conflict r
 ### Plan 04 merge verification
 
 Merged `linked-work/04-note-links` through `9e0a6e3`. Coordinator accepted and implemented the optional NoteFileSnapshot.fileIdentity receipt amendment in contract-spec.md. A synthetic encode/decode plus fresh-service regression verifies the refreshed reference survives restart and rejects an unrelated external replacement. Native build and full Swift suite passed (81 tests); no app relaunch/live checks were run. Plan 05 must persist append receipts using registerNote and retain failed-registration receipts for retry. Plan 02 review remains the next prerequisite for Plan 05.
+
+### Plan 02 merge verification
+
+Merged `linked-work/02-store` through `cb88b43` after scoped graph, transaction, migration and bounded-query corrections. Coordinator restored all-workspaces contributor edges and retained isolated chat nodes omitted by the last rewrite, with a regression covering attach/detach and deterministic graph output. Native build, LinkedStoreTests (11), LinkedMigrationTests (3), LinkedContractTests (8), full Swift tests (95 across 11 suites), and diff checks passed on the merged checkout. No live data migration, app relaunch or provider checks were run. Plans 01–04 are DONE; run Plan 05 locally next to wire and verify these foundations before starting 06–08.

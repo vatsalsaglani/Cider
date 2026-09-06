@@ -82,6 +82,19 @@ enum WorkGraphQueries {
             let noteRows = try db.rows("SELECT id,root_id,relative_path,file_identity,available,modified_at FROM notes ORDER BY relative_path,id LIMIT ?", [.integer(Int64(query.nodeLimit + 1))])
             if noteRows.count > query.nodeLimit { truncated = true }
             for row in noteRows.prefix(query.nodeLimit) { let note = try WorkQueries.noteRow(row); let id = LinkedEntityID.note(note.id); if let value = try eligible(id, query, db) { nodes[id] = value } }
+            let chatRows = try db.rows("SELECT host_id,provider,session_id FROM chats ORDER BY host_id,provider,session_id LIMIT ?", [.integer(Int64(query.nodeLimit + 1))])
+            if chatRows.count > query.nodeLimit { truncated = true }
+            for row in chatRows.prefix(query.nodeLimit) {
+                let identity = try ChatIdentity(hostID: sqlUUID(row[0]), provider: TrackedProvider(rawValue: row[1].string ?? "") ?? .codex, sessionID: row[2].string ?? "")
+                if let value = try eligible(.chat(identity), query, db) { nodes[.chat(identity)] = value }
+            }
+            let contributors = try db.rows("SELECT id,task_id,host_id,provider,session_id FROM task_chat_links WHERE ended_at IS NULL ORDER BY id LIMIT ?", [.integer(Int64(limit + 1))])
+            if contributors.count > limit { truncated = true }
+            for row in contributors.prefix(limit) {
+                let identity = try ChatIdentity(hostID: sqlUUID(row[2]), provider: TrackedProvider(rawValue: row[3].string ?? "") ?? .codex, sessionID: row[4].string ?? "")
+                let edge = try GraphEdge(id: sqlUUID(row[0]), source: .chat(identity), target: .task(sqlUUID(row[1])), kind: .contributes)
+                try add(edge, query: query, nodes: &nodes, edges: &edges, truncated: &truncated, db)
+            }
             let links = try db.rows("SELECT id,task_id,note_id,role FROM task_note_links ORDER BY task_id,note_id,id LIMIT ?", [.integer(Int64(limit + 1))])
             if links.count > limit { truncated = true }
             for row in links.prefix(limit) { try add(GraphEdge(id: sqlUUID(row[0]), source: .note(sqlUUID(row[2])), target: .task(sqlUUID(row[1])), kind: WorkQueries.edgeKind(NoteRole(rawValue: row[3].string ?? "") ?? .context)), query: query, nodes: &nodes, edges: &edges, truncated: &truncated, db) }

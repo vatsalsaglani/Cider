@@ -181,6 +181,26 @@ import CiderDomain
         await locker.close()
     }
 
+    @Test func allWorkspacesGraphIncludesContributorAndRetainedIsolatedChat() async throws {
+        let root = try temporaryRoot(); defer { try? FileManager.default.removeItem(at: root) }
+        let store = try await SQLiteWorkRepository.open(at: root.appending(path: "work.sqlite"), access: .appReadWrite)
+        let task = WorkTask(title: "Graph contributor")
+        _ = try await store.apply(WorkMutation(change: .saveTask(task: task)))
+        let identity = ChatIdentity(hostID: try await store.info().hostID, provider: .codex, sessionID: "global-chat")
+        let chat = ChatReference(identity: identity, title: "Contributor", directory: "/synthetic")
+        _ = try await store.apply(WorkMutation(change: .attachChat(taskID: task.id, chat: chat, role: nil, initialTurnID: nil)))
+        let query = GraphQuery(includeDone: true, includeIsolated: true)
+        let graph = try await store.graph(query)
+        #expect(graph.nodes.contains { $0.id == .chat(identity) })
+        #expect(graph.edges.filter { $0.kind == .contributes }.count == 1)
+        #expect(try await store.graph(query) == graph)
+        let link = try #require(try await store.detail(task.id).chatLinks.first)
+        _ = try await store.apply(WorkMutation(change: .detachChat(linkID: link.id)))
+        let detached = try await store.graph(query)
+        #expect(detached.nodes.contains { $0.id == .chat(identity) })
+        #expect(detached.edges.isEmpty)
+    }
+
     private func temporaryRoot() throws -> URL {
         let root = FileManager.default.temporaryDirectory.appending(path: "cider-linked-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
