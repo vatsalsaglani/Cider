@@ -102,3 +102,23 @@ Coordinator only, after the commands above: `script/build_and_run.sh --verify`. 
 ## Agent start prompt
 
 > Read `docs/plans/linked-work/00-overview.md` and `docs/plans/linked-work/09-integration.md`, plus `.agents/skills/working-with-cider/SKILL.md`. Implement plan 09 on `linked-work/09-integration`. Run locally as the coordinator; do not create a lane worktree for this plan. Goal: Integrate the durable journal, graph and CLI/skill into the actual Cider app, package them together and verify the full linked workflow. Edit only the files in this plan's File ownership list, including its own Deviations section; keep all frozen contracts and sibling files unchanged. Follow the overview's data, hook, isolation and local-commit rules. Run these verification commands from the repo root: `swift build --product Cider; swift build --product cider-cli; swift test; script/verify_editor.sh; script/verify_linked_work.sh --fixtures; python3 script/verification/verify_cider_cli.py --binary "$(swift build --show-bin-path)/cider-cli"; git diff --check`. Also complete the plan's explicit integration/manual gates when applicable; never claim unrun checks passed. Commit locally without pushing. Finish with what works, base/head IDs, changed files, each verification result, merge risks, and Deviations (or state none).
+
+## Coordinator completion audit
+
+Use this checklist after merging round B. A checked implementation item does not imply manual UI acceptance.
+
+| Requirement | Evidence to collect in Plan 09 |
+| --- | --- |
+| One ready repository before observer starts | Inspect CiderApp startup and test failed migration keeps linked events unacknowledged |
+| Exact chat assignment and durable previews | Synthetic two-chat, delayed/duplicate Stop, question resolution, detach/restart tests through the production ingestion boundary |
+| Graph uses saved relationships | Graph query and route identity tests; task/note/chat navigation reuses coordinator routes |
+| Context is bounded and explicitly selected | CLI and UI context parity; note bodies excluded by default; content selected before export |
+| Checkpoint survives failures | Dirty-note conflict plus write receipt registration/retry; no duplicate Markdown after restart |
+| App-closed CLI works | Staged executable queries a temporary saved store after build scratch path is unavailable; bytes stay unchanged |
+| Packaged skill/setup works | Exact preview/install/update/remove synthetic tests; packaged skill and helper paths exist and resolve without checkout |
+| No regression | Full Swift suite, editor verifier, linked-work fixture verifier, CLI verifier, native build and signature validation |
+| User data stays recoverable | Legacy backup/migration failure evidence; deletion retains note bytes and provider identity; no test uses live data |
+| Final documentation | Product/data/document/architecture/dependency/verification and progress describe shipped scope, rollback and preview limits |
+| Manual UI acceptance | Deferred by explicit user instruction: native interactions, keyboard/accessibility, physical notch and live skill invocation remain clearly listed for final user review |
+
+Final evidence must name commands actually run and their results, not infer passing behavior from lane reports alone. No Stop marks a TODO Done; no hook or skill installation occurs automatically.
