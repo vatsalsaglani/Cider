@@ -37,6 +37,15 @@ import CiderDomain
         #expect(try Data(contentsOf: legacyURL) == bytes)
     }
 
+    @Test func oversizedLegacySourceIsRejectedBeforeDecode() async throws {
+        let root = try temporaryRoot(); defer { try? FileManager.default.removeItem(at: root) }
+        let legacyURL = root.appending(path: "workspace.json")
+        try Data(repeating: 65, count: WorkLimits.contextBytes + 1).write(to: legacyURL)
+        await #expect(throws: WorkStoreError.migrationFailed) {
+            try await SQLiteWorkRepository.open(at: root.appending(path: "work.sqlite"), access: .appReadWrite, legacy: LegacyImport(workspaceURL: legacyURL, folderPaths: []))
+        }
+    }
+
     private func temporaryRoot() throws -> URL {
         let root = FileManager.default.temporaryDirectory.appending(path: "cider-migration-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)

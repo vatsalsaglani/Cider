@@ -26,10 +26,12 @@ enum WorkQueries {
     }
     static func detail(_ id: UUID, _ db: isolated WorkDatabaseExecutor) throws -> TaskDetail {
         let store = try info(db); let task = try task(id, db)
-        let allLinks = try chatLinks(taskID: id, db); let activeLinks = allLinks.filter { $0.endedAt == nil }
+        let activeRows = try db.rows("SELECT id,task_id,host_id,provider,session_id,role,started_at,ended_at,initial_turn_id,revision FROM task_chat_links WHERE task_id=? AND ended_at IS NULL ORDER BY started_at,id LIMIT ?", [.text(id.uuidString.lowercased()), .integer(Int64(WorkLimits.list + 1))])
+        let activeLinks = try activeRows.prefix(WorkLimits.list).map(chatLinkRow)
         let chats = try activeLinks.map { try chat($0.chat, db) }
-        let noteLinks = try noteLinks(taskID: id, db); let notes = try noteLinks.map { try note($0.noteID, db) }
-        return TaskDetail(task: task, chats: chats, chatLinks: activeLinks, notes: notes, noteLinks: noteLinks, journalCount: try db.scalarInt("SELECT count(*) FROM journal WHERE task_id=?", [.text(id.uuidString.lowercased())]), truncated: allLinks.count > activeLinks.count, revision: store.revision)
+        let noteRows = try db.rows("SELECT id,task_id,note_id,role,created_at FROM task_note_links WHERE task_id=? ORDER BY created_at,id LIMIT ?", [.text(id.uuidString.lowercased()), .integer(Int64(WorkLimits.list + 1))])
+        let noteLinks = try noteRows.prefix(WorkLimits.list).map(noteLinkRow); let notes = try noteLinks.map { try note($0.noteID, db) }
+        return TaskDetail(task: task, chats: chats, chatLinks: activeLinks, notes: notes, noteLinks: noteLinks, journalCount: try db.scalarInt("SELECT count(*) FROM journal WHERE task_id=?", [.text(id.uuidString.lowercased())]), truncated: activeRows.count > WorkLimits.list || noteRows.count > WorkLimits.list, revision: store.revision)
     }
     static func folders(_ db: isolated WorkDatabaseExecutor) throws -> [FolderReference] { try db.rows("SELECT id,path,available FROM folder_roots ORDER BY path,id").map(folderRow) }
     static func note(_ id: UUID, _ db: isolated WorkDatabaseExecutor) throws -> NoteReference { guard let row = try db.rows("SELECT id,root_id,relative_path,file_identity,available,modified_at FROM notes WHERE id=?", [.text(id.uuidString.lowercased())]).first else { throw WorkStoreError.notFound }; return try noteRow(row) }
@@ -65,9 +67,10 @@ enum WorkQueries {
             let truncated = taskRows.count > limit || docRows.count > limit || ids.count > limit || edges.count > limit
             return WorkConnections(entity: entity, tasks: taskPairs.map(\.0), chats: [], notes: Array(linkedNotes), edges: Array(edges.prefix(limit)), truncated: truncated, revision: store.revision)
         case .chat(let chatID):
-            let current = try chatLinks(chat: chatID, db).filter { $0.endedAt == nil }; let tasks = try current.prefix(limit).map { try task($0.taskID, db) }
-            let edges = current.prefix(limit).map { GraphEdge(id: $0.id, source: .chat(chatID), target: .task($0.taskID), kind: .contributes) }
-            return WorkConnections(entity: entity, tasks: tasks, chats: [try chat(chatID, db)], notes: [], edges: edges, truncated: current.count > limit, revision: store.revision)
+            let rows = try db.rows("SELECT id,task_id,host_id,provider,session_id,role,started_at,ended_at,initial_turn_id,revision FROM task_chat_links WHERE host_id=? AND provider=? AND session_id=? AND ended_at IS NULL ORDER BY started_at,id LIMIT ?", chatValues(chatID) + [.integer(Int64(limit + 1))])
+            let current = try rows.prefix(limit).map(chatLinkRow); let tasks = try current.map { try task($0.taskID, db) }
+            let edges = current.map { GraphEdge(id: $0.id, source: .chat(chatID), target: .task($0.taskID), kind: .contributes) }
+            return WorkConnections(entity: entity, tasks: tasks, chats: [try chat(chatID, db)], notes: [], edges: edges, truncated: rows.count > limit, revision: store.revision)
         }
     }
     static func task(_ id: UUID, _ db: isolated WorkDatabaseExecutor) throws -> WorkTask { guard let row = try db.rows("SELECT id,title,description_markdown,planned_day,due_at,status,created_at,sort_order,revision FROM tasks WHERE id=?", [.text(id.uuidString.lowercased())]).first else { throw WorkStoreError.notFound }; return try taskRow(row, db) }

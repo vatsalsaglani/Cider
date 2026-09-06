@@ -9,11 +9,14 @@ enum WorkJournalTransactions {
         var links: [TaskChatLink] = []
         var episodes: [AssignmentEpisode] = []
         for chat in chats {
-            let matched = try WorkQueries.chatLinks(chat: chat, database)
+            let rows = try database.rows("SELECT id,task_id,host_id,provider,session_id,role,started_at,ended_at,initial_turn_id,revision FROM task_chat_links WHERE host_id=? AND provider=? AND session_id=? ORDER BY started_at,id LIMIT ?", chatValues(chat) + [.integer(Int64(WorkLimits.attributionRows + 1))])
+            guard rows.count <= WorkLimits.attributionRows else { throw WorkStoreError.outputLimit }
+            let matched = try rows.map(WorkQueries.chatLinkRow)
             links += matched
             for link in matched {
-                let rows = try database.rows("SELECT id,link_id,source_start_id,turn_id,started_at,ended_at FROM assignment_episodes WHERE link_id=? ORDER BY started_at,id", [.text(link.id.uuidString.lowercased())])
-                episodes += try rows.map { try AssignmentEpisode(id: sqlUUID($0[0]), linkID: sqlUUID($0[1]), sourceStartID: sqlUUID($0[2]), turnID: $0[3].string, startedAt: sqlDate($0[4]) ?? .distantPast, endedAt: sqlDate($0[5])) }
+                let episodeRows = try database.rows("SELECT id,link_id,source_start_id,turn_id,started_at,ended_at FROM assignment_episodes WHERE link_id=? ORDER BY started_at,id LIMIT ?", [.text(link.id.uuidString.lowercased()), .integer(Int64(WorkLimits.attributionRows + 1))])
+                guard episodeRows.count <= WorkLimits.attributionRows else { throw WorkStoreError.outputLimit }
+                episodes += try episodeRows.map { try AssignmentEpisode(id: sqlUUID($0[0]), linkID: sqlUUID($0[1]), sourceStartID: sqlUUID($0[2]), turnID: $0[3].string, startedAt: sqlDate($0[4]) ?? .distantPast, endedAt: sqlDate($0[5])) }
             }
         }
         guard links.count + episodes.count <= WorkLimits.attributionRows else { throw WorkStoreError.outputLimit }

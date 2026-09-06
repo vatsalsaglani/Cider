@@ -56,8 +56,11 @@ actor WorkDatabaseExecutor {
         do { let result = try body(self); try execute("COMMIT"); return result } catch { try? execute("ROLLBACK"); throw error }
     }
     func readFile(_ url: URL, maxBytes: Int? = nil) throws -> Data {
-        let data = try Data(contentsOf: url)
-        guard maxBytes == nil || data.count <= maxBytes! else { throw WorkStoreError.outputLimit }
+        guard let maxBytes else { return try Data(contentsOf: url) }
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+        let data = try handle.read(upToCount: maxBytes + 1) ?? Data()
+        guard data.count <= maxBytes else { throw WorkStoreError.outputLimit }
         return data
     }
     func writeFileAtomically(_ data: Data, to url: URL) throws { try data.write(to: url, options: .atomic) }

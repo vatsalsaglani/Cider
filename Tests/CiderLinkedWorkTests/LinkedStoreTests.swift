@@ -126,6 +126,26 @@ import CiderDomain
         #expect(firstInfo == secondInfo)
     }
 
+    @Test func localFocusAndRootScopeSurviveUnrelatedLeadingRows() async throws {
+        let root = try temporaryRoot(); defer { try? FileManager.default.removeItem(at: root) }
+        let store = try await SQLiteWorkRepository.open(at: root.appending(path: "work.sqlite"), access: .appReadWrite)
+        for index in 0..<4 { _ = try await store.apply(WorkMutation(change: .saveTask(task: WorkTask(title: "Earlier \(index)", sortOrder: Int64(index))))) }
+        let focus = WorkTask(title: "Focused", sortOrder: 99)
+        _ = try await store.apply(WorkMutation(change: .saveTask(task: focus)))
+        let local = try await store.graph(GraphQuery(scope: .local(entity: .task(focus.id), depth: 1), includeDone: true, includeIsolated: true, nodeLimit: 1, edgeLimit: 1))
+        #expect(local.nodes.map(\.id) == [.task(focus.id)])
+        let folder = FolderReference(path: "/root")
+        _ = try await store.apply(WorkMutation(change: .registerFolder(folder: folder)))
+        let note = NoteReference(rootID: folder.id, relativePath: "root.md")
+        _ = try await store.apply(WorkMutation(change: .registerNote(note: note)))
+        _ = try await store.apply(WorkMutation(change: .attachNote(taskID: focus.id, noteID: note.id, role: .context)))
+        let chat = ChatReference(identity: ChatIdentity(hostID: try await store.info().hostID, provider: .codex, sessionID: "root-chat"), directory: "/root")
+        _ = try await store.apply(WorkMutation(change: .attachChat(taskID: focus.id, chat: chat, role: nil, initialTurnID: nil)))
+        let rooted = try await store.graph(GraphQuery(scope: .workspace(rootID: folder.id), includeDone: true, includeIsolated: true, nodeLimit: 20, edgeLimit: 20))
+        #expect(rooted.nodes.map(\.id).contains(.task(focus.id)))
+        #expect(rooted.nodes.map(\.id).contains(.chat(chat.identity)))
+    }
+
     @Test func independentWriterLockReturnsBoundedBusyError() async throws {
         let root = try temporaryRoot(); defer { try? FileManager.default.removeItem(at: root) }
         let url = root.appending(path: "work.sqlite")

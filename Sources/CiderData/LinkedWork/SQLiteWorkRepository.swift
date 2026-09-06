@@ -44,5 +44,9 @@ public actor SQLiteWorkRepository: WorkRepository {
     public func apply(_ mutation: WorkMutation) async throws -> MutationReceipt { try writable(); return try await WorkMutations.apply(mutation, database: database) }
     public func appendJournal(_ batch: JournalBatch) async throws -> JournalReceipt { try writable(); return try await WorkJournalTransactions.append(batch, database: database) }
     /// Internal explicit rollback aid; normal saves never rewrite a legacy snapshot.
-    func exportLegacyRecovery(to url: URL) async throws { try writable(); try JSONEncoder().encode(try await WorkMigration.recoverySnapshot(from: database)).write(to: url, options: .atomic) }
+    func exportLegacyRecovery(to url: URL) async throws {
+        try writable()
+        let data = try JSONEncoder().encode(try await WorkMigration.recoverySnapshot(from: database))
+        try await database.writeFileAtomically(data, to: url)
+    }
 }

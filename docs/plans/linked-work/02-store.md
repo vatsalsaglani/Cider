@@ -96,6 +96,9 @@ signature was not part of the frozen surface.
 - Added temporary-fixture store and migration tests covering independent first
   opens, bounded lock contention, mutation/journal replay, timestamp/NUL
   round-trips, note-only graph search and plan/evidence relationship roles.
+  Follow-up coverage also proves local focus survives leading unrelated rows,
+  root-scoped contributor chats are retained, and oversized legacy files stop at
+  the bounded read threshold.
   Native relaunch, live
   provider interaction and hardware checks remain coordinator integration gates.
 
