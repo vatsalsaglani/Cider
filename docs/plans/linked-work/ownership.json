@@ -248,5 +248,8 @@
         "docs/plans/linked-work/09-integration.md"
       ]
     }
-  }
+  },
+  "frozen_contract_commit": "6eac4d072abd2332c6eb6cfe51d6a02fdbb89522",
+  "round_a_base": "6eac4d072abd2332c6eb6cfe51d6a02fdbb89522",
+  "round_b_base": null
 }

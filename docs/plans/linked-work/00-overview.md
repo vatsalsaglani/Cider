@@ -323,14 +323,14 @@ docs/plans/linked-work/09-integration.md
 
 On the clean local main checkout, create `linked-work/01-contracts` and run [01's prompt](01-contracts.md#agent-start-prompt). Build the frozen APIs/schema and run all 01 checks. Merge the local branch into main, record its head and checks here, update P01 to DONE, and commit the overview. **No fanout command is valid before this gate.**
 
-Round A base: the verified implementation commit recorded in the merge log below; use that pinned commit, not an older planning base. Round B base: not recorded yet; 05 must complete first. The coordinator records each immutable commit plus checks here before dispatch; never reuse the planning source hash as a round base.
+Round A base: **`6eac4d072abd2332c6eb6cfe51d6a02fdbb89522`**. This compiled implementation commit contains the plan set, frozen contracts and fixtures. Later coordinator-only merge-log updates do not change this base. Round B base: not recorded yet; 05 must complete first. The coordinator records each immutable commit plus checks here before dispatch; never reuse the planning source hash as a round base.
 
 ### Parallel round A
 
-After the gate above, while on the verified clean `main` tip, capture its hash and use that identical value for all three worktrees:
+The local contract gate has passed. Use the pinned implementation commit below for all three worktrees; it is already merged into main:
 
 ```sh
-CIDER_ROUND_A_BASE="$(git rev-parse HEAD)"
+CIDER_ROUND_A_BASE="6eac4d072abd2332c6eb6cfe51d6a02fdbb89522"
 CIDER_WORKTREE_ROOT="/Users/vatsals/Desktop/qyrus/random/cider-linked-worktrees"
 mkdir -p "$CIDER_WORKTREE_ROOT"
 git worktree add -b linked-work/02-store "$CIDER_WORKTREE_ROOT/02-store" "$CIDER_ROUND_A_BASE"
@@ -385,6 +385,7 @@ Dispatch their individual prompts. Merge/review/check in any order using the sam
 
 - **Planning baseline:** `192b50f0a83c1163009d229026ae1733c3f229a9` records the existing native app and essential offline editor assets. `swift test`: 53 passed. No user data/config changes or app relaunch.
 - **Plan authoring:** nine bounded plans, explicit contract specification, complete ownership matrix and start prompts. Validation checked both parallel ownership sets, the dependency graph, all 29 anchored source quotes, prompt requirements and relative links. No implementation worktree or agent dispatched.
+- **Plan 01 merge:** `linked-work/01-contracts` → `6eac4d072abd2332c6eb6cfe51d6a02fdbb89522`, merged locally into main at `4c757fadcaaf423abcb9244228b592fa24215083`. Original lane base: `34d1ef8`. This is the common round A source base; subsequent changes here only record the handoff.
 - **Plan 01 verification:** Cider, cider-cli and cider-events build; 62 tests pass. The schema, declarations, UI adapter, side-effect-free seeds, synthetic fakes and app import seam are compiled. See [01 deviations and evidence](01-contracts.md#deviations). No production migration or deployment; the CLI smoke collision was corrected as recorded in 01.
 - **Next:** 02, 03 and 04 are ready for parallel work from the pinned implementation commit. Keep 06–08 behind the actual 05 integration gate.
 
