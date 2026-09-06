@@ -71,11 +71,11 @@ Follow the overview's Swift isolation, no-secret, no-automatic-hooks, plain loca
 Run from this branch's repository root. Tests create only temporary synthetic stores/notes.
 
 ```sh
-swift build --product cider
+swift build --product cider-cli
 swift build --product Cider
 swift test --filter TodoContextTests
 swift test --filter WorkflowSkillSetupTests
-python3 script/verification/verify_cider_cli.py --binary "$(swift build --show-bin-path)/cider"
+python3 script/verification/verify_cider_cli.py --binary "$(swift build --show-bin-path)/cider-cli"
 git diff --check
 ```
 
@@ -93,4 +93,4 @@ Native app relaunch and live provider interaction belong to the coordinator inte
 
 ## Agent start prompt
 
-> Read `docs/plans/linked-work/00-overview.md` and `docs/plans/linked-work/08-cli-skill.md`, plus `.agents/skills/working-with-cider/SKILL.md`. Implement plan 08 on `linked-work/08-cli-skill`. Start only from the coordinator-provided common round base in this plan's dedicated worktree. Do not merge or rebase sibling branches. Goal: Provide a packaged read-only `cider` CLI and a portable workflow skill so Codex or Claude Code can summarize a chosen TODO or today's board in their current conversation. Edit only the files in this plan's File ownership list, including its own Deviations section; keep all frozen contracts and sibling files unchanged. Follow the overview's data, hook, isolation and local-commit rules. Run these verification commands from the repo root: `swift build --product cider; swift build --product Cider; swift test --filter TodoContextTests; swift test --filter WorkflowSkillSetupTests; python3 script/verification/verify_cider_cli.py --binary "$(swift build --show-bin-path)/cider"; git diff --check`. Also complete the plan's explicit integration/manual gates when applicable; never claim unrun checks passed. Commit locally without pushing. Finish with what works, base/head IDs, changed files, each verification result, merge risks, and Deviations (or state none).
+> Read `docs/plans/linked-work/00-overview.md` and `docs/plans/linked-work/08-cli-skill.md`, plus `.agents/skills/working-with-cider/SKILL.md`. Implement plan 08 on `linked-work/08-cli-skill`. Start only from the coordinator-provided common round base in this plan's dedicated worktree. Do not merge or rebase sibling branches. Goal: Provide a packaged read-only `cider` CLI and a portable workflow skill so Codex or Claude Code can summarize a chosen TODO or today's board in their current conversation. Edit only the files in this plan's File ownership list, including its own Deviations section; keep all frozen contracts and sibling files unchanged. Follow the overview's data, hook, isolation and local-commit rules. Run these verification commands from the repo root: `swift build --product cider-cli; swift build --product Cider; swift test --filter TodoContextTests; swift test --filter WorkflowSkillSetupTests; python3 script/verification/verify_cider_cli.py --binary "$(swift build --show-bin-path)/cider-cli"; git diff --check`. Also complete the plan's explicit integration/manual gates when applicable; never claim unrun checks passed. Commit locally without pushing. Finish with what works, base/head IDs, changed files, each verification result, merge risks, and Deviations (or state none).

@@ -1,0 +1,279 @@
+{
+  "info": {
+    "schemaVersion": 1,
+    "revision": 5,
+    "hostID": "00000000-0000-4000-8000-000000000001"
+  },
+  "tasks": [
+    {
+      "id": "00000000-0000-4000-8000-000000000010",
+      "title": "Synthetic task 10",
+      "descriptionMarkdown": "## Goal\nShip and verify search.",
+      "plannedDay": {
+        "year": 2026,
+        "month": 9,
+        "day": 6
+      },
+      "status": "inProgress",
+      "criteria": [
+        {
+          "id": "00000000-0000-4000-8000-000000000060",
+          "text": "Tests reviewed",
+          "checked": false,
+          "updatedAt": 100
+        }
+      ],
+      "createdAt": 100,
+      "sortOrder": 10,
+      "revision": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000011",
+      "title": "Synthetic task 11",
+      "descriptionMarkdown": "## Goal\nShip and verify search.",
+      "plannedDay": {
+        "year": 2026,
+        "month": 9,
+        "day": 6
+      },
+      "status": "done",
+      "criteria": [
+        {
+          "id": "00000000-0000-4000-8000-000000000061",
+          "text": "Tests reviewed",
+          "checked": true,
+          "updatedAt": 100
+        }
+      ],
+      "createdAt": 100,
+      "sortOrder": 11,
+      "revision": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000012",
+      "title": "Synthetic task 12",
+      "descriptionMarkdown": "## Goal\nShip and verify search.",
+      "plannedDay": {
+        "year": 2026,
+        "month": 9,
+        "day": 6
+      },
+      "status": "planned",
+      "criteria": [
+        {
+          "id": "00000000-0000-4000-8000-000000000062",
+          "text": "Tests reviewed",
+          "checked": false,
+          "updatedAt": 100
+        }
+      ],
+      "createdAt": 100,
+      "sortOrder": 12,
+      "revision": 1
+    }
+  ],
+  "chats": [
+    {
+      "identity": {
+        "hostID": "00000000-0000-4000-8000-000000000001",
+        "provider": "codex",
+        "sessionID": "synthetic-session-1"
+      },
+      "title": "Implement search",
+      "directory": "/fixtures/workspace",
+      "observedAt": 100,
+      "currentTurnID": "turn-1",
+      "execution": "Working",
+      "attention": "Choose a test scope"
+    },
+    {
+      "identity": {
+        "hostID": "00000000-0000-4000-8000-000000000001",
+        "provider": "codex",
+        "sessionID": "synthetic-session-2"
+      },
+      "title": "Implement search",
+      "directory": "/fixtures/workspace",
+      "observedAt": 100,
+      "currentTurnID": "turn-2",
+      "execution": "Working",
+      "attention": null
+    },
+    {
+      "identity": {
+        "hostID": "00000000-0000-4000-8000-000000000001",
+        "provider": "claude",
+        "sessionID": "synthetic-session-3"
+      },
+      "title": "Review tests",
+      "directory": "/fixtures/workspace",
+      "observedAt": -1000,
+      "currentTurnID": "turn-3",
+      "execution": "Working",
+      "attention": null
+    }
+  ],
+  "folders": [
+    {
+      "id": "00000000-0000-4000-8000-000000000020",
+      "path": "/fixtures/workspace",
+      "available": true
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000021",
+      "path": "/fixtures/unavailable",
+      "available": false
+    }
+  ],
+  "notes": [
+    {
+      "id": "00000000-0000-4000-8000-000000000030",
+      "rootID": "00000000-0000-4000-8000-000000000020",
+      "relativePath": "plan.md",
+      "available": true
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000031",
+      "rootID": "00000000-0000-4000-8000-000000000020",
+      "relativePath": "verification.md",
+      "available": true
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000032",
+      "rootID": "00000000-0000-4000-8000-000000000021",
+      "relativePath": "missing.md",
+      "available": false
+    }
+  ],
+  "chatLinks": [
+    {
+      "id": "00000000-0000-4000-8000-000000000040",
+      "taskID": "00000000-0000-4000-8000-000000000010",
+      "chat": {
+        "hostID": "00000000-0000-4000-8000-000000000001",
+        "provider": "codex",
+        "sessionID": "synthetic-session-1"
+      },
+      "startedAt": 10,
+      "endedAt": null,
+      "initialTurnID": "turn-1",
+      "revision": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000041",
+      "taskID": "00000000-0000-4000-8000-000000000010",
+      "chat": {
+        "hostID": "00000000-0000-4000-8000-000000000001",
+        "provider": "codex",
+        "sessionID": "synthetic-session-2"
+      },
+      "startedAt": 10,
+      "endedAt": null,
+      "initialTurnID": "turn-2",
+      "revision": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000042",
+      "taskID": "00000000-0000-4000-8000-000000000011",
+      "chat": {
+        "hostID": "00000000-0000-4000-8000-000000000001",
+        "provider": "claude",
+        "sessionID": "synthetic-session-3"
+      },
+      "startedAt": 10,
+      "endedAt": 50,
+      "initialTurnID": "turn-3",
+      "revision": 1
+    }
+  ],
+  "noteLinks": [
+    {
+      "id": "00000000-0000-4000-8000-000000000080",
+      "taskID": "00000000-0000-4000-8000-000000000010",
+      "noteID": "00000000-0000-4000-8000-000000000030",
+      "role": "plan",
+      "createdAt": 10
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000081",
+      "taskID": "00000000-0000-4000-8000-000000000010",
+      "noteID": "00000000-0000-4000-8000-000000000031",
+      "role": "evidence",
+      "createdAt": 10
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000082",
+      "taskID": "00000000-0000-4000-8000-000000000011",
+      "noteID": "00000000-0000-4000-8000-000000000031",
+      "role": "evidence",
+      "createdAt": 10
+    }
+  ],
+  "documentLinks": [
+    {
+      "id": "00000000-0000-4000-8000-000000000090",
+      "sourceID": "00000000-0000-4000-8000-000000000030",
+      "targetID": "00000000-0000-4000-8000-000000000031",
+      "fragment": "checks"
+    }
+  ],
+  "journal": [
+    {
+      "id": "00000000-0000-4000-8000-000000000070",
+      "sequence": 1,
+      "taskID": "00000000-0000-4000-8000-000000000010",
+      "linkID": "00000000-0000-4000-8000-000000000040",
+      "chat": {
+        "hostID": "00000000-0000-4000-8000-000000000001",
+        "provider": "codex",
+        "sessionID": "synthetic-session-1"
+      },
+      "sourceEventID": "00000000-0000-4000-8000-000000000071",
+      "sourceTurnID": "turn-1",
+      "questionID": "request-1/question-1",
+      "sourceKey": "task-10/link-40/question-1",
+      "occurredAt": 100,
+      "receivedAt": 101,
+      "kind": "question",
+      "text": "Choose a test scope",
+      "previewOnly": true,
+      "attribution": "identifiedTurn"
+    }
+  ],
+  "episodes": [
+    {
+      "id": "00000000-0000-4000-8000-000000000100",
+      "linkID": "00000000-0000-4000-8000-000000000040",
+      "sourceStartID": "00000000-0000-4000-8000-000000000110",
+      "turnID": "turn-1",
+      "startedAt": 10,
+      "endedAt": null
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000101",
+      "linkID": "00000000-0000-4000-8000-000000000041",
+      "sourceStartID": "00000000-0000-4000-8000-000000000111",
+      "turnID": "turn-2",
+      "startedAt": 10,
+      "endedAt": null
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000102",
+      "linkID": "00000000-0000-4000-8000-000000000042",
+      "sourceStartID": "00000000-0000-4000-8000-000000000112",
+      "turnID": "turn-3",
+      "startedAt": 10,
+      "endedAt": 50
+    }
+  ],
+  "processedEventIDs": [
+    "00000000-0000-4000-8000-000000000071"
+  ],
+  "notch": {
+    "enabled": true,
+    "edge": "top",
+    "position": 0.5,
+    "hover": true
+  },
+  "referenceTime": 101
+}

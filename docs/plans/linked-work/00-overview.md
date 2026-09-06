@@ -4,7 +4,7 @@ Design source: [linked TODOs, chats, notes, graph and CLI/skill](../../plan/05-l
 
 This plan set connects individual agent chats in **Activity** to TODOs, and TODOs to ordinary Markdown notes. A TODO gains a description, criteria, status, contributor assignments and durable response previews. Notes gain backlinks. The graph explores those same saved relationships. A read-only CLI and portable skill give Codex/Claude Code selected context to summarize in the current conversation.
 
-There are **two rounds of three parallel lanes**, with local contract/integration phases between them. This fits one coordinator plus three worktree agents. The current deliverable is these committed plans; no implementation lane has started.
+There are **two rounds of three parallel lanes**, with local contract/integration phases between them. This fits one coordinator plus three worktree agents. Plan 01 is implemented and verified locally. Parallel implementation lanes have not started.
 
 ## Scope and delivery boundary
 
@@ -37,7 +37,7 @@ Only the coordinator updates statuses here: TODO, IN PROGRESS or DONE. A node is
 
 ```mermaid
 flowchart TD
-    P01["01 Shared contracts · local<br/>TODO"]:::todo
+    P01["01 Shared contracts · local<br/>DONE"]:::done
     P02["02 Store + migration<br/>TODO"]:::todo
     P03["03 TODO detail + chats<br/>TODO"]:::todo
     P04["04 Notes + backlinks<br/>TODO"]:::todo
@@ -323,7 +323,7 @@ docs/plans/linked-work/09-integration.md
 
 On the clean local main checkout, create `linked-work/01-contracts` and run [01's prompt](01-contracts.md#agent-start-prompt). Build the frozen APIs/schema and run all 01 checks. Merge the local branch into main, record its head and checks here, update P01 to DONE, and commit the overview. **No fanout command is valid before this gate.**
 
-Round A base: not recorded yet; 01 must complete first. Round B base: not recorded yet; 05 must complete first. The coordinator records each immutable commit plus checks here before dispatch; never reuse the planning source hash as a round base.
+Round A base: the verified implementation commit recorded in the merge log below; use that pinned commit, not an older planning base. Round B base: not recorded yet; 05 must complete first. The coordinator records each immutable commit plus checks here before dispatch; never reuse the planning source hash as a round base.
 
 ### Parallel round A
 
@@ -385,6 +385,7 @@ Dispatch their individual prompts. Merge/review/check in any order using the sam
 
 - **Planning baseline:** `192b50f0a83c1163009d229026ae1733c3f229a9` records the existing native app and essential offline editor assets. `swift test`: 53 passed. No user data/config changes or app relaunch.
 - **Plan authoring:** nine bounded plans, explicit contract specification, complete ownership matrix and start prompts. Validation checked both parallel ownership sets, the dependency graph, all 29 anchored source quotes, prompt requirements and relative links. No implementation worktree or agent dispatched.
-- **Next:** run 01 locally. Once its compiled contract and fixtures are committed and verified, 02, 03 and 04 are ready for parallel work. Keep 06–08 behind the actual 05 integration gate.
+- **Plan 01 verification:** Cider, cider-cli and cider-events build; 62 tests pass. The schema, declarations, UI adapter, side-effect-free seeds, synthetic fakes and app import seam are compiled. See [01 deviations and evidence](01-contracts.md#deviations). No production migration or deployment; the CLI smoke collision was corrected as recorded in 01.
+- **Next:** 02, 03 and 04 are ready for parallel work from the pinned implementation commit. Keep 06–08 behind the actual 05 integration gate.
 
 Append each later round's base/head IDs, accepted deviations, checks and recommendation here. Implementation status belongs only to the graph above.
