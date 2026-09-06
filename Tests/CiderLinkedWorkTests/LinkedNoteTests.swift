@@ -111,6 +111,26 @@ import CiderDomain
         #expect(try Data(contentsOf: rootURL.appending(path: source.relativePath)) == before)
     }
 
+    @Test func refreshedIdentitySurvivesServiceRestartAndRejectsExternalReplacement() async throws {
+        let rootURL = try temporaryRoot(); defer { remove(rootURL) }
+        let root = FolderReference(path: rootURL.path)
+        let service = LinkedNoteService()
+        var note = try await service.create(root: root, relativeDirectory: "", title: "Restart", markdown: "before\n")
+        let proposal = try await service.previewAppend(note: note, root: root, markdown: "after\n")
+        let snapshot = try await service.applyAppend(proposal)
+        #expect(snapshot.fileIdentity != nil)
+        note.fileIdentity = snapshot.fileIdentity
+        note.modifiedAt = snapshot.modifiedAt
+        let persisted = try JSONEncoder().encode(note)
+        let restored = try JSONDecoder().decode(NoteReference.self, from: persisted)
+        let freshService = LinkedNoteService()
+        #expect(try await freshService.read(restored, root: root, maxBytes: WorkLimits.noteBytes).markdown == "before\nafter\n")
+        let replacement = rootURL.appending(path: "external.md")
+        try Data("unrelated".utf8).write(to: replacement)
+        _ = try FileManager.default.replaceItemAt(rootURL.appending(path: note.relativePath), withItemAt: replacement)
+        await #expect(throws: WorkStoreError.notFound) { try await LinkedNoteService().resolve(restored, root: root) }
+    }
+
     private func temporaryRoot() throws -> URL {
         let root = FileManager.default.temporaryDirectory.appending(path: "cider-linked-note-\(UUID().uuidString)", directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)

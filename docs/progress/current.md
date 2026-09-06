@@ -1,6 +1,6 @@
 # Current progress
 
-**Linked work foundation:** Plan 03 TODO detail is reviewed, merged and verified with 67 passing Swift tests and a native build. App wiring remains Plan 05; Plans 02 and 04 still have review gates. See [parallel plan status](../plans/linked-work/00-overview.md).
+**Linked work foundation:** Plans 03 TODO detail and 04 note links are reviewed, merged and verified with 81 passing Swift tests and a native build. A coordinator amendment returns refreshed note identity after atomic appends; Plan 05 owns persistence wiring. Plan 02 still has review gates. See [parallel plan status](../plans/linked-work/00-overview.md).
 
 **Activity and agent connections:** the Agents workspace now separates Activity from Agents setup with shared pill tabs. Activity is the default when a provider is configured or receiving fresh activity; otherwise Agents opens first. Explicit selection and activity filters survive tab switches. Native build/relaunch and live tab/filter/default-navigation checks passed. See [behavior and verification](agents-tabs-13.md).
 

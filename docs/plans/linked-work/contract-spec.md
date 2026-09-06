@@ -179,3 +179,7 @@ Before 01 is marked complete: compiled API files cover every table above; schema
 - `Package.swift` already constrains the root app target to `sources: ["App", "Features"]`; this excludes future Integrations content without an invalid-exclude warning for a directory not created until 08. CSQLite is the SDK system library, and CiderData copies Schema.sql as a module resource. The app test target imports CiderApp successfully without constructing its scenes.
 
 - Build-product names are case-distinct on macOS: `Cider` (app), `cider-cli` (CLI), `cider-events` (observer). Never name the CLI build product `cider`, which aliases `Cider` on common macOS filesystems. Plan 09 copies `cider-cli` into the different directory `Contents/Helpers/cider`; user-facing invocations remain `cider todo ...`.
+
+## Coordinator amendment: append identity receipt
+
+After Plan 04 review, `NoteFileSnapshot` adds optional `fileIdentity: Data? = nil` (older encoded snapshots remain decodable). The note service returns the observed identity with reads and successful appends. Plan 05 must persist the append receipt identity and modifiedAt on the same-ID NoteReference using existing `.registerNote(note:)` before reporting completion. If registration fails, retain the receipt and offer registration retry without appending again. Never infer identity from a later unrelated file replacement. No schema or mutation-enum change is required. Round A workers retain their pinned base; the coordinator integrates this additive change.

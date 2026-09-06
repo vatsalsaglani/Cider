@@ -39,7 +39,7 @@ private actor NoteFileStorage {
         guard (1...WorkLimits.noteBytes).contains(maxBytes) else { throw WorkStoreError.invalidInput }
         let url = try validatedURL(note, root: root)
         let result = try boundedRead(url, maxBytes: maxBytes)
-        return NoteFileSnapshot(noteID: note.id, markdown: result.markdown, sha256: result.sha256, modifiedAt: try locator.modifiedAt(url), truncated: result.truncated)
+        return NoteFileSnapshot(noteID: note.id, markdown: result.markdown, sha256: result.sha256, modifiedAt: try locator.modifiedAt(url), truncated: result.truncated, fileIdentity: try locator.identity(of: url))
     }
 
     func create(root: FolderReference, relativeDirectory: String, title: String, markdown: String) throws -> NoteReference {

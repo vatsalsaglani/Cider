@@ -47,12 +47,14 @@ public struct NoteFileSnapshot: Codable, Sendable, Equatable {
     public var sha256: String
     public var modifiedAt: Date
     public var truncated: Bool
-    public init(noteID: UUID, markdown: String, sha256: String, modifiedAt: Date, truncated: Bool = false) {
+    public var fileIdentity: Data?
+    public init(noteID: UUID, markdown: String, sha256: String, modifiedAt: Date, truncated: Bool = false, fileIdentity: Data? = nil) {
         self.noteID = noteID
         self.markdown = markdown
         self.sha256 = sha256
         self.modifiedAt = modifiedAt
         self.truncated = truncated
+        self.fileIdentity = fileIdentity
     }
 }
 

@@ -40,7 +40,7 @@ flowchart TD
     P01["01 Shared contracts · local<br/>DONE"]:::done
     P02["02 Store + migration<br/>IN PROGRESS"]:::inprogress
     P03["03 TODO detail + chats<br/>DONE"]:::done
-    P04["04 Notes + backlinks<br/>IN PROGRESS"]:::inprogress
+    P04["04 Notes + backlinks<br/>DONE"]:::done
     P05["05 Foundation integration · local<br/>TODO"]:::todo
     P06["06 Durable response journal<br/>TODO"]:::todo
     P07["07 Relationship graph<br/>TODO"]:::todo
@@ -394,3 +394,7 @@ Append each later round's base/head IDs, accepted deviations, checks and recomme
 ### Plan 03 merge verification
 
 Merged `linked-work/03-task-detail` through `533d7f6` after reviewing conflict recovery, latest-draft retention, validation and contributor identities. Coordinator additionally disables overview edits during a pending save to prevent successful-save refresh from discarding newer typing. Native build, 8 contract tests, 5 draft tests, and full `swift test` (67 tests) passed. No app relaunch or live UI verification was run; Plan 05 owns wiring. Plan 04 remains pending durable identity after atomic replacement and restart; its deviation is not accepted as completed behavior. Plan 02 remains in review correction. Plan 05 waits for both.
+
+### Plan 04 merge verification
+
+Merged `linked-work/04-note-links` through `9e0a6e3`. Coordinator accepted and implemented the optional NoteFileSnapshot.fileIdentity receipt amendment in contract-spec.md. A synthetic encode/decode plus fresh-service regression verifies the refreshed reference survives restart and rejects an unrelated external replacement. Native build and full Swift suite passed (81 tests); no app relaunch/live checks were run. Plan 05 must persist append receipts using registerNote and retain failed-registration receipts for retry. Plan 02 review remains the next prerequisite for Plan 05.
