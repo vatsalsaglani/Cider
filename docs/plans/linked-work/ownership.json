@@ -249,7 +249,8 @@
         ".agents/skills/working-with-cider/references/data.md",
         "docs/plans/linked-work/09-integration.md",
         "Features/LinkedTasks/TaskLinksView.swift",
-        "Features/Agents/AgentsView.swift"
+        "Features/Agents/AgentsView.swift",
+        "Features/LinkedTasks/TaskDetailView.swift"
       ]
     }
   },

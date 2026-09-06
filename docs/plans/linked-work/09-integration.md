@@ -22,6 +22,7 @@ Fresh worktrees contain the committed editor runtime and synthetic fixtures, not
 
 Create or edit only these files. Seeded implementation bodies transfer between sequential phases; concurrent ownership never overlaps. The plan's own file is for deviations and handoff evidence.
 
+- `Features/LinkedTasks/TaskDetailView.swift`
 - `Features/LinkedTasks/TaskLinksView.swift`
 - `Features/Agents/AgentsView.swift`
 - `App/CiderApp.swift`
@@ -98,6 +99,8 @@ Coordinator only, after the commands above: `script/build_and_run.sh --verify`. 
 - Report base/head commit IDs, changed files, verification, deviations and integration risks. Only the coordinator changes overview statuses.
 
 ## Deviations
+
+- Coordinator reserves `Features/LinkedTasks/TaskDetailView.swift` for passing the existing navigate callback into Plan 06 TaskTimelineView. Without this composition edit checkpoint actions stay disabled. The file is not concurrently owned in round B.
 
 - Coordinator ownership amendment before implementation: add `Features/LinkedTasks/TaskLinksView.swift` and `Features/Agents/AgentsView.swift`. Source review shows no Copy context action in TODO detail and no graph action in Activity. These existing feature files are not concurrently owned by round B. Plan 09 will add the missing route entry points; frozen route cases already exist.
 
