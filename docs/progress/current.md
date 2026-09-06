@@ -1,5 +1,7 @@
 # Current progress
 
+**Linked work foundation:** Plan 03 TODO detail is reviewed, merged and verified with 67 passing Swift tests and a native build. App wiring remains Plan 05; Plans 02 and 04 still have review gates. See [parallel plan status](../plans/linked-work/00-overview.md).
+
 **Activity and agent connections:** the Agents workspace now separates Activity from Agents setup with shared pill tabs. Activity is the default when a provider is configured or receiving fresh activity; otherwise Agents opens first. Explicit selection and activity filters survive tab switches. Native build/relaunch and live tab/filter/default-navigation checks passed. See [behavior and verification](agents-tabs-13.md).
 
 **Compact usage and pace:** notch usage now uses small gauges; Used/Remaining is shared and persisted across notch/workspace. Its control now shares Cider's rounded HUD pill styling, replacing the blue system selection and wrapping caption; native rebuild/relaunch and live workspace switching verified. Named model limits include live Fable and Codex Spark data. Per-window average-pace estimates show headroom or risk until reset, with unknown/stale guards. The feature's 53 Swift tests passed; the user confirmed both provider rows fit the physical notch before this styling follow-up. See [display, calculation and checks](usage-gauges-12.md).

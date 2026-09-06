@@ -39,7 +39,7 @@ Only the coordinator updates statuses here: TODO, IN PROGRESS or DONE. A node is
 flowchart TD
     P01["01 Shared contracts · local<br/>DONE"]:::done
     P02["02 Store + migration<br/>IN PROGRESS"]:::inprogress
-    P03["03 TODO detail + chats<br/>IN PROGRESS"]:::inprogress
+    P03["03 TODO detail + chats<br/>DONE"]:::done
     P04["04 Notes + backlinks<br/>IN PROGRESS"]:::inprogress
     P05["05 Foundation integration · local<br/>TODO"]:::todo
     P06["06 Durable response journal<br/>TODO"]:::todo
@@ -390,3 +390,7 @@ Dispatch their individual prompts. Merge/review/check in any order using the sam
 - **Next:** 02, 03 and 04 are ready for parallel work from the pinned implementation commit. Keep 06–08 behind the actual 05 integration gate.
 
 Append each later round's base/head IDs, accepted deviations, checks and recommendation here. Implementation status belongs only to the graph above.
+
+### Plan 03 merge verification
+
+Merged `linked-work/03-task-detail` through `533d7f6` after reviewing conflict recovery, latest-draft retention, validation and contributor identities. Coordinator additionally disables overview edits during a pending save to prevent successful-save refresh from discarding newer typing. Native build, 8 contract tests, 5 draft tests, and full `swift test` (67 tests) passed. No app relaunch or live UI verification was run; Plan 05 owns wiring. Plan 04 remains pending durable identity after atomic replacement and restart; its deviation is not accepted as completed behavior. Plan 02 remains in review correction. Plan 05 waits for both.

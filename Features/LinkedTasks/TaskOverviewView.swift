@@ -62,6 +62,7 @@ struct TaskOverviewView: View {
             }
         }
         .formStyle(.grouped)
+        .disabled(saving)
     }
 
     private var plannedDay: Binding<Date> {
