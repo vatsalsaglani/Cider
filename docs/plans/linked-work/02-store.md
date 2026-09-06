@@ -83,6 +83,28 @@ Native app relaunch and live provider interaction belong to the coordinator inte
 
 ## Deviations
 
+None. The frozen schema and repository contracts were sufficient. The recovery
+export remains an internal callable repository capability because its public
+signature was not part of the frozen surface.
+
+## Lane handoff
+
+- Implemented queue-confined transactional read snapshots, atomic first-open
+  schema installation/read-only checks, Unix timestamp storage, NUL-safe text
+  handling, legacy import/backup/recovery export, mutations, journal batches
+  and bounded deterministic graph/backlink projections in the owned data files.
+- Added temporary-fixture store and migration tests covering independent first
+  opens, bounded lock contention, mutation/journal replay, timestamp/NUL
+  round-trips, note-only graph search and plan/evidence relationship roles.
+  Follow-up coverage also proves local focus survives leading unrelated rows,
+  root-scoped contributor chats are retained, and oversized legacy files stop at
+  the bounded read threshold.
+  The graph follow-up now deduplicates persisted relationship IDs, uses one
+  total local-expansion budget, scopes root SQL before limiting, and applies
+  done/provider/freshness filters without reintroducing excluded nodes.
+  Native relaunch, live
+  provider interaction and hardware checks remain coordinator integration gates.
+
 ## Agent start prompt
 
 > Read `docs/plans/linked-work/00-overview.md` and `docs/plans/linked-work/02-store.md`, plus `.agents/skills/working-with-cider/SKILL.md`. Implement plan 02 on `linked-work/02-store`. Start only from the coordinator-provided common round base in this plan's dedicated worktree. Do not merge or rebase sibling branches. Goal: Implement the one transactional source of truth for TODOs, chat assignments, notes and durable checkpoints. Edit only the files in this plan's File ownership list, including its own Deviations section; keep all frozen contracts and sibling files unchanged. Follow the overview's data, hook, isolation and local-commit rules. Run these verification commands from the repo root: `swift build --product Cider; swift test --filter LinkedContractTests; swift test --filter LinkedStoreTests; swift test --filter LinkedMigrationTests; git diff --check`. Also complete the plan's explicit integration/manual gates when applicable; never claim unrun checks passed. Commit locally without pushing. Finish with what works, base/head IDs, changed files, each verification result, merge risks, and Deviations (or state none).
