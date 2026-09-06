@@ -82,6 +82,32 @@ Native app relaunch and live provider interaction belong to the coordinator inte
 
 ## Deviations
 
+None.
+
+## Handoff
+
+Plan 05 wires `TaskDetailView(taskID:model:navigate:)` at the existing task-detail
+destination. Populate `LinkedWorkModel.availableChats` from observed Activity metadata
+before showing the Chats section; the picker preserves the full `ChatIdentity` and never
+matches a title or workspace. The `navigate` callback must resolve `.chat`, `.note`,
+`.chooseNotes(taskID:)`, `.createLinkedNote(taskID:)`, and `.graph` through the frozen
+route contract. Present the detail in a navigation or sheet context so its Back to board
+action can dismiss. The feature owns only its transient draft; it reloads after successful
+mutations and retains it after a conflict.
+
+Review corrections: conflict handling now displays both the preserved local draft and the
+newly read saved row. The user can explicitly adopt the saved row or rebase only local field
+changes onto its newer revision; synthetic coverage verifies the subsequent rebased save.
+Attached same-title contributors retain provider, source/workspace and an identity suffix.
+Overview validation calls the frozen task validator and gives a field-level message without
+discarding the draft. Evidence: `swift build --product Cider`, `LinkedContractTests`,
+`LinkedTaskDraftTests`, and `git diff --check` were rerun after these corrections.
+
+Follow-up review correction: the comparison now evaluates the latest still-editable draft,
+with bounded values for every changed title, description, status, date, or criterion field.
+Rebase uses that latest draft rather than the earlier conflict snapshot; synthetic coverage
+types new text/status/criterion changes after conflict and verifies they persist on retry.
+
 ## Agent start prompt
 
 > Read `docs/plans/linked-work/00-overview.md` and `docs/plans/linked-work/03-task-detail.md`, plus `.agents/skills/working-with-cider/SKILL.md`. Implement plan 03 on `linked-work/03-task-detail`. Start only from the coordinator-provided common round base in this plan's dedicated worktree. Do not merge or rebase sibling branches. Goal: Build the TODO detail surface with description, criteria, explicit status and multiple distinguishable chat contributors. Edit only the files in this plan's File ownership list, including its own Deviations section; keep all frozen contracts and sibling files unchanged. Follow the overview's data, hook, isolation and local-commit rules. Run these verification commands from the repo root: `swift build --product Cider; swift test --filter LinkedContractTests; swift test --filter LinkedTaskDraftTests; git diff --check`. Also complete the plan's explicit integration/manual gates when applicable; never claim unrun checks passed. Commit locally without pushing. Finish with what works, base/head IDs, changed files, each verification result, merge risks, and Deviations (or state none).
