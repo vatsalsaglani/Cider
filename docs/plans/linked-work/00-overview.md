@@ -323,7 +323,7 @@ docs/plans/linked-work/09-integration.md
 
 On the clean local main checkout, create `linked-work/01-contracts` and run [01's prompt](01-contracts.md#agent-start-prompt). Build the frozen APIs/schema and run all 01 checks. Merge the local branch into main, record its head and checks here, update P01 to DONE, and commit the overview. **No fanout command is valid before this gate.**
 
-Round A base: **`6eac4d072abd2332c6eb6cfe51d6a02fdbb89522`**. This compiled implementation commit contains the plan set, frozen contracts and fixtures. Later coordinator-only merge-log updates do not change this base. Round B base: not recorded yet; 05 must complete first. The coordinator records each immutable commit plus checks here before dispatch; never reuse the planning source hash as a round base.
+Round A base: **`6eac4d072abd2332c6eb6cfe51d6a02fdbb89522`**. This compiled implementation commit contains the plan set, frozen contracts and fixtures. Later coordinator-only merge-log updates do not change this base. Round B base: **`a3bb3ecec9ad73c29159791e21ed4960090ef972`**, merged Plan 05 with user-deferred UI acceptance. The coordinator records each immutable commit plus checks here before dispatch; never reuse the planning source hash as a round base.
 
 ### Parallel round A
 
