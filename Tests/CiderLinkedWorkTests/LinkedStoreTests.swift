@@ -1,5 +1,6 @@
 import Testing
 import Foundation
+import CSQLite
 @testable import CiderData
 import CiderDomain
 
@@ -78,6 +79,19 @@ import CiderDomain
         let graph = try await store.graph(GraphQuery(includeDone: true, includeIsolated: true, nodeLimit: 10, edgeLimit: 10))
         #expect(graph.edges.contains { $0.id == document.id && $0.kind == .documentLink })
         #expect(graph.edges.contains { $0.source == .note(source.id) && $0.target == .task(task.id) && $0.kind == .noteEvidence })
+    }
+
+    @Test func independentWriterLockReturnsBoundedBusyError() async throws {
+        let root = try temporaryRoot(); defer { try? FileManager.default.removeItem(at: root) }
+        let url = root.appending(path: "work.sqlite")
+        let store = try await SQLiteWorkRepository.open(at: url, access: .appReadWrite)
+        let locker = WorkDatabaseExecutor()
+        try await locker.open(path: url.path, readOnly: false)
+        try await locker.configureWriter()
+        try await locker.perform { db in #expect(sqlite3_exec(db, "BEGIN EXCLUSIVE", nil, nil, nil) == SQLITE_OK) }
+        await #expect(throws: WorkStoreError.busy) { try await store.apply(WorkMutation(change: .saveTask(task: WorkTask(title: "Busy"))) ) }
+        try await locker.perform { db in #expect(sqlite3_exec(db, "ROLLBACK", nil, nil, nil) == SQLITE_OK) }
+        await locker.close()
     }
 
     private func temporaryRoot() throws -> URL {
