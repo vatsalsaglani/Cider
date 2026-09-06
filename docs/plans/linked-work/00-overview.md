@@ -42,9 +42,9 @@ flowchart TD
     P03["03 TODO detail + chats<br/>DONE"]:::done
     P04["04 Notes + backlinks<br/>DONE"]:::done
     P05["05 Foundation integration · local<br/>DONE"]:::done
-    P06["06 Durable response journal<br/>TODO"]:::todo
-    P07["07 Relationship graph<br/>TODO"]:::todo
-    P08["08 CLI + workflow skill<br/>TODO"]:::todo
+    P06["06 Durable response journal<br/>IN PROGRESS"]:::inprogress
+    P07["07 Relationship graph<br/>IN PROGRESS"]:::inprogress
+    P08["08 CLI + workflow skill<br/>IN PROGRESS"]:::inprogress
     P09["09 Package + end-to-end checks · local<br/>TODO"]:::todo
     P01 --> P02
     P01 --> P03
@@ -414,3 +414,13 @@ Plan 05 review checkpoint: pagination, duplicate-submit, modal-transition, renam
 ### Plan 05 complete with user-deferred UI acceptance
 
 Implementation checkpoint `59eb149` passed native build, 103 Swift tests, 16 editor checks, isolated fixture smoke/launch and strict code-sign verification. On 2026-09-07 the user explicitly deferred UI acceptance to their final review. This supersedes the earlier locked-screen gate and unblocks round B; manual UI, physical notch and accessibility checks remain unverified. The implementation and recovery review is complete.
+
+### Round B dispatched — 2026-09-07
+
+All three separate user-owned tasks use `gpt-5.6-terra` with `high` reasoning and an explicit goal-mode start prompt. Their common worktree base is `a3bb3ecec9ad73c29159791e21ed4960090ef972`.
+
+- Plan 06: `01a0780d-366b-74b3-9e4e-e7b850b1de36`, worktree `90cd`.
+- Plan 07: `01a0780d-3675-72b0-96a6-1e54c0ea5df5`, worktree `d057`.
+- Plan 08: `01a0780d-4019-7d42-b442-dc42e00eae80`, worktree `6af1`.
+
+Coordinator monitors and reviews each lane before merging, then implements Plan 09 locally. User UI acceptance is deferred until final review; builds and synthetic tests remain required.

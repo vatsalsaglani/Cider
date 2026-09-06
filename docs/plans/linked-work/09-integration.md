@@ -97,6 +97,8 @@ Coordinator only, after the commands above: `script/build_and_run.sh --verify`. 
 
 ## Deviations
 
+- User amendment on 2026-09-07: UI acceptance is deferred to the user at the end. Do not block implementation/integration on interactive UI acceptance. Report native interaction, accessibility and physical-display checks as deferred when unperformed; retain all automated, build, package and fixture gates.
+
 ## Agent start prompt
 
 > Read `docs/plans/linked-work/00-overview.md` and `docs/plans/linked-work/09-integration.md`, plus `.agents/skills/working-with-cider/SKILL.md`. Implement plan 09 on `linked-work/09-integration`. Run locally as the coordinator; do not create a lane worktree for this plan. Goal: Integrate the durable journal, graph and CLI/skill into the actual Cider app, package them together and verify the full linked workflow. Edit only the files in this plan's File ownership list, including its own Deviations section; keep all frozen contracts and sibling files unchanged. Follow the overview's data, hook, isolation and local-commit rules. Run these verification commands from the repo root: `swift build --product Cider; swift build --product cider-cli; swift test; script/verify_editor.sh; script/verify_linked_work.sh --fixtures; python3 script/verification/verify_cider_cli.py --binary "$(swift build --show-bin-path)/cider-cli"; git diff --check`. Also complete the plan's explicit integration/manual gates when applicable; never claim unrun checks passed. Commit locally without pushing. Finish with what works, base/head IDs, changed files, each verification result, merge risks, and Deviations (or state none).
