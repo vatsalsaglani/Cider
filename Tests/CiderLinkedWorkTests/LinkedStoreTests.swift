@@ -79,6 +79,51 @@ import CiderDomain
         let graph = try await store.graph(GraphQuery(includeDone: true, includeIsolated: true, nodeLimit: 10, edgeLimit: 10))
         #expect(graph.edges.contains { $0.id == document.id && $0.kind == .documentLink })
         #expect(graph.edges.contains { $0.source == .note(source.id) && $0.target == .task(task.id) && $0.kind == .noteEvidence })
+        let repeated = try await store.graph(GraphQuery(includeDone: true, includeIsolated: true, nodeLimit: 10, edgeLimit: 10))
+        #expect(repeated == graph)
+    }
+
+    @Test func graphIncludesNoteOnlyNodesSearchAndPreservesPlanRole() async throws {
+        let root = try temporaryRoot(); defer { try? FileManager.default.removeItem(at: root) }
+        let store = try await SQLiteWorkRepository.open(at: root.appending(path: "work.sqlite"), access: .appReadWrite)
+        let folder = FolderReference(path: "/synthetic")
+        _ = try await store.apply(WorkMutation(change: .registerFolder(folder: folder)))
+        let isolated = NoteReference(rootID: folder.id, relativePath: "only-note.md")
+        _ = try await store.apply(WorkMutation(change: .registerNote(note: isolated)))
+        let matching = try await store.graph(GraphQuery(includeIsolated: true, search: "only-note", nodeLimit: 10, edgeLimit: 10))
+        #expect(matching.nodes.map(\.id).contains(.note(isolated.id)))
+        let task = WorkTask(title: "Plan relation")
+        _ = try await store.apply(WorkMutation(change: .saveTask(task: task)))
+        _ = try await store.apply(WorkMutation(change: .attachNote(taskID: task.id, noteID: isolated.id, role: .plan)))
+        let connections = try await store.connections(.note(isolated.id), limit: 10)
+        #expect(connections.edges.contains { $0.kind == .notePlan && $0.target == .task(task.id) })
+    }
+
+    @Test func sqliteUsesUnixDatesAndRoundTripsEmbeddedNULText() async throws {
+        let root = try temporaryRoot(); defer { try? FileManager.default.removeItem(at: root) }
+        let url = root.appending(path: "work.sqlite"); let date = Date(timeIntervalSince1970: 1_700_000_000)
+        let store = try await SQLiteWorkRepository.open(at: url, access: .appReadWrite)
+        let task = WorkTask(title: "NUL", descriptionMarkdown: "before\u{0}after", createdAt: date)
+        _ = try await store.apply(WorkMutation(change: .saveTask(task: task)))
+        #expect(try await store.detail(task.id).task.descriptionMarkdown == "before\u{0}after")
+        let io = WorkDatabaseExecutor(); try await io.open(path: url.path, readOnly: true)
+        let stored = try await io.perform { db -> Double in
+            var statement: OpaquePointer?; defer { sqlite3_finalize(statement) }
+            #expect(sqlite3_prepare_v2(db, "SELECT created_at FROM tasks", -1, &statement, nil) == SQLITE_OK)
+            #expect(sqlite3_step(statement) == SQLITE_ROW)
+            return sqlite3_column_double(statement, 0)
+        }
+        #expect(stored == date.timeIntervalSince1970); await io.close()
+    }
+
+    @Test func concurrentFirstOpenCreatesOneValidSchema() async throws {
+        let root = try temporaryRoot(); defer { try? FileManager.default.removeItem(at: root) }
+        let url = root.appending(path: "work.sqlite")
+        async let first = SQLiteWorkRepository.open(at: url, access: .appReadWrite)
+        async let second = SQLiteWorkRepository.open(at: url, access: .appReadWrite)
+        let stores = try await [first, second]
+        let firstInfo = try await stores[0].info(); let secondInfo = try await stores[1].info()
+        #expect(firstInfo == secondInfo)
     }
 
     @Test func independentWriterLockReturnsBoundedBusyError() async throws {

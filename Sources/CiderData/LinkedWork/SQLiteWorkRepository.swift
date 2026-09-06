@@ -21,8 +21,9 @@ public actor SQLiteWorkRepository: WorkRepository {
         do {
             try await database.open(path: url.path, readOnly: access == .cliReadOnly)
             if access == .appReadWrite {
-                try await database.configureWriter()
+                try await database.configureBusyHandling()
                 try await database.installOrVerifySchema()
+                try await database.configureWriter()
                 if let legacy { try await WorkMigration.importLegacy(legacy, into: database) }
             } else { try await database.verifyReadOnlySchema() }
             return SQLiteWorkRepository(database: database, access: access, location: url)

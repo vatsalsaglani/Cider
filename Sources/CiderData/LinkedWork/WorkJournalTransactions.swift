@@ -4,21 +4,23 @@ import CiderDomain
 enum WorkJournalTransactions {
     static func attribution(chats: [ChatIdentity], eventIDs: [UUID], database: WorkDatabaseExecutor) async throws -> AttributionSnapshot {
         guard chats.count <= WorkLimits.attributionRows, eventIDs.count <= WorkLimits.eventBatch else { throw WorkStoreError.outputLimit }
-        let info = try await WorkQueries.info(database)
+        return try await database.read { database in
+        let info = try WorkQueries.info(database)
         var links: [TaskChatLink] = []
         var episodes: [AssignmentEpisode] = []
         for chat in chats {
-            let matched = try await WorkQueries.chatLinks(chat: chat, database)
+            let matched = try WorkQueries.chatLinks(chat: chat, database)
             links += matched
             for link in matched {
-                let rows = try await database.rows("SELECT id,link_id,source_start_id,turn_id,started_at,ended_at FROM assignment_episodes WHERE link_id=? ORDER BY started_at,id", [.text(link.id.uuidString.lowercased())])
+                let rows = try database.rows("SELECT id,link_id,source_start_id,turn_id,started_at,ended_at FROM assignment_episodes WHERE link_id=? ORDER BY started_at,id", [.text(link.id.uuidString.lowercased())])
                 episodes += try rows.map { try AssignmentEpisode(id: sqlUUID($0[0]), linkID: sqlUUID($0[1]), sourceStartID: sqlUUID($0[2]), turnID: $0[3].string, startedAt: sqlDate($0[4]) ?? .distantPast, endedAt: sqlDate($0[5])) }
             }
         }
         guard links.count + episodes.count <= WorkLimits.attributionRows else { throw WorkStoreError.outputLimit }
         var processed: [UUID] = []
-        for id in eventIDs { if try await database.scalarInt("SELECT count(*) FROM processed_events WHERE source_event_id=?", [.text(id.uuidString.lowercased())]) > 0 { processed.append(id) } }
+        for id in eventIDs { if try database.scalarInt("SELECT count(*) FROM processed_events WHERE source_event_id=?", [.text(id.uuidString.lowercased())]) > 0 { processed.append(id) } }
         return AttributionSnapshot(revision: info.revision, links: links.sorted { $0.id.uuidString < $1.id.uuidString }, episodes: episodes.sorted { $0.id.uuidString < $1.id.uuidString }, processedEventIDs: processed)
+        }
     }
     static func append(_ batch: JournalBatch, database: WorkDatabaseExecutor) async throws -> JournalReceipt {
         try WorkLimits.validate(batch: batch)

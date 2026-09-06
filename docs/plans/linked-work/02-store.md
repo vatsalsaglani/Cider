@@ -89,10 +89,14 @@ signature was not part of the frozen surface.
 
 ## Lane handoff
 
-- Implemented SQLite connection confinement, schema/read-only checks, legacy
-  import/backup/recovery export, repository reads/mutations, journal batches and
-  graph projection in the owned data files.
-- Added temporary-fixture store and migration tests. Native relaunch, live
+- Implemented queue-confined transactional read snapshots, atomic first-open
+  schema installation/read-only checks, Unix timestamp storage, NUL-safe text
+  handling, legacy import/backup/recovery export, mutations, journal batches
+  and bounded deterministic graph/backlink projections in the owned data files.
+- Added temporary-fixture store and migration tests covering independent first
+  opens, bounded lock contention, mutation/journal replay, timestamp/NUL
+  round-trips, note-only graph search and plan/evidence relationship roles.
+  Native relaunch, live
   provider interaction and hardware checks remain coordinator integration gates.
 
 ## Agent start prompt
