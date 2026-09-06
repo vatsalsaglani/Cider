@@ -43,7 +43,7 @@ flowchart TD
     P04["04 Notes + backlinks<br/>DONE"]:::done
     P05["05 Foundation integration · local<br/>DONE"]:::done
     P06["06 Durable response journal<br/>IN PROGRESS"]:::inprogress
-    P07["07 Relationship graph<br/>IN PROGRESS"]:::inprogress
+    P07["07 Relationship graph<br/>DONE"]:::done
     P08["08 CLI + workflow skill<br/>IN PROGRESS"]:::inprogress
     P09["09 Package + end-to-end checks · local<br/>TODO"]:::todo
     P01 --> P02
@@ -426,3 +426,7 @@ All three separate user-owned tasks use `gpt-5.6-terra` with `high` reasoning an
 - Plan 08: `01a0780d-4019-7d42-b442-dc42e00eae80`, worktree `6af1`.
 
 Coordinator monitors and reviews each lane before merging, then implements Plan 09 locally. User UI acceptance is deferred until final review; builds and synthetic tests remain required.
+
+### Plan 07 merged and verified
+
+Merged `linked-work/07-graph` through `d176f8f817c76a3063cb0442aefcbb464d709953` after review corrections for cancellation, focus changes, pan/drag/zoom arithmetic, shared scope pills, clipping, measured fit and mutation errors. Main checkout native build, LinkedGraphTests (2), GraphLayoutTests (3), and diff check passed. No frozen contract changes. Native interaction/accessibility/physical idle checks remain user-deferred; Plan 09 wires global routes. Plans 06 and 08 remain in implementation/review.
