@@ -91,9 +91,9 @@ Native app relaunch and live provider interaction belong to the coordinator inte
 
 ## Deviations
 
-### CONTRACT CHANGE NEEDED (not made): packaged integration resources
+### Packaging handoff: integration resources
 
-`Integrations/cider-workflow/` is intentionally owned by this lane, while the frozen `Package.swift` app target does not currently declare it as a resource or exclusion. SwiftPM therefore reports the three documentation files as unhandled during builds. Plan 09/coordinator packaging must make the exact reviewed decision that copies this directory to `Contents/Resources/cider-workflow/` and either declares the source resource or excludes it from the root target. This lane did not change the frozen package manifest or build script.
+`Integrations/cider-workflow/` is intentionally owned by this lane. Plan 09/coordinator packaging must copy it to `Contents/Resources/cider-workflow/` together with `cider-cli` as `Contents/Helpers/cider`; this lane did not change the frozen package manifest or build script. SwiftPM emits an unhandled-file warning for the source documentation directory, but the packaging copy can be performed by the coordinator-owned phase without a Package.swift change.
 
 ## Agent start prompt
 

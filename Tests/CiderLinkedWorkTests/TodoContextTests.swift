@@ -36,4 +36,15 @@ import CiderDomain
         #expect(bundle.notes.contains { $0.truncated || $0.content == nil })
     }
 
+    @Test func todaysBoardIncludesSavedContributorAndPreviewContext() async throws {
+        var fixture = try LinkedFixture.load()
+        fixture.tasks[0].plannedDay = LocalDay()
+        let reader = TodoContextReader(repository: FixtureRepository(fixture), noteAccess: FixtureNoteAccess())
+        let today = try await reader.todayContext()
+        let task = try #require(today.tasks.first)
+        #expect(task.detail.chats.count == 2)
+        #expect(task.activity.items.contains { $0.previewOnly })
+        #expect(task.throughSequence != nil)
+    }
+
 }

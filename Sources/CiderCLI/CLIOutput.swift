@@ -80,6 +80,16 @@ private struct SuccessEnvelope: Encodable {
     let data: AnyEncodable
     let nextCursor: String?
     let truncated: Bool
+    enum CodingKeys: String, CodingKey { case schemaVersion, storeRevision, generatedAt, data, nextCursor, truncated }
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(schemaVersion, forKey: .schemaVersion)
+        try container.encode(storeRevision, forKey: .storeRevision)
+        try container.encode(generatedAt, forKey: .generatedAt)
+        try container.encode(data, forKey: .data)
+        try container.encode(nextCursor, forKey: .nextCursor)
+        try container.encode(truncated, forKey: .truncated)
+    }
 }
 private struct ErrorEnvelope: Encodable { let schemaVersion = 1; let error: ErrorBody }
 private struct ErrorBody: Encodable { let code: String; let message: String }

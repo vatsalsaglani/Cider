@@ -2,7 +2,7 @@
 
 This portable, read-only skill lets Codex or Claude Code summarize a Cider TODO in the conversation already open. Cider setup first previews the exact project-local destination, managed bytes, and safely quoted packaged executable path. It never edits global settings, PATH, hooks, credentials, TODOs, or Markdown notes.
 
-Supported project-local destinations are `.agents/skills/cider-workflow/SKILL.md` for Codex and `.claude/skills/cider-workflow/SKILL.md` for Claude Code. The former matches the current Codex project skill convention documented by OpenAI; the latter is the conventional Claude Code project skill location. The installer refuses an unrelated existing file, only updates files carrying its managed marker, and removes only a byte-matched managed file.
+Supported project-local destinations are `.agents/skills/cider-workflow/SKILL.md` for Codex and `.claude/skills/cider-workflow/SKILL.md` for Claude Code. The former matches the current Codex project skill convention documented by OpenAI; the latter is the conventional Claude Code project skill location. Generated files begin with YAML frontmatter, then carry a digest-bound managed marker. The installer refuses unrelated, edited, oversized, unreadable, or symlink-escaped files; it updates/removes only an unchanged digest-verified managed file.
 
 Run the configured packaged executable with `todo context <UUID> --json`, `todo activity <UUID> --since <sequence> --json`, or `todo summarize-context --today --json`. Context has bounded task, contributor, note, and checkpoint data; explicit note content is bounded and remains within linked selected roots. Checkpoints can be previews, so summaries must distinguish reported results from actual verification.
 

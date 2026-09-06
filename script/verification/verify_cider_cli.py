@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Synthetic, app-closed contract check for the packaged read-only Cider CLI."""
 import argparse
+import datetime
 import hashlib
 import json
 import pathlib
@@ -15,6 +16,8 @@ TASK = "00000000-0000-4000-8000-000000000010"
 NOTE = "00000000-0000-4000-8000-000000000020"
 ROOT = "00000000-0000-4000-8000-000000000030"
 ENTRY = "00000000-0000-4000-8000-000000000040"
+LINK = "00000000-0000-4000-8000-000000000050"
+SESSION = "synthetic-contributor"
 
 
 def run(binary, store, *args, expect=0):
@@ -28,12 +31,15 @@ def build_fixture(repo, store, note_root):
     database = sqlite3.connect(store)
     database.executescript(schema)
     database.execute("INSERT INTO metadata VALUES (1,1,7,?,NULL)", (HOST,))
-    database.execute("INSERT INTO tasks VALUES (?,?,?,?,?,?,?,?,?)", (TASK, "CLI synthetic", "Saved description", "2026-09-07", None, "inProgress", 100.0, 1, 1))
+    today = datetime.date.today().isoformat()
+    database.execute("INSERT INTO tasks VALUES (?,?,?,?,?,?,?,?,?)", (TASK, "CLI synthetic", "Saved description", today, None, "inProgress", 100.0, 1, 1))
     database.execute("INSERT INTO criteria VALUES (?,?,?,?,?,?)", ("00000000-0000-4000-8000-000000000011", TASK, 0, "Synthetic criterion", 0, 101.0))
     database.execute("INSERT INTO folder_roots VALUES (?,?,?)", (ROOT, str(note_root), 1))
     database.execute("INSERT INTO notes VALUES (?,?,?,?,?,?)", (NOTE, ROOT, "evidence.md", None, 1, 100.0))
     database.execute("INSERT INTO task_note_links VALUES (?,?,?,?,?)", ("00000000-0000-4000-8000-000000000021", TASK, NOTE, "evidence", 100.0))
-    database.execute("INSERT INTO journal (id,task_id,link_id,host_id,provider,session_id,source_event_id,source_turn_id,question_id,source_key,occurred_at,received_at,kind,text,preview_only,attribution) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (ENTRY, TASK, None, None, None, None, None, None, "question-1", "synthetic-stop", 102.0, 103.0, "response", "Synthetic preview", 1, "identifiedTurn"))
+    database.execute("INSERT INTO chats VALUES (?,?,?,?,?,?,?,?,?,?)", (HOST, "codex", SESSION, "Synthetic contributor", "/synthetic", None, 100.0, "turn-1", "Working", None))
+    database.execute("INSERT INTO task_chat_links VALUES (?,?,?,?,?,?,?,?,?,?)", (LINK, TASK, HOST, "codex", SESSION, "contributor", 100.0, None, "turn-1", 1))
+    database.execute("INSERT INTO journal (id,task_id,link_id,host_id,provider,session_id,source_event_id,source_turn_id,question_id,source_key,occurred_at,received_at,kind,text,preview_only,attribution) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (ENTRY, TASK, LINK, HOST, "codex", SESSION, None, "turn-1", "question-1", "synthetic-stop", 102.0, 103.0, "response", "Synthetic preview", 1, "identifiedTurn"))
     # More than a full wire-budget of journal previews verifies that context
     # truncates while a raw activity page returns a stable output-limit error.
     for index in range(2, 502):
@@ -66,7 +72,8 @@ def main():
         listing = run(binary, store, "list", "--today")
         assert listing["schemaVersion"] == 1 and listing["storeRevision"] == 7
         assert listing["data"][0]["id"] == TASK
-        assert listing["data"][0]["plannedDay"] == "2026-09-07"
+        assert listing["data"][0]["plannedDay"] == datetime.date.today().isoformat()
+        assert listing["nextCursor"] is None
         shown = run(binary, store, "show", TASK)
         assert shown["data"]["task"]["descriptionMarkdown"] == "Saved description"
         activity = run(binary, store, "activity", TASK, "--since", "500")
@@ -78,7 +85,10 @@ def main():
         capped = run(binary, store, "activity", TASK, "--since", "0", expect=6)
         assert capped["error"]["code"] == "outputLimit"
         today = run(binary, store, "summarize-context", "--today")
-        assert today["data"][0]["id"] == TASK
+        task_context = today["data"]["tasks"][0]
+        assert task_context["detail"]["task"]["id"] == TASK
+        assert task_context["detail"]["chats"][0]["identity"]["sessionID"] == SESSION
+        assert task_context["activity"]["items"][0]["id"] == ENTRY
         malformed = run(binary, store, "show", "not-a-uuid", expect=2)
         assert malformed["error"]["code"] == "invalidInput"
         unavailable = root / "newer.sqlite"; sqlite3.connect(unavailable).close()

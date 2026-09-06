@@ -21,8 +21,9 @@ enum TodoCommands {
             let bundle = try await reader.context(taskID: id, options: TodoContextOptions(includeNotes: includeNotes))
             return CLIResult(bundle, revision: bundle.storeRevision, truncated: bundle.truncated)
         case .summarizeToday:
-            let page = try await repository.tasks(TaskQuery(day: LocalDay(), limit: 20))
-            return CLIResult(page.items, revision: page.revision, nextCursor: page.nextCursor, truncated: page.nextCursor != nil)
+            let reader = TodoContextReader(repository: repository, noteAccess: LinkedNoteService())
+            let bundle = try await reader.todayContext()
+            return CLIResult(bundle, revision: bundle.storeRevision, truncated: bundle.truncated)
         }
     }
 }

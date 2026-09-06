@@ -59,6 +59,15 @@ public struct TodoContextBundle: Codable, Sendable {
     }
 }
 
+public struct TodoTodayContextBundle: Codable, Sendable {
+    public var tasks: [TodoContextBundle]
+    public var storeRevision: Int64
+    public var truncated: Bool
+    public init(tasks: [TodoContextBundle], storeRevision: Int64, truncated: Bool) {
+        self.tasks = tasks; self.storeRevision = storeRevision; self.truncated = truncated
+    }
+}
+
 /// Reads a coherent snapshot through the app's existing read interfaces. A changed
 /// revision is surfaced as a retryable conflict rather than mixing database states.
 public struct TodoContextReader: Sendable {
@@ -148,6 +157,24 @@ public struct TodoContextReader: Sendable {
         let after = try await repository.info()
         guard after.revision == before.revision else { throw WorkStoreError.conflict }
         return candidate
+    }
+
+    /// The today's-board variant shares one revision across at most twenty explicit
+    /// task contexts. Note bodies remain excluded regardless of caller defaults.
+    public func todayContext(day: LocalDay = LocalDay()) async throws -> TodoTodayContextBundle {
+        let before = try await repository.info()
+        let page = try await repository.tasks(TaskQuery(day: day, limit: 20))
+        guard page.revision == before.revision else { throw WorkStoreError.conflict }
+        let perTaskLimit = 8 * 1024
+        var bundles: [TodoContextBundle] = []
+        for task in page.items {
+            let bundle = try await context(taskID: task.id, options: TodoContextOptions(includeNotes: false, totalByteLimit: perTaskLimit))
+            guard bundle.storeRevision == before.revision else { throw WorkStoreError.conflict }
+            bundles.append(bundle)
+        }
+        let after = try await repository.info()
+        guard after.revision == before.revision else { throw WorkStoreError.conflict }
+        return TodoTodayContextBundle(tasks: bundles, storeRevision: before.revision, truncated: page.nextCursor != nil || bundles.contains { $0.truncated })
     }
 
     private func encodedSize<T: Encodable>(_ value: T) throws -> Int {
