@@ -34,6 +34,8 @@ import CiderDomain
         #expect(try encoder.encode(bundle).count < 25_000)
         #expect(bundle.truncated)
         #expect(bundle.notes.contains { $0.truncated || $0.content == nil })
+        #expect(bundle.activity.nextCursor == nil)
+        #expect(bundle.throughSequence != nil)
     }
 
     @Test func todaysBoardIncludesSavedContributorAndPreviewContext() async throws {

@@ -12,6 +12,7 @@ struct AgentAccessView: LinkedAgentAccessFeature {
     @State private var executable: URL?
     @State private var preview: WorkflowSkillPreview?
     @State private var busy = false
+    @State private var actionFailed = false
     @State private var status: String = "Choose a project folder, then review the project-local skill change."
     private let setup = WorkflowSkillSetup()
 
@@ -25,7 +26,8 @@ struct AgentAccessView: LinkedAgentAccessFeature {
                     .foregroundStyle(.secondary)
                 CiderPillPicker("Workflow provider", selection: $provider, options: WorkflowSkillProvider.allCases, title: providerTitle)
                     .frame(maxWidth: 300)
-                    .onChange(of: provider) { _, _ in refreshPreview() }
+                    .disabled(busy)
+                    .onChange(of: provider) { _, _ in preview = nil; actionFailed = false; refreshPreview() }
                 locationRow("Project", value: projectRoot?.path, action: chooseProject, label: "Choose project")
                 locationRow("Cider CLI", value: executable?.path ?? packagedHelper()?.path, action: chooseExecutable, label: "Choose CLI")
                 HStack {
@@ -75,9 +77,9 @@ struct AgentAccessView: LinkedAgentAccessFeature {
 
     @ViewBuilder private func actionButton(_ preview: WorkflowSkillPreview) -> some View {
         switch preview.action {
-        case .install: Button("Install skill") { apply(preview) }.buttonStyle(.borderedProminent).disabled(busy)
-        case .update: Button("Update managed skill") { apply(preview) }.buttonStyle(.borderedProminent).disabled(busy)
-        case .remove: Button("Remove managed skill", role: .destructive) { remove(preview) }.buttonStyle(.bordered).disabled(busy)
+        case .install: Button("Install skill") { apply(preview) }.buttonStyle(.borderedProminent).disabled(busy || actionFailed)
+        case .update: Button("Update managed skill") { apply(preview) }.buttonStyle(.borderedProminent).disabled(busy || actionFailed)
+        case .remove: Button("Remove managed skill", role: .destructive) { remove(preview) }.buttonStyle(.bordered).disabled(busy || actionFailed)
         case .alreadyInstalled: Text("The reviewed managed skill is already installed.")
         case .conflict: Text("An unrelated or edited skill is present; Cider will not overwrite or remove it.")
         case .unavailable: Text("Choose an executable Cider CLI. The packaged helper is unavailable at this app location.")
@@ -96,13 +98,13 @@ struct AgentAccessView: LinkedAgentAccessFeature {
     private func chooseProject() {
         let panel = NSOpenPanel(); panel.canChooseDirectories = true; panel.canChooseFiles = false; panel.allowsMultipleSelection = false
         guard panel.runModal() == .OK, let url = panel.url else { return }
-        projectRoot = url; refreshPreview()
+        projectRoot = url; preview = nil; actionFailed = false; refreshPreview()
     }
 
     private func chooseExecutable() {
         let panel = NSOpenPanel(); panel.canChooseDirectories = false; panel.canChooseFiles = true; panel.allowsMultipleSelection = false
         guard panel.runModal() == .OK, let url = panel.url else { return }
-        executable = url; refreshPreview()
+        executable = url; preview = nil; actionFailed = false; refreshPreview()
     }
 
     private func packagedHelper() -> URL? {
@@ -113,7 +115,7 @@ struct AgentAccessView: LinkedAgentAccessFeature {
     private func refreshPreview() {
         guard let projectRoot, !busy else { return }
         let provider = provider; let executable = executable ?? packagedHelper(); let setup = setup
-        busy = true; status = "Preparing a read-only preview…"
+        preview = nil; actionFailed = false; busy = true; status = "Preparing a read-only preview…"
         Task {
             let result = await Task.detached(priority: .utility) { () -> Result<WorkflowSkillPreview, WorkStoreError> in
                 do { return .success(try setup.preview(provider: provider, projectRoot: projectRoot, executable: executable)) }
@@ -131,7 +133,7 @@ struct AgentAccessView: LinkedAgentAccessFeature {
     private func previewRemoval() {
         guard let projectRoot, !busy else { return }
         let provider = provider; let setup = setup
-        busy = true; status = "Preparing a removal preview…"
+        preview = nil; actionFailed = false; busy = true; status = "Preparing a removal preview…"
         Task {
             let result = await Task.detached(priority: .utility) { () -> Result<WorkflowSkillPreview, WorkStoreError> in
                 do { return .success(try setup.previewRemoval(provider: provider, projectRoot: projectRoot)) }
@@ -158,8 +160,8 @@ struct AgentAccessView: LinkedAgentAccessFeature {
             }.value
             busy = false
             switch result {
-            case .success: status = "Installed after explicit confirmation. Review the retained preview or create a fresh one."
-            case .failure(let error): status = "Setup action did not complete (\(error.code)); inspect the destination before retrying."
+            case .success: self.preview = nil; status = "Installed after explicit confirmation. Create a fresh review for another action."
+            case .failure(let error): actionFailed = true; status = "Setup action did not complete (\(error.code)); inspect the retained preview and create a fresh review before retrying."
             }
         }
     }
@@ -176,8 +178,8 @@ struct AgentAccessView: LinkedAgentAccessFeature {
             }.value
             busy = false
             switch result {
-            case .success: status = "Removed the reviewed managed skill. The preview remains for audit; refresh before another action."
-            case .failure(let error): status = "Removal did not complete (\(error.code)); inspect the destination before retrying."
+            case .success: self.preview = nil; status = "Removed the reviewed managed skill. Create a fresh review for another action."
+            case .failure(let error): actionFailed = true; status = "Removal did not complete (\(error.code)); inspect the retained preview and create a fresh review before retrying."
             }
         }
     }

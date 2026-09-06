@@ -151,7 +151,10 @@ public struct TodoContextReader: Sendable {
             selected.append(entry)
         }
         if selected.count < activity.items.count { truncated = true }
-        let selectedActivity = WorkPage(items: selected, nextCursor: selected.count < activity.items.count ? "bounded" : activity.nextCursor, revision: activity.revision)
+        // A locally output-bounded activity list cannot safely reuse the store's
+        // cursor, which would skip records. `throughSequence` is the valid
+        // continuation anchor; expose no fabricated cursor.
+        let selectedActivity = WorkPage(items: selected, nextCursor: selected.count < activity.items.count ? nil : activity.nextCursor, revision: activity.revision)
         let candidate = TodoContextBundle(detail: detail, activity: selectedActivity, notes: notes, throughSequence: selected.last?.sequence ?? options.afterSequence, storeRevision: before.revision, truncated: truncated)
         guard try encodedSize(candidate) + reservedEnvelopeBytes <= options.totalByteLimit else { throw WorkStoreError.outputLimit }
         let after = try await repository.info()
