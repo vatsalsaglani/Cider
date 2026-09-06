@@ -7,17 +7,22 @@ public enum MarkdownLinkIndex {
     public static func links(in markdown: String, source: NoteReference, knownNotes: [NoteReference], rootID: UUID) throws -> [NoteDocumentLink] {
         guard source.rootID == rootID else { throw WorkStoreError.invalidInput }
         let candidates = knownNotes.filter { $0.rootID == rootID && $0.available }
-        let targets = Dictionary(uniqueKeysWithValues: candidates.map { (normalized($0.relativePath), $0) })
+        let targets = Dictionary(grouping: candidates, by: { normalized($0.relativePath) })
         var references: [String: String] = [:]
         var prose: [String] = []
-        var inFence = false
+        var fence: FenceDelimiter?
 
         for line in markdown.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline) {
             let text = String(line)
-            if text.trimmingCharacters(in: .whitespaces).hasPrefix("```") || text.trimmingCharacters(in: .whitespaces).hasPrefix("~~~") {
-                inFence.toggle(); continue
+            if let delimiter = fenceDelimiter(in: text) {
+                if let openFence = fence {
+                    if openFence.matchesClosing(delimiter) { fence = nil }
+                    continue
+                }
+                fence = delimiter
+                continue
             }
-            guard !inFence else { continue }
+            guard fence == nil else { continue }
             if let definition = referenceDefinition(text) {
                 references[normalizeLabel(definition.label)] = definition.destination
             } else {
@@ -28,7 +33,8 @@ public enum MarkdownLinkIndex {
         var pairs = Set<LinkKey>()
         for line in prose {
             for destination in inlineDestinations(line) + referenceDestinations(line, definitions: references) {
-                guard let resolved = resolve(destination, sourcePath: source.relativePath), let target = targets[resolved.path] else { continue }
+                guard let resolved = resolve(destination, sourcePath: source.relativePath), let matches = targets[resolved.path] else { continue }
+                guard matches.count == 1, let target = matches.first else { throw WorkStoreError.conflict }
                 pairs.insert(LinkKey(targetID: target.id, fragment: resolved.fragment))
             }
         }
@@ -56,16 +62,18 @@ public enum MarkdownLinkIndex {
             return definitions[normalizeLabel(reference)]
         }
         let shortcut = #"(?<![!\\])\[([^\]]+)\](?![\[(])"#
-        destinations += matches(shortcut, in: line).compactMap { definitions[normalizeLabel(capture($0, 1, in: line) ?? "")] }
+        destinations += matches(shortcut, in: line).compactMap { match in
+            let preceding = match.range.location > 0 ? (line as NSString).substring(with: NSRange(location: match.range.location - 1, length: 1)) : ""
+            guard preceding != "!", preceding != "]" else { return nil }
+            return definitions[normalizeLabel(capture(match, 1, in: line) ?? "")]
+        }
         return destinations
     }
 
     private static func resolve(_ rawDestination: String, sourcePath: String) -> (path: String, fragment: String?)? {
-        let decoded = rawDestination.removingPercentEncoding ?? rawDestination
-        guard !decoded.isEmpty, !decoded.hasPrefix("/"), !decoded.hasPrefix("//"), URLComponents(string: decoded)?.scheme == nil else { return nil }
-        let split = decoded.split(separator: "#", maxSplits: 1, omittingEmptySubsequences: false)
-        let linkPath = String(split[0])
-        guard !linkPath.isEmpty else { return nil }
+        let split = rawDestination.split(separator: "#", maxSplits: 1, omittingEmptySubsequences: false)
+        let linkPath = (String(split[0]).removingPercentEncoding ?? String(split[0]))
+        guard !linkPath.isEmpty, !linkPath.hasPrefix("/"), !linkPath.hasPrefix("//"), URLComponents(string: linkPath)?.scheme == nil else { return nil }
         let fragment = split.count == 2 ? String(split[1]).removingPercentEncoding ?? String(split[1]) : nil
         let base = sourcePath.split(separator: "/").dropLast().map(String.init)
         var components = base
@@ -84,12 +92,35 @@ public enum MarkdownLinkIndex {
     private static func normalizeLabel(_ label: String) -> String { label.trimmingCharacters(in: .whitespacesAndNewlines).lowercased().split(whereSeparator: \.isWhitespace).joined(separator: " ") }
 
     private static func maskInlineCode(_ line: String) -> String {
-        var masked = "", quoted = false
-        for scalar in line.unicodeScalars {
-            if scalar == "`" { quoted.toggle(); masked.unicodeScalars.append(scalar) }
-            else { masked.unicodeScalars.append(quoted ? " " : scalar) }
+        var characters = Array(line)
+        var index = 0
+        while index < characters.count {
+            guard characters[index] == "`" else { index += 1; continue }
+            let delimiterLength = runLength(of: "`", in: characters, at: index)
+            var candidate = index + delimiterLength
+            var closing: Int?
+            while candidate < characters.count {
+                if characters[candidate] == "`", runLength(of: "`", in: characters, at: candidate) == delimiterLength { closing = candidate; break }
+                candidate += 1
+            }
+            guard let closing else { index += delimiterLength; continue }
+            for offset in index..<(closing + delimiterLength) { characters[offset] = " " }
+            index = closing + delimiterLength
         }
-        return masked
+        return String(characters)
+    }
+
+    private static func fenceDelimiter(in line: String) -> FenceDelimiter? {
+        let characters = Array(line.drop(while: \.isWhitespace))
+        guard let marker = characters.first, marker == "`" || marker == "~" else { return nil }
+        let count = runLength(of: marker, in: characters, at: 0)
+        return count >= 3 ? FenceDelimiter(marker: marker, count: count) : nil
+    }
+
+    private static func runLength(of character: Character, in characters: [Character], at index: Int) -> Int {
+        var cursor = index
+        while cursor < characters.count, characters[cursor] == character { cursor += 1 }
+        return cursor - index
     }
 
     private static func matches(_ pattern: String, in text: String) -> [NSTextCheckingResult] {
@@ -119,4 +150,10 @@ public enum MarkdownLinkIndex {
 private struct LinkKey: Hashable {
     let targetID: UUID
     let fragment: String?
+}
+
+private struct FenceDelimiter {
+    let marker: Character
+    let count: Int
+    func matchesClosing(_ candidate: FenceDelimiter) -> Bool { marker == candidate.marker && candidate.count >= count }
 }

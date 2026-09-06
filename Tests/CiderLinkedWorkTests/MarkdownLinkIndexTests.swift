@@ -41,6 +41,42 @@ import CiderDomain
         #expect(links[0].targetID == target.id)
     }
 
+    @Test func handlesMatchingCodeDelimitersPercentEscapesAndImageReferences() throws {
+        let root = UUID()
+        let source = NoteReference(id: UUID(), rootID: root, relativePath: "notes/source.md")
+        let real = NoteReference(id: UUID(), rootID: root, relativePath: "notes/real.md")
+        let inlineCode = NoteReference(id: UUID(), rootID: root, relativePath: "notes/inline.md")
+        let fencedCode = NoteReference(id: UUID(), rootID: root, relativePath: "notes/fenced.md")
+        let image = NoteReference(id: UUID(), rootID: root, relativePath: "notes/image.md")
+        let escaped = NoteReference(id: UUID(), rootID: root, relativePath: "notes/file#name.md")
+        let markdown = """
+        [real](real.md)
+        `` [inline](inline.md) ``
+        ```md
+        [fenced](fenced.md)
+        ~~~
+        [still fenced](fenced.md)
+        ```
+        ![reference image][image]
+        [image]: image.md
+        [escaped](file%23name.md#two%20words)
+        """
+        let links = try MarkdownLinkIndex.links(in: markdown, source: source, knownNotes: [source, real, inlineCode, fencedCode, image, escaped], rootID: root)
+        #expect(links.count == 2)
+        #expect(links.contains { $0.targetID == real.id })
+        #expect(links.contains { $0.targetID == escaped.id && $0.fragment == "two words" })
+    }
+
+    @Test func duplicateNormalizedKnownPathsAreRecoverableInsteadOfArbitrary() throws {
+        let root = UUID()
+        let source = NoteReference(id: UUID(), rootID: root, relativePath: "source.md")
+        let first = NoteReference(id: UUID(), rootID: root, relativePath: "target.md")
+        let duplicate = NoteReference(id: UUID(), rootID: root, relativePath: "target.md")
+        #expect(throws: WorkStoreError.conflict) {
+            try MarkdownLinkIndex.links(in: "[target](target.md)", source: source, knownNotes: [source, first, duplicate], rootID: root)
+        }
+    }
+
     @Test func outputIsDeterministicAndDoesNotTreatBasenamesAsReferences() throws {
         let root = UUID()
         let source = NoteReference(id: UUID(), rootID: root, relativePath: "a/source.md")

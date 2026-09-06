@@ -17,7 +17,10 @@ struct NoteAttachmentPicker: View {
     @State private var markdown = ""
     @State private var creating = false
     @State private var pendingRegistration: NoteReference?
+    @State private var registeredPendingNoteID: UUID?
     @State private var message: String?
+    @State private var working = false
+    @State private var searchGeneration = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -34,10 +37,10 @@ struct NoteAttachmentPicker: View {
                 if !notes.isEmpty {
                     ScrollView { VStack(alignment: .leading, spacing: 6) {
                         ForEach(notes) { note in
-                            Button { Task { await attach(note) } } label: {
+                            Button { Task { _ = await attach(note, dismissOnSuccess: true) } } label: {
                                 VStack(alignment: .leading) { Text(note.relativePath); Text(note.available ? "Existing Markdown note" : "Missing note").font(.caption).foregroundStyle(.secondary) }
                                     .frame(maxWidth: .infinity, alignment: .leading).padding(10)
-                            }.buttonStyle(.plain).background(Color.white.opacity(0.04), in: RoundedRectangle(cornerRadius: 10)).disabled(!note.available)
+                            }.buttonStyle(.plain).background(Color.white.opacity(0.04), in: RoundedRectangle(cornerRadius: 10)).disabled(!note.available || working)
                         }
                     } }.frame(maxHeight: 170)
                 }
@@ -46,20 +49,20 @@ struct NoteAttachmentPicker: View {
                         TextField("File name", text: $title)
                         TextField("Folder path (optional)", text: $relativeDirectory)
                         TextEditor(text: $markdown).frame(minHeight: 80)
-                        HStack { Spacer(); Button("Create and attach") { Task { await create() } }.disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) }
+                        HStack { Spacer(); Button("Create and attach") { Task { await create() } }.disabled(working || title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) }
                     }.padding(.top, 6)
                 }
             }
             if let note = pendingRegistration {
                 Label("The file was created. Its link still needs registration.", systemImage: "arrow.clockwise")
                     .font(.caption).foregroundStyle(CiderColor.accent)
-                Button("Retry registration") { Task { await registerAndAttach(note) } }
+                Button("Retry registration") { Task { await retry(note) } }.disabled(working)
             }
             if let message { Text(message).font(.caption).foregroundStyle(CiderColor.accent) }
         }
         .padding(24).frame(width: 520)
         .task { await loadRoots() }
-        .onChange(of: selectedRootID) { _, _ in Task { await search() } }
+        .onChange(of: selectedRootID) { _, _ in notes = []; Task { await search() } }
     }
 
     private var selectedRoot: FolderReference? { roots.first { $0.id == selectedRootID } }
@@ -69,28 +72,57 @@ struct NoteAttachmentPicker: View {
     }
 
     private func search() async {
+        searchGeneration += 1
+        let generation = searchGeneration
         guard let rootID = selectedRootID else { notes = []; return }
-        do { notes = try await model.repository.notes(NoteQuery(rootID: rootID, search: query, limit: WorkLimits.list)).items }
-        catch { message = "Notes could not be loaded." }
+        let searchText = query
+        do {
+            let result = try await model.repository.notes(NoteQuery(rootID: rootID, search: searchText, limit: WorkLimits.list)).items
+            guard generation == searchGeneration, selectedRootID == rootID, query == searchText else { return }
+            notes = result
+        } catch {
+            guard generation == searchGeneration else { return }
+            message = "Notes could not be loaded."
+        }
     }
 
-    private func attach(_ note: NoteReference) async {
-        guard await model.perform(WorkMutation(change: .attachNote(taskID: taskID, noteID: note.id, role: .context))) else { return }
-        onComplete(); dismiss()
+    private func attach(_ note: NoteReference, dismissOnSuccess: Bool) async -> Bool {
+        guard await model.perform(WorkMutation(change: .attachNote(taskID: taskID, noteID: note.id, role: .context))) else {
+            message = "The note is registered, but it could not be linked. You can retry safely."
+            return false
+        }
+        if dismissOnSuccess { onComplete(); dismiss() }
+        return true
     }
 
     private func create() async {
-        guard let root = selectedRoot, root.available else { return }
+        guard !working, let root = selectedRoot, root.available else { return }
+        working = true; defer { working = false }
         do {
             let note = try await model.noteAccess.create(root: root, relativeDirectory: relativeDirectory, title: title, markdown: markdown)
             pendingRegistration = note
+            registeredPendingNoteID = nil
             await registerAndAttach(note)
         } catch { message = "The note could not be created in this folder." }
     }
 
+    private func retry(_ note: NoteReference) async {
+        guard !working else { return }
+        working = true; defer { working = false }
+        await registerAndAttach(note)
+    }
+
     private func registerAndAttach(_ note: NoteReference) async {
-        guard await model.perform(WorkMutation(change: .registerNote(note: note))) else { message = "The new file is safe, but registration needs a retry."; return }
-        await attach(note)
+        if registeredPendingNoteID != note.id {
+            guard await model.perform(WorkMutation(change: .registerNote(note: note))) else {
+                message = "The new file is safe, but registration needs a retry."
+                return
+            }
+            registeredPendingNoteID = note.id
+        }
+        guard await attach(note, dismissOnSuccess: false) else { return }
         pendingRegistration = nil
+        registeredPendingNoteID = nil
+        onComplete(); dismiss()
     }
 }

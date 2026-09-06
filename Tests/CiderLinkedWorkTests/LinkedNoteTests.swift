@@ -61,6 +61,33 @@ import CiderDomain
         let proposal = try await service.previewAppend(note: note, root: root, markdown: "after\n")
         #expect(try await service.applyAppend(proposal).markdown == "before\nafter\n")
         #expect(try await service.read(note, root: root, maxBytes: WorkLimits.noteBytes).markdown == "before\nafter\n")
+        let replacement = rootURL.appending(path: "external-replacement.md")
+        try Data("external\n".utf8).write(to: replacement)
+        _ = try FileManager.default.replaceItemAt(rootURL.appending(path: note.relativePath), withItemAt: replacement)
+        await #expect(throws: WorkStoreError.notFound) { try await service.resolve(note, root: root) }
+    }
+
+    @Test func failedAtomicAppendLeavesOriginalBytesUntouched() async throws {
+        let rootURL = try temporaryRoot(); defer { remove(rootURL) }
+        let root = FolderReference(path: rootURL.path)
+        let writer = LinkedNoteService()
+        let note = try await writer.create(root: root, relativeDirectory: "", title: "Safe", markdown: "original\n")
+        let proposal = try await writer.previewAppend(note: note, root: root, markdown: "addition\n")
+        let faulting = LinkedNoteService(testingReplacementFailure: true)
+        await #expect(throws: WorkStoreError.unavailable) { try await faulting.applyAppend(proposal) }
+        #expect(try Data(contentsOf: rootURL.appending(path: note.relativePath)) == Data("original\n".utf8))
+    }
+
+    @Test func rejectsMalformedUTF8AndOversizedFilesBeforeReturningContent() async throws {
+        let rootURL = try temporaryRoot(); defer { remove(rootURL) }
+        let root = FolderReference(path: rootURL.path)
+        let service = LinkedNoteService()
+        let malformed = try await service.create(root: root, relativeDirectory: "", title: "Malformed", markdown: "valid")
+        try Data([0xFF, 0xFE]).write(to: rootURL.appending(path: malformed.relativePath))
+        await #expect(throws: WorkStoreError.invalidInput) { try await service.read(malformed, root: root, maxBytes: 10) }
+        let large = try await service.create(root: root, relativeDirectory: "", title: "Large", markdown: "ok")
+        try Data(repeating: 0x61, count: WorkLimits.noteBytes + 1).write(to: rootURL.appending(path: large.relativePath))
+        await #expect(throws: WorkStoreError.outputLimit) { try await service.read(large, root: root, maxBytes: 10) }
     }
 
     @Test func attachAndIndexLeaveMarkdownBytesUntouched() async throws {

@@ -83,7 +83,9 @@ Native app relaunch and live provider interaction belong to the coordinator inte
 
 ## Deviations
 
-None.
+CONTRACT CHANGE NEEDED (not made): safe atomic replacement necessarily produces a new filesystem identity, but `LinkedNoteAccess.applyAppend` returns only `NoteFileSnapshot`; it cannot return an updated `NoteReference`, and the frozen repository mutation surface has no identity-refresh mutation for an existing note. This lane retains the replacement identity for the running `LinkedNoteService` so the same stable note ID remains usable immediately, while rejecting later external identity changes. Plan 02 needs an id-preserving note identity refresh mutation (or a revised append result carrying the updated `NoteReference`), and Plan 05 needs to persist it after a confirmed append. Without that coordinator contract, a fresh service after relaunch must treat the old identity as unavailable rather than accepting an arbitrary replacement at the same path.
+
+Review correction evidence: synthetic tests cover injected pre-replacement failure (original Markdown bytes remain intact), same-service stable-ID reads after atomic replacement, later external identity replacement rejection, malformed UTF-8 rejection, and oversized-file refusal before content is returned. The parser tests cover matching fence delimiters, double-backtick inline code, percent-encoded `#` filenames, image references, and ambiguous normalized targets.
 
 ## Agent start prompt
 

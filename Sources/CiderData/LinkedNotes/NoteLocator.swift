@@ -3,11 +3,17 @@ import CiderDomain
 
 /// Validates explicit note paths. It never falls back to a basename match.
 struct NoteLocator: Sendable {
-    func resolve(_ note: NoteReference, root: FolderReference) throws -> URL {
+    func resolve(_ note: NoteReference, root: FolderReference, expectedIdentity: Data? = nil) throws -> URL {
+        guard note.rootID == root.id, root.available, note.available else { throw WorkStoreError.unavailable }
+        let url = try path(note, root: root)
+        if let expected = expectedIdentity ?? note.fileIdentity, let actual = try? identity(of: url), expected != actual { throw WorkStoreError.notFound }
+        return url
+    }
+
+    func path(_ note: NoteReference, root: FolderReference) throws -> URL {
         guard note.rootID == root.id, root.available, note.available else { throw WorkStoreError.unavailable }
         let url = try containedFile(note.relativePath, root: root)
         guard FileManager.default.fileExists(atPath: url.path) else { throw WorkStoreError.notFound }
-        if let expected = note.fileIdentity, let actual = try? identity(of: url), expected != actual { throw WorkStoreError.notFound }
         return url
     }
 
