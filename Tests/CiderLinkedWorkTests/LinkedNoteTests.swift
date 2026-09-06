@@ -90,6 +90,14 @@ import CiderDomain
         await #expect(throws: WorkStoreError.outputLimit) { try await service.read(large, root: root, maxBytes: 10) }
     }
 
+    @Test func bookmarkAndFileIdentifierCannotDistinguishReplacementOriginsAfterRestart() throws {
+        let coordinated = try replacementOutcome(coordinated: true)
+        let external = try replacementOutcome(coordinated: false)
+        #expect(coordinated.stale && external.stale)
+        #expect(coordinated.identifierChanged && external.identifierChanged)
+        #expect(coordinated.resolvedReplacement && external.resolvedReplacement)
+    }
+
     @Test func attachAndIndexLeaveMarkdownBytesUntouched() async throws {
         let rootURL = try temporaryRoot(); defer { remove(rootURL) }
         let root = FolderReference(path: rootURL.path)
@@ -107,6 +115,30 @@ import CiderDomain
         let root = FileManager.default.temporaryDirectory.appending(path: "cider-linked-note-\(UUID().uuidString)", directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         return root
+    }
+
+    private func replacementOutcome(coordinated: Bool) throws -> (stale: Bool, identifierChanged: Bool, resolvedReplacement: Bool) {
+        let root = try temporaryRoot(); defer { remove(root) }
+        let note = root.appending(path: "note.md")
+        let candidate = root.appending(path: "candidate.md")
+        try Data("before".utf8).write(to: note)
+        let bookmark = try note.bookmarkData(options: .minimalBookmark, includingResourceValuesForKeys: nil, relativeTo: nil)
+        let before = String(describing: try note.resourceValues(forKeys: [.fileResourceIdentifierKey]).fileResourceIdentifier)
+        try Data("after".utf8).write(to: candidate)
+        if coordinated {
+            let coordinator = NSFileCoordinator()
+            var error: NSError?
+            coordinator.coordinate(writingItemAt: note, options: .forReplacing, error: &error) { coordinatedURL in
+                _ = try? FileManager.default.replaceItemAt(coordinatedURL, withItemAt: candidate)
+            }
+            guard error == nil else { throw WorkStoreError.unavailable }
+        } else {
+            _ = try FileManager.default.replaceItemAt(note, withItemAt: candidate)
+        }
+        let after = String(describing: try note.resourceValues(forKeys: [.fileResourceIdentifierKey]).fileResourceIdentifier)
+        var stale = false
+        let resolved = try URL(resolvingBookmarkData: bookmark, options: [.withoutUI], relativeTo: nil, bookmarkDataIsStale: &stale)
+        return (stale, before != after, resolved.standardizedFileURL == note.standardizedFileURL)
     }
 
     private func remove(_ url: URL) { try? FileManager.default.removeItem(at: url) }
