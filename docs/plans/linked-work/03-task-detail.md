@@ -82,6 +82,19 @@ Native app relaunch and live provider interaction belong to the coordinator inte
 
 ## Deviations
 
+None.
+
+## Handoff
+
+Plan 05 wires `TaskDetailView(taskID:model:navigate:)` at the existing task-detail
+destination. Populate `LinkedWorkModel.availableChats` from observed Activity metadata
+before showing the Chats section; the picker preserves the full `ChatIdentity` and never
+matches a title or workspace. The `navigate` callback must resolve `.chat`, `.note`,
+`.chooseNotes(taskID:)`, `.createLinkedNote(taskID:)`, and `.graph` through the frozen
+route contract. Present the detail in a navigation or sheet context so its Back to board
+action can dismiss. The feature owns only its transient draft; it reloads after successful
+mutations and retains it after a conflict.
+
 ## Agent start prompt
 
 > Read `docs/plans/linked-work/00-overview.md` and `docs/plans/linked-work/03-task-detail.md`, plus `.agents/skills/working-with-cider/SKILL.md`. Implement plan 03 on `linked-work/03-task-detail`. Start only from the coordinator-provided common round base in this plan's dedicated worktree. Do not merge or rebase sibling branches. Goal: Build the TODO detail surface with description, criteria, explicit status and multiple distinguishable chat contributors. Edit only the files in this plan's File ownership list, including its own Deviations section; keep all frozen contracts and sibling files unchanged. Follow the overview's data, hook, isolation and local-commit rules. Run these verification commands from the repo root: `swift build --product Cider; swift test --filter LinkedContractTests; swift test --filter LinkedTaskDraftTests; git diff --check`. Also complete the plan's explicit integration/manual gates when applicable; never claim unrun checks passed. Commit locally without pushing. Finish with what works, base/head IDs, changed files, each verification result, merge risks, and Deviations (or state none).
