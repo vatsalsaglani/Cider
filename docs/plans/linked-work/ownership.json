@@ -1,0 +1,252 @@
+{
+  "source_baseline": "192b50f0a83c1163009d229026ae1733c3f229a9",
+  "coordinator_only": [
+    "docs/plans/linked-work/00-overview.md",
+    "docs/plans/linked-work/contract-spec.md",
+    "docs/plans/linked-work/ownership.json",
+    "docs/progress/current.md",
+    "docs/plan/05-linked-todos.md"
+  ],
+  "plans": {
+    "01": {
+      "file": "01-contracts.md",
+      "title": "Shared contracts and build seams",
+      "branch": "linked-work/01-contracts",
+      "depends_on": [],
+      "parallel_with": [],
+      "owned_files": [
+        "Package.swift",
+        "Sources/CSQLite/module.modulemap",
+        "Sources/CSQLite/shim.h",
+        "Sources/CiderDomain/LinkedWork/Identity.swift",
+        "Sources/CiderDomain/LinkedWork/Tasks.swift",
+        "Sources/CiderDomain/LinkedWork/Notes.swift",
+        "Sources/CiderDomain/LinkedWork/Links.swift",
+        "Sources/CiderDomain/LinkedWork/Journal.swift",
+        "Sources/CiderDomain/LinkedWork/Graph.swift",
+        "Sources/CiderDomain/LinkedWork/Commands.swift",
+        "Sources/CiderDomain/LinkedWork/Repository.swift",
+        "Sources/CiderDomain/LinkedWork/NoteAccess.swift",
+        "Sources/CiderData/LinkedWork/Schema.sql",
+        "Sources/CiderData/LinkedWork/SQLiteWorkRepository.swift",
+        "Sources/CiderData/LinkedNotes/LinkedNoteService.swift",
+        "Sources/CiderUI/LinkedWork/LinkedWorkModel.swift",
+        "Sources/CiderUI/LinkedWork/LinkedRoute.swift",
+        "Sources/CiderUI/LinkedWork/FeatureEntryPoints.swift",
+        "Sources/CiderCLI/main.swift",
+        "Tests/CiderLinkedWorkTests/LinkedContractTests.swift",
+        "Tests/CiderLinkedWorkTests/Fixtures/linked-v1.json",
+        "Tests/CiderLinkedWorkTests/Fixtures/legacy-workspace-v1.json",
+        "Tests/CiderLinkedWorkTests/Support/FixtureRepository.swift",
+        "Tests/CiderLinkedWorkTests/Support/FixtureNoteAccess.swift",
+        "Tests/CiderIntegrationTests/LinkedIntegrationContractTests.swift",
+        "docs/plans/linked-work/01-contracts.md"
+      ]
+    },
+    "02": {
+      "file": "02-store.md",
+      "title": "Transactional store and migration",
+      "branch": "linked-work/02-store",
+      "depends_on": [
+        "01"
+      ],
+      "parallel_with": [
+        "03",
+        "04"
+      ],
+      "owned_files": [
+        "Sources/CiderData/LinkedWork/SQLiteWorkRepository.swift",
+        "Sources/CiderData/LinkedWork/WorkDatabaseIO.swift",
+        "Sources/CiderData/LinkedWork/WorkMigration.swift",
+        "Sources/CiderData/LinkedWork/WorkQueries.swift",
+        "Sources/CiderData/LinkedWork/WorkMutations.swift",
+        "Sources/CiderData/LinkedWork/WorkJournalTransactions.swift",
+        "Sources/CiderData/LinkedWork/WorkGraphQueries.swift",
+        "Tests/CiderLinkedWorkTests/LinkedStoreTests.swift",
+        "Tests/CiderLinkedWorkTests/LinkedMigrationTests.swift",
+        "docs/plans/linked-work/02-store.md"
+      ]
+    },
+    "03": {
+      "file": "03-task-detail.md",
+      "title": "TODO detail and chat attachments",
+      "branch": "linked-work/03-task-detail",
+      "depends_on": [
+        "01"
+      ],
+      "parallel_with": [
+        "02",
+        "04"
+      ],
+      "owned_files": [
+        "Features/LinkedTasks/TaskDetailView.swift",
+        "Features/LinkedTasks/TaskOverviewView.swift",
+        "Features/LinkedTasks/TaskChatPicker.swift",
+        "Features/LinkedTasks/TaskLinksView.swift",
+        "Features/LinkedTasks/TaskTimelineView.swift",
+        "Sources/CiderUI/LinkedWork/TaskDraft.swift",
+        "Tests/CiderLinkedWorkTests/LinkedTaskDraftTests.swift",
+        "docs/plans/linked-work/03-task-detail.md"
+      ]
+    },
+    "04": {
+      "file": "04-note-links.md",
+      "title": "Note references, backlinks and context files",
+      "branch": "linked-work/04-note-links",
+      "depends_on": [
+        "01"
+      ],
+      "parallel_with": [
+        "02",
+        "03"
+      ],
+      "owned_files": [
+        "Sources/CiderData/LinkedNotes/LinkedNoteService.swift",
+        "Sources/CiderData/LinkedNotes/NoteLocator.swift",
+        "Sources/CiderData/LinkedNotes/MarkdownLinkIndex.swift",
+        "Features/LinkedNotes/NoteConnectionsView.swift",
+        "Features/LinkedNotes/NoteAttachmentPicker.swift",
+        "Features/LinkedNotes/CheckpointNotePreview.swift",
+        "Tests/CiderLinkedWorkTests/LinkedNoteTests.swift",
+        "Tests/CiderLinkedWorkTests/MarkdownLinkIndexTests.swift",
+        "docs/plans/linked-work/04-note-links.md"
+      ]
+    },
+    "05": {
+      "file": "05-foundation-integration.md",
+      "title": "Connect TODOs, notes, chats and the notch",
+      "branch": "linked-work/05-foundation-integration",
+      "depends_on": [
+        "02",
+        "03",
+        "04"
+      ],
+      "parallel_with": [],
+      "owned_files": [
+        "App/AppModel.swift",
+        "App/CiderApp.swift",
+        "App/WorkspaceView.swift",
+        "App/NoteCommands.swift",
+        "Features/Today/TodayView.swift",
+        "Features/Today/TaskRow.swift",
+        "Features/Notes/NotesModel.swift",
+        "Features/Notes/NotesView.swift",
+        "Features/Notes/NoteTabStrip.swift",
+        "Features/Notes/WorkspaceTree.swift",
+        "Features/Agents/AgentsView.swift",
+        "Features/Agents/AgentTrackingModel.swift",
+        "Features/Notch/NotchHUDView.swift",
+        "App/LinkedWorkCoordinator.swift",
+        "Tests/CiderIntegrationTests/LinkedFoundationTests.swift",
+        "script/verification/LinkedWorkSmoke.swift",
+        "script/verify_linked_work.sh",
+        "docs/plans/linked-work/05-foundation-integration.md"
+      ]
+    },
+    "06": {
+      "file": "06-journal.md",
+      "title": "Durable response and question history",
+      "branch": "linked-work/06-journal",
+      "depends_on": [
+        "05"
+      ],
+      "parallel_with": [
+        "07",
+        "08"
+      ],
+      "owned_files": [
+        "Sources/CiderData/AgentEventStore.swift",
+        "Features/Agents/AgentTrackingModel.swift",
+        "Sources/CiderData/LinkedWork/JournalIngestor.swift",
+        "Sources/CiderData/LinkedWork/JournalAttribution.swift",
+        "Features/LinkedTasks/TaskTimelineView.swift",
+        "Tests/CiderLinkedWorkTests/LinkedJournalTests.swift",
+        "Tests/CiderLinkedWorkTests/LinkedJournalRecoveryTests.swift",
+        "docs/plans/linked-work/06-journal.md"
+      ]
+    },
+    "07": {
+      "file": "07-graph.md",
+      "title": "Local and workspace relationship graph",
+      "branch": "linked-work/07-graph",
+      "depends_on": [
+        "05"
+      ],
+      "parallel_with": [
+        "06",
+        "08"
+      ],
+      "owned_files": [
+        "Features/Graph/WorkGraphView.swift",
+        "Features/Graph/GraphCanvas.swift",
+        "Features/Graph/GraphInspector.swift",
+        "Features/Graph/GraphFilters.swift",
+        "Sources/CiderUI/LinkedWork/GraphLayout.swift",
+        "Sources/CiderUI/LinkedWork/GraphViewport.swift",
+        "Tests/CiderLinkedWorkTests/LinkedGraphTests.swift",
+        "Tests/CiderLinkedWorkTests/GraphLayoutTests.swift",
+        "docs/plans/linked-work/07-graph.md"
+      ]
+    },
+    "08": {
+      "file": "08-cli-skill.md",
+      "title": "Read-only CLI and portable workflow skill",
+      "branch": "linked-work/08-cli-skill",
+      "depends_on": [
+        "05"
+      ],
+      "parallel_with": [
+        "06",
+        "07"
+      ],
+      "owned_files": [
+        "Sources/CiderCLI/main.swift",
+        "Sources/CiderCLI/CLIArguments.swift",
+        "Sources/CiderCLI/TodoCommands.swift",
+        "Sources/CiderCLI/CLIOutput.swift",
+        "Sources/CiderData/LinkedWork/TodoContextReader.swift",
+        "Sources/CiderData/LinkedWork/WorkflowSkillSetup.swift",
+        "Features/AgentAccess/AgentAccessView.swift",
+        "Integrations/cider-workflow/SKILL.md",
+        "Integrations/cider-workflow/README.md",
+        "Integrations/cider-workflow/CHANGELOG.md",
+        "Tests/CiderLinkedWorkTests/TodoContextTests.swift",
+        "Tests/CiderLinkedWorkTests/WorkflowSkillSetupTests.swift",
+        "script/verification/verify_cider_cli.py",
+        "docs/plans/linked-work/08-cli-skill.md"
+      ]
+    },
+    "09": {
+      "file": "09-integration.md",
+      "title": "Package and verify the complete linked workflow",
+      "branch": "linked-work/09-integration",
+      "depends_on": [
+        "06",
+        "07",
+        "08"
+      ],
+      "parallel_with": [],
+      "owned_files": [
+        "App/CiderApp.swift",
+        "App/WorkspaceView.swift",
+        "App/LinkedWorkCoordinator.swift",
+        "Features/Agents/AgentConnectionsView.swift",
+        "Features/Notes/NotesModel.swift",
+        "Features/Notch/NotchHUDView.swift",
+        "script/build_and_run.sh",
+        "script/verify_linked_work.sh",
+        "script/verification/LinkedWorkSmoke.swift",
+        "Tests/CiderIntegrationTests/LinkedWorkflowTests.swift",
+        "docs/product.md",
+        "docs/contracts/data.md",
+        "docs/contracts/documents.md",
+        "docs/architecture.md",
+        "docs/implementation/dependencies.md",
+        "docs/verification.md",
+        "docs/progress/linked-work-14.md",
+        ".agents/skills/working-with-cider/references/data.md",
+        "docs/plans/linked-work/09-integration.md"
+      ]
+    }
+  }
+}
