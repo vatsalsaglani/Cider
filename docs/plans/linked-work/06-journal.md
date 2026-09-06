@@ -84,6 +84,16 @@ Native app relaunch and live provider interaction belong to the coordinator inte
 
 ## Deviations
 
+- `CONTRACT CHANGE NEEDED (not made)`: resolving a persisted question by stable question ID currently requires bounded journal-page scans because the frozen `WorkReading` API has no question-origin lookup. Plan 06 performs that scan only for batches with structured reply IDs, scopes it to matching chat/link provenance, stops after finding a required origin for a task, caps it at `WorkLimits.attributionRows`, and reports `outputLimit` rather than guessing. Proposed additive API: `questionOrigins(chats:[ChatIdentity], questionIDs:[String]) async throws -> [QuestionOrigin]`; affected frozen `Repository.swift`, store transactions, Plan 06 and Plan 09. The coordinator must decide whether to freeze this addition before accepting unbounded historical question resolution.
+- Integration work intentionally remains outside this lane: Plan 09 must set `AgentTrackingModel.journalIngestor` and `journalHostID` after opening the production repository. It must also forward the existing `TaskDetailView.navigate` closure into `TaskTimelineView` to enable the already-frozen `.saveCheckpoint` route. Until then production observer acknowledgement correctly remains blocked when events are present, and the timeline button is disabled rather than claiming a save occurred.
+- The frozen observer identity has an invocation UUID but not a provider-stable delivery key. Journal dedupe is replay-safe by source UUID and task-scoped source key; independent hook invocations without stable provider turn/request identity retain the contract's documented at-least-once limitation.
+
+## Lane handoff
+
+- Base: `a3bb3ecec9ad73c29159791e21ed4960090ef972`.
+- Synthetic checks passed on this lane: `swift build --product Cider`; `swift test --filter AgentTrackingTests`; `swift test --filter LinkedJournalTests`; `swift test --filter LinkedJournalRecoveryTests`; `git diff --check`.
+- Deferred, not passed: native UI acceptance, locked-screen CUA/hardware checks, live provider interaction, app relaunch/global packaging, and Plan 09 production wiring.
+
 ## Agent start prompt
 
 > Read `docs/plans/linked-work/00-overview.md` and `docs/plans/linked-work/06-journal.md`, plus `.agents/skills/working-with-cider/SKILL.md`. Implement plan 06 on `linked-work/06-journal`. Start only from the coordinator-provided common round base in this plan's dedicated worktree. Do not merge or rebase sibling branches. Goal: Persist attributed response and question previews in a TODO timeline before the observer can prune or acknowledge them. Edit only the files in this plan's File ownership list, including its own Deviations section; keep all frozen contracts and sibling files unchanged. Follow the overview's data, hook, isolation and local-commit rules. Run these verification commands from the repo root: `swift build --product Cider; swift test --filter AgentTrackingTests; swift test --filter LinkedJournalTests; swift test --filter LinkedJournalRecoveryTests; git diff --check`. Also complete the plan's explicit integration/manual gates when applicable; never claim unrun checks passed. Commit locally without pushing. Finish with what works, base/head IDs, changed files, each verification result, merge risks, and Deviations (or state none).

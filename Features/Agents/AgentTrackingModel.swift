@@ -22,6 +22,8 @@ final class AgentTrackingModel {
     @ObservationIgnored private var clock: Task<Void, Never>?
     private var reading = false
     private var again = false
+    private var journalRetryDelay: Double = 1
+    @ObservationIgnored private var journalRetry: Task<Void, Never>?
     @ObservationIgnored private var titles: [String: String] = [:]
     @ObservationIgnored private var titleSessions: Set<String> = []
     @ObservationIgnored private var titleCheckedAt = Date.distantPast
@@ -34,6 +36,11 @@ final class AgentTrackingModel {
             || active.contains { !$0.stale(at: now) }
     }
     @ObservationIgnored var onSessionsChanged: (([TrackedSession]) async -> Void)?
+    /// Set by composition once the linked-work repository has opened.  Leaving
+    /// it absent is only valid for isolated fixture/legacy activity tests: a
+    /// production spool must not be acknowledged without durable ingestion.
+    @ObservationIgnored var journalIngestor: (any WorkJournalIngesting)?
+    @ObservationIgnored var journalHostID: UUID?
     func start() async {
         guard clock == nil else { return }
         await refresh()
@@ -54,7 +61,7 @@ final class AgentTrackingModel {
             }
         }
     }
-    func stop() { watcher?.cancel(); watcher = nil; clock?.cancel(); clock = nil }
+    func stop() { watcher?.cancel(); watcher = nil; clock?.cancel(); clock = nil; journalRetry?.cancel(); journalRetry = nil }
     func refresh() async {
         guard !fixtureMode else { return }
         if reading { again = true; return }
@@ -63,7 +70,16 @@ final class AgentTrackingModel {
             again = false
             let root = root
             do {
-                let ledger = try await AgentIO.run { try AgentEventStore.ingest(root: root) }
+                let batch = try await AgentIO.run { try AgentEventStore.readBatch(root: root) }
+                if !batch.events.isEmpty {
+                    guard let journalIngestor, let journalHostID else {
+                        throw WorkStoreError.unavailable
+                    }
+                    _ = try await journalIngestor.ingest(events: batch.events, hostID: journalHostID, receivedAt: .now)
+                }
+                try await AgentIO.run { try AgentEventStore.acknowledge(batch) }
+                journalRetryDelay = 1
+                let ledger = batch.ledger
                 // The bundled /usage probe is not user work and must not trigger a refresh loop.
                 let observed = ledger.sessions.values.filter { !UsageClient.isProbeDirectory($0.directory) }.map { row in
                     var row = row
@@ -72,10 +88,14 @@ final class AgentTrackingModel {
                 }
                 now = .now
                 if loadedActivity {
-                    let previous = Set(sessions.flatMap { $0.history.map(\.id) })
-                    let stopped = UsageRefreshSchedule.stoppedProviders(events: observed.flatMap(\.history), known: previous, now: now)
+                    // A replay after journal commit/failed acknowledgement has
+                    // already been persisted in the ledger and must not burst
+                    // old peeks or usage refreshes into the recovered app.
+                    let fresh = Set(batch.freshEvents.map(\.id))
+                    let known = Set(observed.flatMap { $0.history.map(\.id) }).subtracting(fresh)
+                    let stopped = UsageRefreshSchedule.stoppedProviders(events: batch.freshEvents, known: [], now: now)
                     if !stopped.isEmpty { onUsageStop?(stopped) }
-                    if let notice = AgentNotice.latest(sessions: observed, known: previous, now: now) { onNotice?(notice) }
+                    if let notice = AgentNotice.latest(sessions: observed, known: known, now: now) { onNotice?(notice) }
                 }
                 loadedActivity = true
                 sessions = observed.sorted {
@@ -84,9 +104,23 @@ final class AgentTrackingModel {
                 }
                 await refreshTitles()
                 await onSessionsChanged?(sessions)
-            } catch { self.error = "Tracking could not be refreshed. Saved activity has been kept." }
+            } catch {
+                self.error = "Tracking could not be refreshed. Saved activity has been kept."
+                scheduleJournalRetry()
+            }
         } while again
         reading = false
+    }
+    private func scheduleJournalRetry() {
+        guard !fixtureMode, journalRetry == nil else { return }
+        let delay = journalRetryDelay
+        journalRetryDelay = min(journalRetryDelay * 2, 30)
+        journalRetry = Task { [weak self] in
+            do { try await Task.sleep(for: .seconds(delay)) } catch { return }
+            guard !Task.isCancelled else { return }
+            self?.journalRetry = nil
+            await self?.refresh()
+        }
     }
     private func refreshTitles() async {
         let ids = Set(sessions.filter { $0.provider == .codex }.map(\.session))
