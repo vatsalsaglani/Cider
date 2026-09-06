@@ -4,7 +4,7 @@ Design source: [linked TODOs, chats, notes, graph and CLI/skill](../../plan/05-l
 
 This plan set connects individual agent chats in **Activity** to TODOs, and TODOs to ordinary Markdown notes. A TODO gains a description, criteria, status, contributor assignments and durable response previews. Notes gain backlinks. The graph explores those same saved relationships. A read-only CLI and portable skill give Codex/Claude Code selected context to summarize in the current conversation.
 
-There are **two rounds of three parallel lanes**, with local contract/integration phases between them. This fits one coordinator plus three worktree agents. Plan 01 is implemented and verified locally. Parallel implementation lanes have not started.
+There are **two rounds of three parallel lanes**, with local contract/integration phases between them. This fits one coordinator plus three worktree agents. Plan 01 is implemented and verified locally. Plans 02–04 are running in separate worktree tasks using Terra with High reasoning, with goal mode requested in each start prompt.
 
 ## Scope and delivery boundary
 
@@ -38,9 +38,9 @@ Only the coordinator updates statuses here: TODO, IN PROGRESS or DONE. A node is
 ```mermaid
 flowchart TD
     P01["01 Shared contracts · local<br/>DONE"]:::done
-    P02["02 Store + migration<br/>TODO"]:::todo
-    P03["03 TODO detail + chats<br/>TODO"]:::todo
-    P04["04 Notes + backlinks<br/>TODO"]:::todo
+    P02["02 Store + migration<br/>IN PROGRESS"]:::inprogress
+    P03["03 TODO detail + chats<br/>IN PROGRESS"]:::inprogress
+    P04["04 Notes + backlinks<br/>IN PROGRESS"]:::inprogress
     P05["05 Foundation integration · local<br/>TODO"]:::todo
     P06["06 Durable response journal<br/>TODO"]:::todo
     P07["07 Relationship graph<br/>TODO"]:::todo
