@@ -1,6 +1,6 @@
 # Current progress
 
-**Linked work foundation:** Plans 02–04 are merged. Plan 05 app wiring is in progress: SQLite task cutover, detail/chat/note entry points, checkpoint receipt recovery and compact notch links are implemented in a draft. Native build, 103 Swift tests, 16 editor checks and a temporary-store smoke passed. Isolated native fixture launch and strict bundle signature verification passed; UI inspection is waiting for the Mac to be unlocked. Round B is not dispatched until foundation review and remaining gates pass. See [parallel plan status](../plans/linked-work/00-overview.md).
+**Linked work foundation:** Plans 01–05 are implemented and verified. SQLite task cutover, detail/chat/note entry points, checkpoint receipt recovery and compact notch links passed native build, 103 Swift tests, 16 editor checks, isolated fixture smoke/launch and strict signature verification. The user deferred UI acceptance to their final review; it is not claimed passed. Plans 06–08 can now run in parallel before final Plan 09 integration. See [parallel plan status](../plans/linked-work/00-overview.md).
 
 **Activity and agent connections:** the Agents workspace now separates Activity from Agents setup with shared pill tabs. Activity is the default when a provider is configured or receiving fresh activity; otherwise Agents opens first. Explicit selection and activity filters survive tab switches. Native build/relaunch and live tab/filter/default-navigation checks passed. See [behavior and verification](agents-tabs-13.md).
 

@@ -123,4 +123,4 @@ Verification on this checkpoint:
 - `codesign --verify --deep --strict dist/Cider.app`: pass.
 - `git diff --check`: pass before this documentation update.
 
-Pending acceptance: CUA repeatedly reports that the Mac is locked. The unlock question is pending. Inspect task/detail save, chat attach/create, note picker/open/backlinks, rename and compact notch actions in the fixture app once unlocked; correct any interaction failure, rerun affected gates, then finalize/merge 05 and pin the exact round B base. No live task migration, real note edits, hook changes or real chat messages were performed. Keep Plans 06–08 undispatched until this gate is resolved.
+Manual acceptance deferred by the user on 2026-09-07: the user will review UI at the end of Plan 09. This supersedes the locked-screen acceptance dependency and permits finalizing Plan 05 and dispatching round B. Native interactions, physical notch behavior and accessibility are not claimed passed. Final review includes task/detail save, chat attach/create, note picker/open/backlinks, rename and compact notch actions. No live task migration, real note edits, hook changes or real chat messages were performed.
