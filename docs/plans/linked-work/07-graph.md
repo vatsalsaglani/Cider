@@ -82,6 +82,17 @@ Native app relaunch and live provider interaction belong to the coordinator inte
 
 ## Deviations
 
+None. The frozen graph query, repository mutation and `LinkedRoute` contracts were sufficient; no coordinator contract change is needed.
+
+## Lane handoff
+
+- `WorkGraphView.init(model:focus:navigate:)` is the Plan 09 integration seam. Its `navigate` callback emits `.task(UUID)`, `.note(UUID)`, `.chat(ChatIdentity)` and `.graph(LinkedEntityID?)`; no global navigation was changed in this lane.
+- The local/workspace graph uses only `WorkRepository.graph(_:)` and the saved edge IDs. Graph inspector unlink actions reuse `.detachChat(linkID:)` and `.detachNote(linkID:)`; node dragging changes only `GraphViewport` layout state.
+- `GraphLayout.compute(snapshot:preserving:)` bounds work to the frozen 1,000-node/3,000-edge ceiling, runs in a cancellable detached worker, and does not schedule recurring work after settlement or when hidden. On the arm64e macOS test runner, the 1,000-node/3,000-edge ceiling fixture completed in 0.006 seconds as part of the `GraphLayoutTests` run.
+- Graph scope uses the shared `CiderPillPicker`; unavailable local scope is omitted rather than trapping its selector. The canvas clips to its rounded bounds, uses incremental pan and origin-plus-translation node dragging, and fits to measured canvas dimensions with padding.
+- `swift build --product Cider`, `swift test --filter LinkedGraphTests`, `swift test --filter GraphLayoutTests`, and `git diff --check` passed from this worktree. The package emits pre-existing warnings for absent ignored `dist/` and `output/` directories.
+- Deferred to Plan 09/manual review: native canvas interaction, keyboard/VoiceOver traversal, Reduce Motion observation, physical idle-CPU measurement, and any locked-screen or global-app checks. None are claimed passed here.
+
 ## Agent start prompt
 
 > Read `docs/plans/linked-work/00-overview.md` and `docs/plans/linked-work/07-graph.md`, plus `.agents/skills/working-with-cider/SKILL.md`. Implement plan 07 on `linked-work/07-graph`. Start only from the coordinator-provided common round base in this plan's dedicated worktree. Do not merge or rebase sibling branches. Goal: Build the interactive local and workspace graph of saved TODO, chat and note relationships. Edit only the files in this plan's File ownership list, including its own Deviations section; keep all frozen contracts and sibling files unchanged. Follow the overview's data, hook, isolation and local-commit rules. Run these verification commands from the repo root: `swift build --product Cider; swift test --filter LinkedGraphTests; swift test --filter GraphLayoutTests; git diff --check`. Also complete the plan's explicit integration/manual gates when applicable; never claim unrun checks passed. Commit locally without pushing. Finish with what works, base/head IDs, changed files, each verification result, merge risks, and Deviations (or state none).
