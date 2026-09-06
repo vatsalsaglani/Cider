@@ -435,3 +435,5 @@ Merged `linked-work/07-graph` through `d176f8f817c76a3063cb0442aefcbb464d709953`
 ### Plan 06 merged — 2026-09-07
 
 Merged `9bbe6868fcfdae067c42b77fa9b5e937ce2daac4` after reviewing assignment episodes, delayed terminal events, question resolution, replay acknowledgement and timeline pagination. The integrated Swift suite passed 115 tests across 16 suites. Historical question resolution uses the documented bounded scan (4,096 entries per task); an index is a future scalability improvement, not an unbounded-history guarantee. Production ingestor injection and timeline navigation remain explicit Plan 09 composition work. UI acceptance remains deferred by the user.
+
+Plan 09 additionally owns `Package.swift` for integration-resource exclusion and `Features/LinkedTasks/TaskTimelineView.swift` sequentially after Plan 06, for live timeline revision refresh. No concurrent ownership changes.

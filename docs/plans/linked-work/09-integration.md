@@ -22,6 +22,8 @@ Fresh worktrees contain the committed editor runtime and synthetic fixtures, not
 
 Create or edit only these files. Seeded implementation bodies transfer between sequential phases; concurrent ownership never overlaps. The plan's own file is for deviations and handoff evidence.
 
+- `Package.swift`
+- `Features/LinkedTasks/TaskTimelineView.swift`
 - `Features/LinkedTasks/TaskDetailView.swift`
 - `Features/LinkedTasks/TaskLinksView.swift`
 - `Features/Agents/AgentsView.swift`
@@ -99,6 +101,8 @@ Coordinator only, after the commands above: `script/build_and_run.sh --verify`. 
 - Report base/head commit IDs, changed files, verification, deviations and integration risks. Only the coordinator changes overview statuses.
 
 ## Deviations
+
+- Coordinator sequential ownership amendment: reserve `Package.swift` to exclude portable integration documentation from the app source target, and `TaskTimelineView.swift` after Plan 06 merge to refresh saved activity on repository revision changes without discarding its note draft. No schema or public repository contract change.
 
 - Coordinator reserves `Features/LinkedTasks/TaskDetailView.swift` for passing the existing navigate callback into Plan 06 TaskTimelineView. Without this composition edit checkpoint actions stay disabled. The file is not concurrently owned in round B.
 

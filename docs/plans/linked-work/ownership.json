@@ -229,6 +229,8 @@
       ],
       "parallel_with": [],
       "owned_files": [
+        "Package.swift",
+        "Features/LinkedTasks/TaskTimelineView.swift",
         "App/CiderApp.swift",
         "App/WorkspaceView.swift",
         "App/LinkedWorkCoordinator.swift",
