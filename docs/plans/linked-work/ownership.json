@@ -247,7 +247,9 @@
         "docs/verification.md",
         "docs/progress/linked-work-14.md",
         ".agents/skills/working-with-cider/references/data.md",
-        "docs/plans/linked-work/09-integration.md"
+        "docs/plans/linked-work/09-integration.md",
+        "Features/LinkedTasks/TaskLinksView.swift",
+        "Features/Agents/AgentsView.swift"
       ]
     }
   },

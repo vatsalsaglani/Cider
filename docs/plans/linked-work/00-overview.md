@@ -294,6 +294,8 @@ docs/plans/linked-work/08-cli-skill.md
 <summary>09 — Package and verify the complete linked workflow</summary>
 
 ```text
+Features/LinkedTasks/TaskLinksView.swift
+Features/Agents/AgentsView.swift
 App/CiderApp.swift
 App/WorkspaceView.swift
 App/LinkedWorkCoordinator.swift
