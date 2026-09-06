@@ -2,6 +2,7 @@ import SwiftUI
 import AppKit
 import CiderPlatform
 import CiderDomain
+import CiderData
 
 @main
 struct CiderApp: App {
@@ -27,7 +28,11 @@ struct CiderApp: App {
                     guard notch == nil else { return }
                     await model.load()
                     if let repository = model.repository {
-                        do { try await linked.start(repository: repository) }
+                        do {
+                            try await linked.start(repository: repository)
+                            agents.journalIngestor = JournalIngestor(repository: repository)
+                            agents.journalHostID = linked.hostID
+                        }
                         catch { model.error = "Linked work could not be opened. Your saved data has been kept." }
                     }
                     linked.refreshBoard = { await model.refresh() }

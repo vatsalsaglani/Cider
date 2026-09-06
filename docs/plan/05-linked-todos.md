@@ -1,5 +1,7 @@
 # Linked TODOs, progress journal and agent access
 
+Implementation status: the bounded Plans 01–09 are implemented; see [linked-work evidence](../progress/linked-work-14.md). Manual UI acceptance is deferred to the user. Full-output collection and agent-written progress remain future work.
+
 Status: proposal, revised 2026-09-06 after the user returned to connecting individual agent chats, TODOs and notes. This remains planning; no task migration, linking feature or skill installation has been implemented.
 
 Execution plan: [linked-work worktree plan set](../plans/linked-work/00-overview.md). It defines a local contract gate and two parallel rounds with exact file ownership. The first release retains the existing bounded Stop previews and provides read-only CLI/skill context; full outputs, persisted generated summaries and agent write commands remain optional follow-ups after that foundation. Do not launch implementation worktrees before plan 01's compiled contracts are committed.

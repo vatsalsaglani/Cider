@@ -29,6 +29,8 @@ struct AgentConnectionsView: View {
                 }
                 Text("Tracks local Code sessions in Claude Desktop and Claude CLI together. Start a new session after connecting; Codex may ask you to trust the observer.")
                     .font(.caption).foregroundStyle(.secondary)
+                Divider()
+                AgentAccessView().frame(minHeight: 400)
             }.frame(maxWidth: .infinity, alignment: .leading)
         }
     }

@@ -64,6 +64,8 @@ struct TaskLinksView: View {
             }
             Section {
                 Button("View connections") { navigate(.graph(.task(detail.task.id))) }
+                Button("Copy saved context") { navigate(.copyContext(taskID: detail.task.id, includeNotes: false)) }
+                Button("Copy context with linked note contents") { navigate(.copyContext(taskID: detail.task.id, includeNotes: true)) }
             }
         }
     }

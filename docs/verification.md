@@ -1,5 +1,12 @@
 # Verification and performance gates
 
+## Linked-work gates
+
+Run `swift build --product Cider`, `swift build --product cider-cli`, `swift test`, `script/verify_editor.sh`, `script/verify_linked_work.sh --fixtures`, and `python3 script/verification/verify_cider_cli.py --binary .build/debug/cider-cli`. Fixtures use temporary stores/notes. The integrated workflow covers exact chat assignment, journal replay, graph/backlinks, saved-context parity, checkpoint retry and non-destructive deletion; foundation/recovery suites cover migration, rename, dirty conflicts and failed acknowledgement.
+
+Package into an isolated scratch build, remove that scratch directory, then run the staged CLI verifier and launch the staged app with a fresh fixture root to prove resources resolve without SwiftPM build fallback. Finally build/relaunch the normal bundle and validate its signature. UI acceptance, keyboard/accessibility, settled CPU measurement, physical displays and live provider skill invocation are explicitly deferred by the user to final review; do not label them passed. See [current linked-work evidence](progress/linked-work-14.md).
+
+
 This checklist describes future native acceptance. Phase 00 results are recorded separately in [current progress](progress/current.md).
 
 ## Meaningful automated checks

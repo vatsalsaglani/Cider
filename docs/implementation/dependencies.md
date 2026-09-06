@@ -1,5 +1,12 @@
 # Native dependency provenance
 
+## Linked-work packaging
+
+The linked-work store uses system SQLite via `CSQLite`; no graph engine or external service was added. SwiftPM product `cider-cli` avoids the case-insensitive collision with `Cider` and is packaged as `Contents/Helpers/cider`. The schema bundle belongs in `Contents/Resources/Cider_CiderData.bundle`; the portable skill is in `Contents/Resources/cider-workflow/`. Project-local installation is an explicit reviewed action and protects edited/unrelated files.
+
+`script/build_and_run.sh --package` supports `CIDER_BUILD_SCRATCH` and `CIDER_PACKAGE_PATH` for independent bundle verification without quitting or launching the app. Read [verification evidence](../progress/linked-work-14.md) for tested artifacts and distribution limits.
+
+
 ## Editor
 
 Vditor 4.0.0 from https://registry.npmjs.org/vditor/-/vditor-4.0.0.tgz.

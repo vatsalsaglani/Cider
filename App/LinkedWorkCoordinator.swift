@@ -1,4 +1,6 @@
 import Foundation
+import AppKit
+import UniformTypeIdentifiers
 import Observation
 import CiderDomain
 import CiderData
@@ -13,6 +15,9 @@ final class LinkedWorkCoordinator {
     private(set) var revision: Int64 = 0
     @ObservationIgnored var refreshBoard: (() async -> Void)?
     private(set) var hostID: UUID?
+    var graphFocus: LinkedEntityID?
+    @ObservationIgnored var showGraph: (() -> Void)?
+    var contextStatus: String?
     var checkpointEntry: JournalEntry?
     var checkpointProposal: NoteAppendProposal?
     private(set) var appending = false
@@ -124,6 +129,7 @@ final class LinkedWorkCoordinator {
         if let info = try? await model?.repository.info(), revision != info.revision {
             revision = info.revision
             await refreshBoard?()
+            if let selectedTask { await model?.loadDetail(selectedTask) }
         }
     }
     func reference(_ row: TrackedSession) -> ChatReference? {
@@ -135,9 +141,16 @@ final class LinkedWorkCoordinator {
         route(next)
     }
     func route(_ route: LinkedRoute) {
+        if selectedTask != nil {
+            switch route {
+            case .graph, .saveCheckpoint:
+                deferredRoute = route; selectedTask = nil; return
+            default: break
+            }
+        }
         if connectionNote != nil {
             switch route {
-            case .task, .attachNote, .createTaskFromNote:
+            case .task, .attachNote, .createTaskFromNote, .graph:
                 deferredRoute = route; connectionNote = nil; return
             default: break
             }
@@ -147,7 +160,7 @@ final class LinkedWorkCoordinator {
         case .chat(let identity): openChat?(identity)
         case .note(let id): Task { await openNote(id) }
         case .chooseNotes(let id), .createLinkedNote(let id): attachmentTask = id
-        case .saveCheckpoint(let entry): Task { await previewCheckpoint(entry) }
+        case .saveCheckpoint(let entry): Task { await previewCheckpoint(entry, chooseDestination: true) }
         case .attachChat(let chat): pendingChat = chat; pendingNote = nil; linking = true
         case .attachNote(let id): pendingNote = id; pendingChat = nil; linking = true
         case .createTaskFromChat(let chat):
@@ -156,7 +169,13 @@ final class LinkedWorkCoordinator {
         case .createTaskFromNote(let id, let excerpt):
             guard createdDraftID == nil else { createDraft = true; return }
             pendingNote = id; pendingChat = nil; draftTitle = ""; draftDescription = excerpt ?? ""; createDraft = true
-        default: error = "This connection action is not available yet."
+        case .graph(let focus):
+            Task {
+                guard await notes.save() else { return }
+                graphFocus = focus; showGraph?()
+            }
+        case .copyContext(let taskID, let includeNotes):
+            Task { await copyContext(taskID: taskID, includeNotes: includeNotes) }
         }
     }
     func attach(to taskID: UUID) async -> Bool {
@@ -197,18 +216,56 @@ final class LinkedWorkCoordinator {
             if let id = createdDraftID, await performAttachment(to: id) { createdDraftID = nil }
         } catch { self.error = "The task could not be saved. Your draft is still here." }
     }
-    func previewCheckpoint(_ entry: JournalEntry) async {
-        guard let model, let url = notes.selected, await notes.save() else {
-            error = "Open a destination note before saving a checkpoint."; return
+    /// Export saved data only; the note-body action is an explicit separate choice.
+    func contextData(taskID: UUID, includeNotes: Bool) async throws -> Data {
+        guard let model else { throw WorkStoreError.unavailable }
+        let context = try await TodoContextReader(repository: model.repository, noteAccess: noteAccess)
+            .context(taskID: taskID, options: TodoContextOptions(includeNotes: includeNotes))
+        let encoder = JSONEncoder(); encoder.dateEncodingStrategy = .iso8601
+        let data = try encoder.encode(context)
+        guard data.count <= WorkLimits.contextBytes else { throw WorkStoreError.outputLimit }
+        return data
+    }
+    private func copyContext(taskID: UUID, includeNotes: Bool) async {
+        do {
+            let data = try await contextData(taskID: taskID, includeNotes: includeNotes)
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(String(decoding: data, as: UTF8.self), forType: .string)
+            contextStatus = includeNotes ? "Copied saved context and linked note contents." : "Copied saved context. Note contents excluded."
+        } catch { self.error = "Saved context could not be copied. Retry after activity settles." }
+    }
+    func previewCheckpoint(_ entry: JournalEntry, destination: URL? = nil, chooseDestination: Bool = false) async {
+        guard let model, await notes.save() else { return }
+        let url: URL
+        if let destination = destination ?? (chooseDestination ? nil : notes.selected) { url = destination }
+        else {
+            let panel = NSOpenPanel()
+            panel.title = "Choose a checkpoint note"
+            panel.message = "Choose a Markdown note inside one of your workspace folders."
+            panel.allowedContentTypes = [UTType(filenameExtension: "md") ?? .plainText, UTType(filenameExtension: "markdown") ?? .plainText]
+            panel.canChooseDirectories = false; panel.allowsMultipleSelection = false
+            panel.directoryURL = notes.selected?.deletingLastPathComponent() ?? notes.folders.first
+            guard panel.runModal() == .OK, let chosen = panel.url else { return }
+            url = chosen
         }
         do {
-            let note = try await registerNote(url)
+            // The explicitly selected destination is read afresh, including a prior atomic append.
+            let note = try await registerNote(url, replaced: true)
             guard let root = try await model.repository.folders().first(where: { $0.id == note.rootID }) else { throw WorkStoreError.notFound }
+            let marker = "<!-- cider-checkpoint:\(entry.id.uuidString.lowercased()) -->"
+            let saved = try await noteAccess.read(note, root: root, maxBytes: WorkLimits.noteBytes)
+            if saved.markdown.components(separatedBy: "\n").contains(marker) {
+                checkpointProposal = nil; checkpointEntry = nil; appendReceipt = nil
+                contextStatus = "This checkpoint is already saved in that note."
+                await openNote(note.id)
+                return
+            }
             let source = entry.chat.map { "\($0.provider.title) · \($0.sessionID)" } ?? "User note"
-            let markdown = "\n\n## Checkpoint\n\n" + source + " · " + entry.occurredAt.formatted() + "\n\n" + entry.text + "\n"
+            let qualifier = entry.previewOnly ? "Reported response preview; may be truncated. Not human verification." : "Saved activity; not human verification."
+            let markdown = "\n\n" + marker + "\n## Checkpoint\n\n" + source + " · " + entry.occurredAt.formatted(.iso8601) + "\n\n" + qualifier + "\n\n" + entry.text + "\n"
             checkpointProposal = try await noteAccess.previewAppend(note: note, root: root, markdown: markdown)
             checkpointEntry = entry; appendReceipt = nil
-        } catch { self.error = "The checkpoint preview could not be prepared. Your note remains unchanged." }
+        } catch { self.error = "Choose an available note inside a workspace folder. The checkpoint has not been written." }
     }
     func cancelCheckpoint() {
         guard !appending else { return }

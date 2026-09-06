@@ -5,6 +5,7 @@ import CiderUI
 /// A durable, paged task journal. Agent output is evidence for review, never a
 /// task completion or human verification signal.
 struct TaskTimelineView: View {
+    let refreshRevision: Int64
     let taskID: UUID
     let repository: any WorkRepository
     let navigate: ((LinkedRoute) -> Void)?
@@ -17,8 +18,8 @@ struct TaskTimelineView: View {
     @State private var savingNote = false
     @State private var error: String?
 
-    init(taskID: UUID, repository: any WorkRepository, navigate: ((LinkedRoute) -> Void)? = nil) {
-        self.taskID = taskID; self.repository = repository; self.navigate = navigate
+    init(taskID: UUID, repository: any WorkRepository, navigate: ((LinkedRoute) -> Void)? = nil, refreshRevision: Int64 = 0) {
+        self.refreshRevision = refreshRevision; self.taskID = taskID; self.repository = repository; self.navigate = navigate
     }
 
     var body: some View {
@@ -42,12 +43,12 @@ struct TaskTimelineView: View {
                             }
                         }
                         if nextCursor != nil {
-                            Button("Load older entries") { loadMore() }
+                            Button("Load more entries") { loadMore() }
                                 .buttonStyle(.bordered)
                                 .disabled(loadingMore)
                             Color.clear.frame(height: 1).onAppear { loadMore() }.accessibilityHidden(true)
                         }
-                        if loadingMore { ProgressView("Loading older entries") }
+                        if loadingMore { ProgressView("Loading more entries") }
                     }
                 }.frame(minHeight: 180, maxHeight: 420)
             }
@@ -59,6 +60,7 @@ struct TaskTimelineView: View {
             }
             if let error { Text(error).font(.caption).foregroundStyle(CiderColor.failure) }
         }.task(id: taskID) { await load() }
+        .onChange(of: refreshRevision) { _, _ in Task { await load() } }
     }
 
     private var groupedEntries: [TimelineGroup] {
@@ -121,7 +123,7 @@ struct TaskTimelineView: View {
                 if let revision, page.revision != revision { await load(); return }
                 let existing = Set(entries.map(\.id)); entries += page.items.filter { !existing.contains($0.id) }
                 self.nextCursor = page.nextCursor; revision = page.revision
-            } catch { self.error = "Older timeline entries could not be loaded." }
+            } catch { self.error = "More timeline entries could not be loaded." }
         }
     }
     private func appendNote() {

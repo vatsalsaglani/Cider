@@ -102,6 +102,9 @@ Coordinator only, after the commands above: `script/build_and_run.sh --verify`. 
 
 ## Deviations
 
+- Checkpoint appends now include an inert entry-ID marker for duplicate prevention after restart. Explicit destination selection re-reads current identity; ordinary background note reads retain identity checks. No schema change.
+- Isolated-build fallback verification renamed the scratch directory away rather than deleting it; the compiled original path was unavailable during staged app/CLI checks.
+
 - Coordinator sequential ownership amendment: reserve `Package.swift` to exclude portable integration documentation from the app source target, and `TaskTimelineView.swift` after Plan 06 merge to refresh saved activity on repository revision changes without discarding its note draft. No schema or public repository contract change.
 
 - Coordinator reserves `Features/LinkedTasks/TaskDetailView.swift` for passing the existing navigate callback into Plan 06 TaskTimelineView. Without this composition edit checkpoint actions stay disabled. The file is not concurrently owned in round B.
@@ -133,3 +136,7 @@ Use this checklist after merging round B. A checked implementation item does not
 | Manual UI acceptance | Deferred by explicit user instruction: native interactions, keyboard/accessibility, physical notch and live skill invocation remain clearly listed for final user review |
 
 Final evidence must name commands actually run and their results, not infer passing behavior from lane reports alone. No Stop marks a TODO Done; no hook or skill installation occurs automatically.
+
+## Final handoff
+
+Implemented locally from `d509f69` after reviewed merges of 06, 07 and 08. Journal startup uses the same ready repository/host; task/note/chat graph routes, context export, checkpoint destination/retry and Agents skill access are connected. The CLI and portable skill are packaged. All 124 Swift tests, 16 editor checks, fixture/CLI checks, isolated resource verification, normal launch and strict ad-hoc signature checks passed. UI/live-provider/accessibility/physical checks remain explicitly deferred by the user. Detailed evidence and migration rollback are in `docs/progress/linked-work-14.md`. No provider hook reinstall, credential access, automatic skill install or external push occurred.
