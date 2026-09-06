@@ -99,6 +99,9 @@ signature was not part of the frozen surface.
   Follow-up coverage also proves local focus survives leading unrelated rows,
   root-scoped contributor chats are retained, and oversized legacy files stop at
   the bounded read threshold.
+  The graph follow-up now deduplicates persisted relationship IDs, uses one
+  total local-expansion budget, scopes root SQL before limiting, and applies
+  done/provider/freshness filters without reintroducing excluded nodes.
   Native relaunch, live
   provider interaction and hardware checks remain coordinator integration gates.
 

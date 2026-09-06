@@ -146,6 +146,28 @@ import CiderDomain
         #expect(rooted.nodes.map(\.id).contains(.chat(chat.identity)))
     }
 
+    @Test func graphDeduplicatesDepthTwoAndAppliesScopedFilters() async throws {
+        let root = try temporaryRoot(); defer { try? FileManager.default.removeItem(at: root) }
+        let store = try await SQLiteWorkRepository.open(at: root.appending(path: "work.sqlite"), access: .appReadWrite)
+        let folder = FolderReference(path: "/root")
+        _ = try await store.apply(WorkMutation(change: .registerFolder(folder: folder)))
+        let note = NoteReference(rootID: folder.id, relativePath: "root.md")
+        _ = try await store.apply(WorkMutation(change: .registerNote(note: note)))
+        let task = WorkTask(title: "Complete", status: .done)
+        _ = try await store.apply(WorkMutation(change: .saveTask(task: task)))
+        _ = try await store.apply(WorkMutation(change: .attachNote(taskID: task.id, noteID: note.id, role: .context)))
+        let host = try await store.info().hostID
+        let staleClaude = ChatReference(identity: ChatIdentity(hostID: host, provider: .claude, sessionID: "stale"), directory: "/root", observedAt: .distantPast, execution: .working)
+        _ = try await store.apply(WorkMutation(change: .attachChat(taskID: task.id, chat: staleClaude, role: nil, initialTurnID: nil)))
+        let local = try await store.graph(GraphQuery(scope: .local(entity: .task(task.id), depth: 2), includeDone: true, includeIsolated: true, nodeLimit: 20, edgeLimit: 20))
+        #expect(local.edges.filter { $0.kind == .noteContext }.count == 1)
+        let hiddenDone = try await store.graph(GraphQuery(scope: .workspace(rootID: folder.id), includeDone: false, includeIsolated: true, nodeLimit: 20, edgeLimit: 20))
+        #expect(!hiddenDone.nodes.map(\.id).contains(.task(task.id)))
+        let filtered = try await store.graph(GraphQuery(scope: .workspace(rootID: folder.id), includeDone: true, includeIsolated: true, activeChatsOnly: true, providers: [.codex], nodeLimit: 20, edgeLimit: 20))
+        #expect(!filtered.nodes.map(\.id).contains(.chat(staleClaude.identity)))
+        #expect(filtered.edges.filter { $0.kind == .noteContext }.count == 1)
+    }
+
     @Test func independentWriterLockReturnsBoundedBusyError() async throws {
         let root = try temporaryRoot(); defer { try? FileManager.default.removeItem(at: root) }
         let url = root.appending(path: "work.sqlite")
