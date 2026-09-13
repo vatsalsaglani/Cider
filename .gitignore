@@ -23,3 +23,5 @@ xcuserdata/
 *.sqlite-wal
 /site/dist/
 /site/.vite/
+
+/site/*.tsbuildinfo

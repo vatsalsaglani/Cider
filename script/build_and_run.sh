@@ -2,8 +2,12 @@
 set -euo pipefail
 MODE="${1:-run}"
 CIDER_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CIDER_VERSION="${CIDER_VERSION:-0.0.0}"
+CIDER_BUILD_NUMBER="${CIDER_BUILD_NUMBER:-1}"
 cd "$CIDER_ROOT"
 case "$MODE" in run|--debug|--logs|--telemetry|--verify|--package) ;; *) echo 'Use run, --debug, --logs, --telemetry, --verify, or --package' >&2; exit 2;; esac
+[[ "$CIDER_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]] || { echo "CIDER_VERSION must be a safe semantic version" >&2; exit 2; }
+[[ "$CIDER_BUILD_NUMBER" =~ ^[0-9]+$ ]] || { echo "CIDER_BUILD_NUMBER must be an integer" >&2; exit 2; }
 CIDER_SWIFT_ARGS=(swift build)
 if [[ -n "${CIDER_BUILD_SCRATCH:-}" ]]; then CIDER_SWIFT_ARGS+=(--scratch-path "$CIDER_BUILD_SCRATCH"); fi
 "${CIDER_SWIFT_ARGS[@]}" --product Cider
@@ -11,6 +15,8 @@ if [[ -n "${CIDER_BUILD_SCRATCH:-}" ]]; then CIDER_SWIFT_ARGS+=(--scratch-path "
 "${CIDER_SWIFT_ARGS[@]}" --product cider-cli
 CIDER_BUILD="$("${CIDER_SWIFT_ARGS[@]}" --show-bin-path)"
 CIDER_APP="${CIDER_PACKAGE_PATH:-$CIDER_ROOT/dist/Cider.app}"
+[[ "$(basename "$CIDER_APP")" == "Cider.app" ]] || { echo "CIDER_PACKAGE_PATH must name Cider.app" >&2; exit 2; }
+rm -rf "$CIDER_APP"
 mkdir -p "$CIDER_APP/Contents/MacOS"
 if [[ "$MODE" != --package ]]; then
     pkill -x Cinder >/dev/null 2>&1 || true
@@ -20,7 +26,7 @@ mkdir -p "$CIDER_APP/Contents/Resources"
 cp -R "$CIDER_BUILD/Cider_CiderPlatform.bundle" "$CIDER_APP/Contents/Resources/"
 cp -R "$CIDER_BUILD/Cider_CiderData.bundle" "$CIDER_APP/Contents/Resources/"
 cp "$CIDER_BUILD/Cider" "$CIDER_APP/Contents/MacOS/Cider"
-cat > "$CIDER_APP/Contents/Info.plist" <<'PLIST'
+cat > "$CIDER_APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
@@ -28,6 +34,8 @@ cat > "$CIDER_APP/Contents/Info.plist" <<'PLIST'
 <key>CFBundleIdentifier</key><string>app.cider.desktop</string>
 <key>CFBundleName</key><string>Cider</string>
 <key>CFBundleDisplayName</key><string>Cider</string>
+<key>CFBundleShortVersionString</key><string>$CIDER_VERSION</string>
+<key>CFBundleVersion</key><string>$CIDER_BUILD_NUMBER</string>
 <key>CFBundleIconFile</key><string>Cider.icns</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>LSMinimumSystemVersion</key><string>26.0</string>
@@ -50,6 +58,7 @@ cp -R "$CIDER_ROOT/.cache/media/MediaRemoteAdapter.framework" "$CIDER_APP/Conten
 cp "$CIDER_ROOT/Vendor/MediaRemoteAdapter/bin/mediaremote-adapter.pl" "$CIDER_APP/Contents/Helpers/"
 cp "$CIDER_ROOT/Vendor/MediaRemoteAdapter/LICENSE" "$CIDER_APP/Contents/Helpers/MediaRemoteAdapter-LICENSE"
 codesign --force --deep --sign - "$CIDER_APP"
+codesign --verify --deep --strict "$CIDER_APP"
 if [[ "$MODE" == --package ]]; then exit 0; fi
 if [[ "$MODE" == --debug ]]; then exec lldb -- "$CIDER_APP/Contents/MacOS/Cider"; fi
 if [[ -n "${CIDER_LINKED_FIXTURE_ROOT:-}" ]]; then

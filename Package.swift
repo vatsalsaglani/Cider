@@ -14,7 +14,7 @@ let package = Package(
         .target(name: "CiderUI", dependencies: ["CiderDomain"]),
         .target(name: "CiderPlatform", dependencies: ["CiderDomain", "CiderUI"], resources: [.copy("Resources")]),
         .executableTarget(name: "CiderApp", dependencies: ["CiderDomain", "CiderData", "CiderUI", "CiderPlatform"], path: ".", exclude: [
-            "Integrations", "Vendor", "dist", "Sources", "Tests", "docs", "design", "output", "script", "AGENTS.md", "README.md",
+            "site", "CHANGELOG.md", "Integrations", "Vendor", "dist", "Sources", "Tests", "docs", "design", "output", "script", "AGENTS.md", "README.md",
             "cider-mascot.png", "cider-companion.png", "cider-animated.svg", "cider-still.svg",
             "cider-idle.svg", "cider-idle-still.svg", "cider-working.svg", "cider-working-still.svg",
             "cider-needs-you.svg", "cider-needs-you-still.svg", "cider-reply-ready.svg", "cider-reply-ready-still.svg"

@@ -1,0 +1,36 @@
+name: Native CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-package:
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - name: Report selected toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+      - name: Run unit tests
+        run: swift test
+      - name: Build an ad-hoc signed app package
+        env:
+          CIDER_VERSION: 0.0.0
+          CIDER_BUILD_NUMBER: ${{ github.run_number }}
+        run: ./script/build_and_run.sh --package
+      - name: Verify package signature and version metadata
+        run: |
+          codesign --verify --deep --strict dist/Cider.app
+          plutil -extract CFBundleShortVersionString raw dist/Cider.app/Contents/Info.plist

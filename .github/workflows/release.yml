@@ -1,0 +1,96 @@
+name: Publish release
+
+on:
+  push:
+    branches:
+      - 'release/*'
+  create:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Existing release/X.Y.Z or release/vX.Y.Z branch
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-release-${{ github.event.ref || inputs.branch || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  validate-release:
+    if: github.event_name != 'create' || (github.event.ref_type == 'branch' && startsWith(github.event.ref, 'release/'))
+    runs-on: macos-26
+    outputs:
+      release_tag: ${{ steps.release.outputs.release_tag }}
+      version: ${{ steps.release.outputs.version }}
+      commit: ${{ steps.release.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'push' && github.sha || github.event.ref || inputs.branch }}
+          fetch-depth: 0
+      - id: release
+        name: Validate branch and record the event commit
+        env:
+          EVENT_BRANCH: ${{ github.event.ref }}
+          INPUT_BRANCH: ${{ inputs.branch }}
+          REF_NAME: ${{ github.ref_name }}
+          EVENT_SHA: ${{ github.sha }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == push ]]; then
+            branch="$REF_NAME"
+          else
+            branch="${EVENT_BRANCH:-${INPUT_BRANCH:-$REF_NAME}}"
+          fi
+          version="$(./script/release.sh version "$branch")"
+          commit="$(git rev-parse HEAD)"
+          if [[ "$GITHUB_EVENT_NAME" == push && "$commit" != "$EVENT_SHA" ]]; then
+            echo "Checked out $commit instead of pushed event commit $EVENT_SHA." >&2
+            exit 1
+          fi
+          printf 'release_tag=v%s\nversion=%s\ncommit=%s\n' "$version" "$version" "$commit" >> "$GITHUB_OUTPUT"
+  package-and-publish:
+    needs: validate-release
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.validate-release.outputs.commit }}
+          fetch-depth: 0
+      - name: Report selected toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+      - name: Run unit tests
+        run: swift test
+      - name: Package the ad-hoc signed application
+        id: package
+        env:
+          CIDER_BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          output="$RUNNER_TEMP/cider-release"
+          archive="$(./script/release.sh package '${{ needs.validate-release.outputs.version }}' "$output")"
+          printf 'archive=%s\nchecksum=%s\n' "$archive" "$archive.sha256" >> "$GITHUB_OUTPUT"
+      - name: Create or refresh GitHub release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.validate-release.outputs.release_tag }}
+          VERSION: ${{ needs.validate-release.outputs.version }}
+          TARGET_COMMIT: ${{ needs.validate-release.outputs.commit }}
+          ARCHIVE: ${{ steps.package.outputs.archive }}
+          CHECKSUM: ${{ steps.package.outputs.checksum }}
+        run: |
+          notes="$RUNNER_TEMP/release-notes.md"
+          ./script/release.sh notes "$VERSION" > "$notes"
+          git tag --force "$RELEASE_TAG" "$TARGET_COMMIT"
+          git push origin "refs/tags/$RELEASE_TAG" --force
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release edit "$RELEASE_TAG" --title "Cider $VERSION" --notes-file "$notes"
+          else
+            gh release create "$RELEASE_TAG" --title "Cider $VERSION" --notes-file "$notes"
+          fi
+          gh release upload "$RELEASE_TAG" "$ARCHIVE" "$CHECKSUM" --clobber
