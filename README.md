@@ -1,18 +1,27 @@
 # Cider
 
-A calmer place for parallel work: agent attention, phased features, today's tasks, and local Markdown notes, always reachable from a MacBook notch.
+Less switching. More flow. Cider keeps your agents, tasks, notes, music, and usage within reach—right from your Mac's notch.
 
-**Phase 00: planning and design.** This repository contains a researched blueprint, design tokens, an image-generated concept, and an interactive canvas. It does not yet contain a production macOS app.
+[Get Cider](https://github.com/vatsalsaglani/Cider/releases/latest) · [Website](https://vatsalsaglani.github.io/Cider/) · [User guide](https://vatsalsaglani.github.io/Cider/#/docs/getting-started)
 
-- [Start with the plan](docs/plan/00-initial-plan.md)
-- [Current progress and evidence](docs/progress/current.md)
-- [Native architecture](docs/architecture.md)
-- [Design system](docs/design/design-system.md)
-- [Writing surface and sidebar](docs/design/writing-and-sidebar.md)
-- [Tasks, calendar and quick capture](docs/design/tasks-and-capture.md)
-- [Native transparency and materials](docs/design/materials.md)
-- [Reusable prototype sources](design/prototype/README.md)
-- [First implementation work orders](docs/plan/01-feasibility.md)
-- [Agent working guide](.agents/skills/working-with-cider/SKILL.md)
+## A calmer corner of your Mac
 
-The canvas uses synthetic examples. Its interactions illustrate product behavior; they do not connect to agents, modify Jira, or prove native editor or display behavior.
+- See agent activity and know when something needs you.
+- Capture today's tasks, link a plan, and define a clear finish line.
+- Write in local Markdown notes and keep your folders and tabs close.
+- Follow connections between notes, tasks, and conversations.
+- Check supported account limits and control Now Playing from the notch.
+
+Cider is an early release for Apple Silicon Macs running macOS 26 or later. The downloadable app is ad hoc signed and is not Apple-notarized. See the [installation guide](site/docs/getting-started.md).
+
+## Build and contribute
+
+Use Xcode with Swift 6.3 or later. Run `swift test` for the unit tests, `./script/build_and_run.sh --package` to build `dist/Cider.app`, or `./script/build_and_run.sh run` to build and launch. See the script's supported options before changing the packaging flow.
+
+The React/Tailwind website and Markdown user guides live in [`site/`](site/README.md). Native development context starts in [AGENTS.md](AGENTS.md), with current evidence in [docs/progress/current.md](docs/progress/current.md).
+
+## Releases
+
+Push a branch named `release/0.0.1` or `release/v0.0.1`. GitHub Actions tests and packages that branch, then publishes tag `v0.0.1` with a ZIP, SHA-256 checksum, and the matching version section from [CHANGELOG.md](CHANGELOG.md). Later pushes to the same release branch update the tag, replace the assets, and refresh the release notes after the build succeeds. Published release versions are therefore mutable while their branches are being updated.
+
+Main pushes run native CI. Changes under `site/` deploy the website through GitHub Pages Actions.
