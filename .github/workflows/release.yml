@@ -86,8 +86,14 @@ jobs:
         run: |
           notes="$RUNNER_TEMP/release-notes.md"
           ./script/release.sh notes "$VERSION" > "$notes"
-          git tag --force "$RELEASE_TAG" "$TARGET_COMMIT"
-          git push origin "refs/tags/$RELEASE_TAG" --force
+          ref="repos/$GITHUB_REPOSITORY/git/refs/tags/$RELEASE_TAG"
+          if gh api "$ref" >/dev/null 2>&1; then
+            gh api --method PATCH "$ref" -f sha="$TARGET_COMMIT" -f force=true >/dev/null
+          elif ! gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+              -f ref="refs/tags/$RELEASE_TAG" -f sha="$TARGET_COMMIT" >/dev/null; then
+            # A concurrent run may have created the tag after the GET above.
+            gh api --method PATCH "$ref" -f sha="$TARGET_COMMIT" -f force=true >/dev/null
+          fi
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release edit "$RELEASE_TAG" --title "Cider $VERSION" --notes-file "$notes"
           else
