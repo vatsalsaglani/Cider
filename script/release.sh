@@ -67,7 +67,7 @@ case "$command" in
         CIDER_ARCHIVE="$CIDER_OUTPUT_DIRECTORY/Cider-$CIDER_RELEASE_VERSION-macos.zip"
         rm -f "$CIDER_ARCHIVE" "$CIDER_ARCHIVE.sha256"
         ditto -c -k --sequesterRsrc --keepParent "$CIDER_STAGE_DIRECTORY/Cider.app" "$CIDER_ARCHIVE"
-        shasum -a 256 "$CIDER_ARCHIVE" > "$CIDER_ARCHIVE.sha256"
+        (cd "$CIDER_OUTPUT_DIRECTORY" && shasum -a 256 "$(basename "$CIDER_ARCHIVE")") > "$CIDER_ARCHIVE.sha256"
         printf '%s\n' "$CIDER_ARCHIVE"
         ;;
     *)

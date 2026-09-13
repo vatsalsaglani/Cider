@@ -13,3 +13,5 @@ All notable changes to Cider are documented here.
 ### Distribution
 
 - The macOS archive is ad-hoc signed for this early release. It is not notarized.
+
+- Downloadable app ZIP includes a companion SHA-256 file for checking the download.

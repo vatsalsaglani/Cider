@@ -73,7 +73,7 @@
 **Latest design refinement:** open note editor, inset sidebar and rounded tinted controls. See [revision evidence](design-refinement-03.md) and [current canvas check record](design-refinement-03-checks.json). The Phase 00 record above describes the earlier canvas hash.
 
 
-**Publishing:** native baseline pushed to GitHub main. React/Tailwind landing page and eight Markdown user guides added under `site/`, with real screenshots, responsive layouts and reduced-motion support. Native CI, versioned release-branch packaging, and Pages deployment workflows are being verified. Local native tests: 160 passed; production site build passed. Initial app packages are ad hoc signed, not notarized.
+**Publishing:** native baseline pushed to GitHub main. React/Tailwind landing page and eight Markdown user guides added under `site/`, with real screenshots, responsive layouts and reduced-motion support. GitHub Pages is live at https://vatsalsaglani.github.io/Cider/. Native CI passed, and release run 34766401273 published v0.0.1 with the app ZIP and checksum after 160 tests passed. Desktop/mobile browser previews, eight guide link checks, and production site build passed. Initial app packages are ad hoc signed, not notarized.
 
 ## Accepted decisions
 
