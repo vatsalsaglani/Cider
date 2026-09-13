@@ -4,7 +4,7 @@
 
 `AppModel` owns the ready SQLite repository. `LinkedWorkCoordinator` supplies the same repository and host identity to TODO detail, note relationships, graph and context services. `CiderApp` injects `JournalIngestor` before observer startup; failed migration never enables an empty replacement board or acknowledges pending events through a fallback path.
 
-SQLite and coordinated note I/O run on dedicated utility serial executors. Graph layout is bounded, cancellable work, with no persistent graph database or continuous simulation. `cider-cli` uses the same read contract in read-only mode. The application packages it as `Contents/Helpers/cider`, alongside the portable workflow skill and schema bundle. No provider configuration changes are performed by startup. See [linked-work implementation](progress/linked-work-14.md).
+SQLite and coordinated note I/O run on dedicated utility serial executors. Graph layout is bounded, cancellable work, with no persistent graph database or continuous simulation. `cider-cli` uses the same read contract in read-only mode. Its write commands go through `CLIWriteTransport` and the running app’s `CLIWriteServer`/`CLIAppWriter`; the app remains the SQLite writer. The private inbox uses a per-store lock and instance lease, executes commands serially and discards abandoned requests on restart. The application packages it as `Contents/Helpers/cider`, alongside the portable workflow skill and schema bundle. No provider configuration changes are performed by startup. See [linked-work implementation](progress/linked-work-14.md).
 
 
 Status: proposed. Local toolchain inspected: macOS 26.6.2, Xcode 26.4, Apple Swift 6.3, arm64. No Cider native target has been built.

@@ -23,7 +23,7 @@ struct CheckpointNotePreview: View {
             Text("Markdown to add").font(.headline)
             ScrollView { Text(proposal.markdownToAppend).font(.body.monospaced()).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
                 .frame(minHeight: 140).padding(10).background(Color.white.opacity(0.04), in: RoundedRectangle(cornerRadius: 10))
-            HStack { Button("Cancel", role: .cancel, action: onCancel); Spacer(); Button("Append preview") { onConfirm(proposal) }.buttonStyle(.borderedProminent) }
+            HStack { Button("Cancel", role: .cancel, action: onCancel); Spacer(); Button("Append preview") { onConfirm(proposal) }.buttonStyle(CiderDialogButtonStyle(primary: true)) }
         }.padding(24).frame(width: 560, height: 440)
     }
 }

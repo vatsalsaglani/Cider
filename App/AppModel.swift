@@ -17,6 +17,7 @@ final class AppModel {
     private(set) var repository: (any WorkRepository)?
     private(set) var workTasks: [WorkTask] = []
     private let storeURL: URL
+    var databaseURL: URL { storeURL }
     private let legacyURL: URL
     private let folderPaths: [String]
     private var readGeneration = 0

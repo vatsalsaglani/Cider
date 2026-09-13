@@ -11,3 +11,15 @@ output/qa/
 /dist/
 
 .cache/
+
+# Local previews, verification output, and loose scratch notes
+/output/
+/Note-*.md
+*.xcuserstate
+xcuserdata/
+*.log
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+/site/dist/
+/site/.vite/

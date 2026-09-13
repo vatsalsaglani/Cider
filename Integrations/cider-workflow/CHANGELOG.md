@@ -1,5 +1,9 @@
 # Changelog
 
+## Write commands
+
+- Added explicit task/note writes through the running app, with revision/hash guards and conflict recovery guidance.
+
 ## 1.0.0 — 2026-09-07
 
 - Added a portable read-only Cider workflow skill for project-local Codex and Claude Code setup.

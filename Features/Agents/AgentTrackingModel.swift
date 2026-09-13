@@ -5,6 +5,10 @@ import CiderData
 
 @MainActor @Observable
 final class AgentTrackingModel {
+    let mascot = MascotActivityModel()
+    let plugins = AgentPluginModel()
+    var includeConnectionPlugin = false
+    var connectionPluginPlan: AgentPluginPlan?
     private let fixtureMode = ProcessInfo.processInfo.environment["CIDER_LINKED_FIXTURE_ROOT"] != nil
     var sessions: [TrackedSession] = []
     var now = Date.now
@@ -61,7 +65,7 @@ final class AgentTrackingModel {
             }
         }
     }
-    func stop() { watcher?.cancel(); watcher = nil; clock?.cancel(); clock = nil; journalRetry?.cancel(); journalRetry = nil }
+    func stop() { watcher?.cancel(); watcher = nil; clock?.cancel(); clock = nil; journalRetry?.cancel(); journalRetry = nil; mascot.stop() }
     func refresh() async {
         guard !fixtureMode else { return }
         if reading { again = true; return }
@@ -95,7 +99,10 @@ final class AgentTrackingModel {
                     let known = Set(observed.flatMap { $0.history.map(\.id) }).subtracting(fresh)
                     let stopped = UsageRefreshSchedule.stoppedProviders(events: batch.freshEvents, known: [], now: now)
                     if !stopped.isEmpty { onUsageStop?(stopped) }
-                    if let notice = AgentNotice.latest(sessions: observed, known: known, now: now) { onNotice?(notice) }
+                    if let notice = AgentNotice.latest(sessions: observed, known: known, now: now) {
+                        mascot.receive(notice, at: now)
+                        onNotice?(notice)
+                    }
                 }
                 loadedActivity = true
                 sessions = observed.sorted {
@@ -145,15 +152,19 @@ final class AgentTrackingModel {
     }
     func prepare(_ provider: TrackedProvider, removing: Bool = false) {
         guard !fixtureMode else { return }
-        guard !busy else { return }; busy = true
+        guard !busy, !plugins.busy else { return }; busy = true
+        includeConnectionPlugin = false; connectionPluginPlan = nil
         let home = FileManager.default.homeDirectoryForCurrentUser
         let env = ProcessInfo.processInfo.environment
-        let configRoot = env[provider == .codex ? "CODEX_HOME" : "CLAUDE_CONFIG_DIR"].map { URL(fileURLWithPath: $0) } ?? home.appending(path: provider == .codex ? ".codex" : ".claude")
-        let destination = configRoot.appending(path: provider == .codex ? "hooks.json" : "settings.json")
+        let destination = AgentHookSetup.destination(provider: provider, home: home, environment: env)
         let helper = home.appending(path: "Library/Application Support/Cider/Helpers/cider-events")
         Task {
             defer { busy = false }
-            do { proposal = try await AgentIO.run { try AgentHookSetup.propose(provider: provider, destination: destination, helper: helper, removing: removing) } }
+            do {
+                let hook = try await AgentIO.run { try AgentHookSetup.propose(provider: provider, destination: destination, helper: helper, removing: removing) }
+                if provider != .cursor { connectionPluginPlan = await plugins.prepare(provider, removing: removing) }
+                proposal = hook
+            }
             catch { self.error = "Settings could not be prepared. Check the configuration file; nothing has been changed." }
         }
     }
@@ -161,12 +172,14 @@ final class AgentTrackingModel {
         guard !fixtureMode else { return }
         guard let proposal, !busy else { return }; busy = true
         let bundled = Bundle.main.bundleURL.appending(path: "Contents/Helpers/cider-events")
+        let pluginPlan = includeConnectionPlugin ? connectionPluginPlan : nil
         Task {
             defer { busy = false }
             do {
                 try await AgentIO.run { try AgentHookSetup.apply(proposal, bundledHelper: bundled) }
                 if proposal.removing { configured.remove(proposal.provider.rawValue) } else { configured.insert(proposal.provider.rawValue) }
                 UserDefaults.standard.set(Array(configured), forKey: "trackingProviders")
+                if let pluginPlan { await plugins.apply(pluginPlan) }
                 self.proposal = nil
             } catch { self.error = "Settings changed or could not be saved. Review the connection again before retrying."; self.proposal = nil }
         }
@@ -174,6 +187,10 @@ final class AgentTrackingModel {
     private func discoverVersions() async {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         for provider in TrackedProvider.allCases {
+            if provider == .cursor {
+                if let bundle = Bundle(path: "/Applications/Cursor.app"), let version = bundle.infoDictionary?["CFBundleShortVersionString"] as? String { versions[provider] = version }
+                continue
+            }
             let name = provider.rawValue
             let candidates = [home + "/.local/bin/" + name, "/opt/homebrew/bin/" + name, "/usr/local/bin/" + name] + (provider == .codex ? ["/Applications/Codex.app/Contents/Resources/codex", "/Applications/ChatGPT.app/Contents/Resources/codex"] : [])
             guard let executable = candidates.first(where: { FileManager.default.isExecutableFile(atPath: $0) }) else { continue }

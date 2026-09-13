@@ -21,7 +21,7 @@ struct UsageProviderCard: View {
         VStack(alignment: .leading, spacing: compact ? 4 : 16) {
             HStack(spacing: 7) {
                 BrandImage(provider, size: compact ? 18 : 26)
-                Text(provider == "codex" ? "Codex" : "Claude Code").font(compact ? .caption.weight(.semibold) : .title2)
+                Text(UsageProvider(rawValue: provider)?.title ?? provider).font(compact ? .caption.weight(.semibold) : .title2)
                 Spacer()
                 if refreshing { ProgressView().controlSize(.mini) }
                 else if let observed = value?.observedAt {
@@ -31,7 +31,7 @@ struct UsageProviderCard: View {
             if !enabled {
                 Text("Turn on in connection settings").font(.caption).foregroundStyle(.secondary)
             } else if let value {
-                if !compact { Text(value.account ?? "Current account").font(.caption).foregroundStyle(.secondary) }
+                if !compact { Text(value.accountLabel).font(.caption).foregroundStyle(.secondary) }
                 LazyVGrid(columns: compact ? Array(repeating: GridItem(.flexible(), spacing: 6), count: min(3, max(1, value.displayQuotas.count))) : [GridItem(.adaptive(minimum: 240), alignment: .leading)], alignment: .leading, spacing: 12) {
                     ForEach(value.displayQuotas) { quota in
                         quotaCell(quota, value: value, now: now)
@@ -44,7 +44,10 @@ struct UsageProviderCard: View {
                 } else {
                     Text("Estimates use each window’s average so far and assume the same pace until reset. Model limits are separate; they are not extra capacity.")
                         .font(.caption).foregroundStyle(.secondary)
-                    Text(value.source == "cli" ? "Agent command line" : "Agent sign-in").font(.caption2).foregroundStyle(.secondary)
+                    Text(sourceLabel(value.source)).font(.caption2).foregroundStyle(.secondary)
+                }
+                if provider == "cursor", !value.quotas.contains(where: { $0.id == "cursor-grok-bot" && $0.validUsedPercent != nil }) {
+                    Text("Grok Bot usage wasn’t reported by this account.").font(.caption2).foregroundStyle(.secondary)
                 }
                 if message != nil { Text("Showing the last successful update").font(.caption2).foregroundStyle(.secondary) }
             } else { Text(refreshing ? "Reading usage…" : "No usage yet").font(.caption).foregroundStyle(.secondary) }
@@ -54,6 +57,14 @@ struct UsageProviderCard: View {
         }.padding(.horizontal, compact ? 10 : 20).padding(.vertical, compact ? 7 : 20)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.white.opacity(0.04), in: RoundedRectangle(cornerRadius: compact ? 12 : 18))
+    }
+    private func sourceLabel(_ source: String?) -> String {
+        switch source {
+        case "cli": "CodexBar · Agent command line"
+        case "oauth": "CodexBar · Agent sign-in"
+        case "web": "CodexBar · Account dashboard"
+        default: "CodexBar · Usage connection"
+        }
     }
     private func quotaCell(_ quota: Quota, value: ProviderUsage, now: Date) -> some View {
         let pace = UsagePace.estimate(quota: quota, observedAt: value.observedAt, now: now)

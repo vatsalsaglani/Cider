@@ -1,0 +1,6 @@
+interface:
+  display_name: "Cider Workflow"
+  short_description: "Manage Cider tasks, notes and connected work"
+  icon_small: "./assets/cider.png"
+  icon_large: "./assets/cider.png"
+  brand_color: "#FF8A32"

@@ -150,7 +150,7 @@ enum WorkGraphQueries {
     private static func node(_ id: LinkedEntityID, _ db: isolated WorkDatabaseExecutor) throws -> GraphNode {
         switch id {
         case .task(let taskID): let task = try WorkQueries.task(taskID, db); return GraphNode(id: id, title: task.title, subtitle: task.descriptionMarkdown, taskStatus: task.status)
-        case .note(let noteID): let note = try WorkQueries.note(noteID, db); return GraphNode(id: id, title: note.relativePath, available: note.available)
+        case .note(let noteID): let note = try WorkQueries.note(noteID, db); return GraphNode(id: id, title: ((note.relativePath as NSString).lastPathComponent as NSString).deletingPathExtension, subtitle: note.relativePath, available: note.available)
         case .chat(let chatID): let chat = try WorkQueries.chat(chatID, db); return GraphNode(id: id, title: chat.title ?? chatID.sessionID, subtitle: chat.directory, execution: chat.execution, attention: chat.attention)
         }
     }

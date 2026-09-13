@@ -19,7 +19,10 @@ public struct AgentNotice: Sendable {
             }
         }
         for (row, event) in fresh where event.name == "Stop" && event.child == nil && row.questions.isEmpty {
-            return AgentNotice(session: row, title: event.provider.title + " finished responding", message: event.lastMessage ?? "Open Agents to see the activity.", requiresInput: false)
+            let preview = event.lastMessage ?? row.history.last(where: {
+                $0.name == "AgentResponse" && $0.turn == event.turn && $0.time <= event.time && event.time.timeIntervalSince($0.time) < 60
+            })?.lastMessage
+            return AgentNotice(session: row, title: event.provider.title + " finished responding", message: preview ?? "Open Agents to see the activity.", requiresInput: false)
         }
         return nil
     }

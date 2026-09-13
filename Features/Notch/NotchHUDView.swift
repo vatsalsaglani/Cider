@@ -19,15 +19,15 @@ struct NotchHUDView: View {
         VStack(spacing: 0) {
             if !state.expanded && state.peekTitle == nil && (state.edge == .left || state.edge == .right) {
                 Button { if state.peekTitle != nil { state.activatePeek?() } else { toggle() } } label: {
-                    VStack(spacing: 14) { AppMark(); Text("\(tasks.count)"); Image(systemName: "chevron.left.forwardslash.chevron.right") }
+                    VStack(spacing: 14) { mascot; Text("\(tasks.count)"); Image(systemName: "chevron.left.forwardslash.chevron.right") }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }.buttonStyle(.plain).help("Open Cider")
             } else {
                 Button { if state.peekTitle != nil { state.activatePeek?() } else { toggle() } } label: {
                     HStack {
                         HStack(spacing: 4) {
-                            AppMark()
-                            if player.playing { Image(systemName: "waveform").font(.system(size: 10)).foregroundStyle(CiderColor.accent) }
+                            mascot
+                            if player.playing { NotchPlaybackIndicator(motionActive: state.motionActive) }
                         }.frame(maxWidth: .infinity)
                         if state.cameraWidth > 0 { Color.clear.frame(width: state.cameraWidth) }
                         HStack(spacing: 6) {
@@ -79,6 +79,10 @@ struct NotchHUDView: View {
                 NotchShape(edge: state.edge).stroke(LinearGradient(colors: [.orange.opacity(0.15), .orange, .pink.opacity(0.65), .orange.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: state.peekTitle == nil ? 1 : 2).allowsHitTesting(false)
             }
         }
+    }
+    private var mascot: some View {
+        CiderMascot(state: .resolve(sessions: agents.sessions, reply: agents.mascot.reply, now: max(agents.now, .now)),
+                    visible: state.motionActive, claimBounce: agents.mascot.claimBounce)
     }
     private func countText(_ count: Int) -> String { count > 99 ? "99+" : String(count) }
     private var todo: some View {

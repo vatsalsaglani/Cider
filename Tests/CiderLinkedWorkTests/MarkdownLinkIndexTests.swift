@@ -90,3 +90,27 @@ import CiderDomain
         #expect(once == twice)
     }
 }
+
+@Suite struct WikiLinkIndexTests {
+    @Test func wikiLinksResolveRelativeRootUniqueAliasAndAnchorsWithoutGuessing() throws {
+        let root = UUID()
+        let source = NoteReference(rootID: root, relativePath: "Project/Start.md")
+        let local = NoteReference(rootID: root, relativePath: "Project/Plan.md")
+        let unique = NoteReference(rootID: root, relativePath: "Elsewhere/Unique.md")
+        let a = NoteReference(rootID: root, relativePath: "A/Duplicate.md")
+        let b = NoteReference(rootID: root, relativePath: "B/Duplicate.md")
+        let content = """
+        [[Plan]] [[Plan|Alias]] [[Plan#Steps]] [[Elsewhere/Unique]] [[Unique]] [[Duplicate]]
+        `[[Unique#Code]]` ![[Unique#Embed]] \\[[Unique#Escaped]]
+        ```md
+        [[Unique#Fence]]
+        ```
+        [[../../outside]] [[https://example.com]]
+        """
+        let links = try MarkdownLinkIndex.links(in: content, source: source, knownNotes: [source, local, unique, a, b], rootID: root)
+        #expect(links.count == 3)
+        #expect(Set(links.map(\.targetID)) == [local.id, unique.id])
+        #expect(links.compactMap(\.fragment) == ["Steps"])
+        #expect(links == (try MarkdownLinkIndex.links(in: content, source: source, knownNotes: [b, a, unique, local, source], rootID: root)))
+    }
+}

@@ -15,10 +15,15 @@ public struct LinkedNoteService: LinkedNoteAccess {
     public func create(root: FolderReference, relativeDirectory: String, title: String, markdown: String) async throws -> NoteReference { try await storage.create(root: root, relativeDirectory: relativeDirectory, title: title, markdown: markdown) }
     public func previewAppend(note: NoteReference, root: FolderReference, markdown: String) async throws -> NoteAppendProposal { try await storage.previewAppend(note: note, root: root, markdown: markdown) }
     public func applyAppend(_ proposal: NoteAppendProposal) async throws -> NoteFileSnapshot { try await storage.applyAppend(proposal) }
+    public func replace(note: NoteReference, root: FolderReference, expectedHash: String, markdown: String) async throws -> NoteFileSnapshot {
+        try await storage.replace(note: note, root: root, expectedHash: expectedHash, markdown: markdown)
+    }
     public func documentLinks(note: NoteReference, root: FolderReference, knownNotes: [NoteReference], maxBytes: Int) async throws -> [NoteDocumentLink] {
         let snapshot = try await storage.read(note, root: root, maxBytes: maxBytes)
         guard !snapshot.truncated else { throw WorkStoreError.outputLimit }
-        return try MarkdownLinkIndex.links(in: snapshot.markdown, source: note, knownNotes: knownNotes, rootID: root.id)
+        return try await Task.detached(priority: .utility) {
+            try MarkdownLinkIndex.links(in: snapshot.markdown, source: note, knownNotes: knownNotes, rootID: root.id)
+        }.value
     }
 }
 
@@ -76,6 +81,13 @@ private actor NoteFileStorage {
 
     private func validatedURL(_ note: NoteReference, root: FolderReference) throws -> URL {
         try locator.resolve(note, root: root, expectedIdentity: replacementIdentities[note.id] ?? note.fileIdentity)
+    }
+    func replace(note: NoteReference, root: FolderReference, expectedHash: String, markdown: String) throws -> NoteFileSnapshot {
+        guard markdown.utf8.count <= WorkLimits.noteBytes else { throw WorkStoreError.outputLimit }
+        let proposal = NoteAppendProposal(note: note, root: root, expectedHash: expectedHash, markdownToAppend: "", preview: markdown)
+        let url = try validatedURL(note, root: root)
+        replacementIdentities[note.id] = try coordinatedReplacement(proposal, at: url, with: Data(markdown.utf8))
+        return try read(note, root: root, maxBytes: WorkLimits.noteBytes)
     }
 
     private func safeStem(_ title: String) throws -> String {

@@ -27,7 +27,10 @@ enum CLIOutput {
 
     static func error(_ error: Error) -> String {
         let code = stableCode(error)
-        let envelope = ErrorEnvelope(error: ErrorBody(code: code, message: message(for: code)))
+        let remote = (error as? CLIWriteFailure)?.reply
+        let envelope = ErrorEnvelope(error: ErrorBody(code: code,
+            message: remote?.partialWrite == true ? "The note file was saved, but its connections could not finish. Inspect recoveryPath before retrying." : message(for: code),
+            recoveryPath: remote?.partialWrite == true ? remote?.path : nil))
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
         return (try? String(decoding: encoder.encode(envelope), as: UTF8.self)) ?? #"{"schemaVersion":1,"error":{"code":"unavailable","message":"Cider TODO access is unavailable."}}"#
     }
@@ -42,14 +45,19 @@ enum CLIOutput {
         }
     }
 
-    private static func stableCode(_ error: Error) -> String { (error as? WorkStoreError)?.code ?? "unavailable" }
+    private static func stableCode(_ error: Error) -> String {
+        if let remote = error as? CLIWriteFailure { return remote.reply.error?.code ?? "unavailable" }
+        return (error as? WorkStoreError)?.code ?? "unavailable"
+    }
     private static func message(for code: String) -> String {
         switch code {
-        case "invalidInput": "Invalid Cider TODO command or identifier."
-        case "notFound": "The requested TODO was not found."
-        case "conflict", "busy", "fileChanged": "The saved store changed; retry the command."
+        case "invalidInput": "Invalid Cider command, input or identifier. Run cider --help."
+        case "notFound": "The requested task, note or folder was not found."
+        case "conflict", "fileChanged": "The saved task or note changed. Read it again before updating."
+        case "busy": "Cider is busy, a note has unsaved edits, or the write timed out. Inspect saved state before retrying."
         case "unsupportedSchema": "The store uses an unsupported schema."
-        default: "Cider TODO access is unavailable."
+        case "outputLimit": "The command input or result exceeds Cider's size limit."
+        default: "Cider access is unavailable. Writes require Cider running on the selected store."
         }
     }
 
@@ -92,7 +100,7 @@ private struct SuccessEnvelope: Encodable {
     }
 }
 private struct ErrorEnvelope: Encodable { let schemaVersion = 1; let error: ErrorBody }
-private struct ErrorBody: Encodable { let code: String; let message: String }
+private struct ErrorBody: Encodable { let code: String; let message: String; var recoveryPath: String? = nil }
 
 struct AnyEncodable: Encodable {
     private let encodeBody: (Encoder) throws -> Void

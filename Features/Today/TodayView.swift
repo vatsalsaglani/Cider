@@ -43,7 +43,7 @@ struct TodayView: View {
             }.padding(32).frame(maxWidth: 1000, alignment: .leading).frame(maxWidth: .infinity)
         }
         .onChange(of: selectedDate) { _, value in month = value }
-        .sheet(item: $editing) { item in TaskEditView(model: model, original: item) }
+        .sheet(item: $editing) { item in TaskEditView(model: model, original: item).ciderDialog() }
     }
     private func row(_ item: TaskItem) -> some View {
         TaskRow(item: item, toggle: { Task { await model.toggle(item) } }, edit: { if let openTask { openTask(item.id) } else { editing = item } }).disabled(model.saving)

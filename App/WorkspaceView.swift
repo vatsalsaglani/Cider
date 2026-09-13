@@ -15,6 +15,13 @@ struct WorkspaceView: View {
     @State private var selection = "Today"
     @State private var selectedDate = Date.now
     @State private var quickTask = false
+    @State private var history = WorkspaceHistory()
+    @State private var restoringHistory = false
+    @State private var taskSessions = TaskDetailSessions()
+    private var location: WorkspaceLocation {
+        WorkspaceLocation(section: selection, task: selection == "Today" ? linked.selectedTask : nil,
+                          note: selection == "Notes" ? notes.selected : nil)
+    }
     var body: some View {
         workspaceLayout
         .overlay(alignment: .bottomTrailing) {
@@ -25,28 +32,28 @@ struct WorkspaceView: View {
         }
         .focusedSceneValue(\.activeNotes, selection == "Notes" ? notes : nil)
         .onAppear { agents.openWorkspace = { selection = "Agents"; openWindow(id: "workspace"); NSApplication.shared.activate(ignoringOtherApps: true) }; model.openWorkspace = { openWindow(id: "workspace"); NSApplication.shared.activate(ignoringOtherApps: true) } }
-        .onAppear { linked.showNotes = { selection = "Notes" }; linked.showGraph = { selection = "Graph" } }
+        .onAppear {
+            linked.showNotes = { selection = "Notes" }
+            linked.showGraph = { linked.selectedTask = nil; selection = "Graph" }
+            linked.showTask = { selection = "Today" }
+        }
+        .onChange(of: location) { _, next in if !restoringHistory { history.record(next) } }
         .onChange(of: linked.model?.selectedDetail?.revision) { _, _ in Task<Void, Never> { await linked.refresh() } }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in Task<Void, Never> { await model.refresh() } }
-        .sheet(isPresented: Binding(get: { linked.selectedTask != nil }, set: { if !$0 { linked.selectedTask = nil } }), onDismiss: { linked.resumeNavigation(); Task<Void, Never> { await model.refresh() } }) {
-            if let id = linked.selectedTask, let work = linked.model {
-                TaskDetailView(taskID: id, model: work, navigate: linked.route)
-                    .frame(width: 720, height: 620)
-                    .sheet(isPresented: Binding(get: { linked.attachmentTask != nil }, set: { if !$0 { linked.attachmentTask = nil } })) {
-                        if let taskID = linked.attachmentTask {
-                            NoteAttachmentPicker(model: work, taskID: taskID, onComplete: { linked.attachmentTask = nil; Task<Void, Never> { await work.loadDetail(id) } })
-                        }
-                    }
+        .sheet(isPresented: Binding(get: { linked.attachmentTask != nil }, set: { if !$0 { linked.attachmentTask = nil } })) {
+            if let taskID = linked.attachmentTask, let work = linked.model {
+                NoteAttachmentPicker(model: work, taskID: taskID, onComplete: {
+                    linked.attachmentTask = nil
+                    Task { await work.loadDetail(taskID) }
+                }).ciderDialog()
             }
         }
         .sheet(isPresented: Binding(get: { linked.connectionNote != nil }, set: { if !$0 { linked.connectionNote = nil } }), onDismiss: linked.resumeNavigation) {
             if let id = linked.connectionNote, let work = linked.model {
-                NoteConnectionsView(noteID: id, model: work, navigate: linked.route).frame(width: 600, height: 500)
+                NoteConnectionsView(noteID: id, model: work, navigate: linked.route).frame(width: 600, height: 500).ciderDialog()
             }
         }
-        .alert("Linked work", isPresented: Binding(get: { linked.error != nil }, set: { if !$0 { linked.error = nil } })) {
-            Button("OK") { linked.error = nil }
-        } message: { Text(linked.error ?? "") }
+        .ciderNotice("Linked work", message: linked.error ?? "", isPresented: Binding(get: { linked.error != nil }, set: { if !$0 { linked.error = nil } }))
         .sheet(isPresented: Binding(get: { linked.checkpointProposal != nil }, set: { _ in })) {
             if let entry = linked.checkpointEntry, let proposal = linked.checkpointProposal {
                 VStack(spacing: 0) {
@@ -54,15 +61,13 @@ struct WorkspaceView: View {
                         onConfirm: { _ in Task<Void, Never> { await linked.confirmCheckpoint() } },
                         onCancel: linked.cancelCheckpoint).disabled(linked.appending)
                     linkedError
-                }
+                }.ciderDialog()
             }
         }
-        .sheet(isPresented: $linked.linking, onDismiss: linked.resumeNavigation) { linkingSheet }
-        .sheet(isPresented: $linked.createDraft, onDismiss: { linked.resumeNavigation(); Task<Void, Never> { await model.refresh() } }) { draftSheet }
-        .sheet(isPresented: $quickTask) { quickTaskSheet }
-        .alert("Couldn’t save", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } })) {
-            Button("OK") { model.error = nil }
-        } message: { Text(model.error ?? "") }
+        .sheet(isPresented: $linked.linking, onDismiss: linked.resumeNavigation) { linkingSheet.ciderDialog() }
+        .sheet(isPresented: $linked.createDraft, onDismiss: { linked.resumeNavigation(); Task<Void, Never> { await model.refresh() } }) { draftSheet.ciderDialog() }
+        .sheet(isPresented: $quickTask) { quickTaskSheet.ciderDialog() }
+        .ciderNotice("Couldn’t save", message: model.error ?? "", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } }))
     }
     private var workspaceLayout: some View {
         HStack(spacing: 12) {
@@ -85,7 +90,10 @@ struct WorkspaceView: View {
                 .background(Color.white.opacity(0.035), in: RoundedRectangle(cornerRadius: 20))
                 .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(.white.opacity(0.06)))
                 .padding(.top, 26)
-            workspaceContent.overlay(alignment: .bottom) {
+            VStack(spacing: 0) {
+                historyBar
+                workspaceContent
+            }.overlay(alignment: .bottom) {
                 if let status = linked.contextStatus {
                     HStack { Text(status).font(.caption); Button("Dismiss") { linked.contextStatus = nil } }
                         .padding(10).background(.black.opacity(0.9), in: Capsule())
@@ -127,6 +135,7 @@ struct WorkspaceView: View {
                     Button("Cancel") { linked.createDraft = false }
                     Spacer()
                     Button("Create TODO") { Task<Void, Never> { await linked.createAndAttach() } }
+                        .buttonStyle(CiderDialogButtonStyle(primary: true))
                         .disabled(linked.draftTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }.padding(24).frame(width: 480).disabled(linked.linkingBusy)
@@ -144,7 +153,17 @@ struct WorkspaceView: View {
         Task<Void, Never> { _ = await linked.attach(to: id) }
     }
     @ViewBuilder private var workspaceContent: some View {
-                if selection == "Today" { TodayView(model: model, openTask: { linked.selectedTask = $0 }, selectedDate: $selectedDate) }
+                if selection == "Today" {
+                    if let id = linked.selectedTask, let work = linked.model {
+                        TaskDetailView(taskID: id, model: work, navigate: linked.route,
+                                       session: taskSessions.session(id), backToBoard: {
+                            linked.selectedTask = nil
+                            Task { await model.refresh() }
+                        }).id(id)
+                    } else {
+                        TodayView(model: model, openTask: { linked.route(.task($0)) }, selectedDate: $selectedDate)
+                    }
+                }
                 else if selection == "Notes" { NotesView(notes: notes, showConnections: { Task<Void, Never> { await linked.showConnections() } }) }
                 else if selection == "Agents" { AgentsView(model: agents, viewConnections: { row in
                     if let chat = linked.reference(row) { linked.route(.graph(.chat(chat.identity))) }
@@ -152,9 +171,45 @@ struct WorkspaceView: View {
                     guard let chat = linked.reference(row) else { return }
                     linked.route(create ? .createTaskFromChat(chat) : .attachChat(chat))
                 }) }
-                else if selection == "Graph", let work = linked.model { WorkGraphView(model: work, focus: linked.graphFocus, navigate: linked.route) }
+                else if selection == "Graph", let work = linked.model { WorkGraphView(model: work, focus: linked.graphFocus, revision: linked.revision, navigate: linked.route).onAppear { notes.scan() } }
                 else if selection == "Usage" { UsageView(model: usage) }
                 else { NotchSettingsView(model: model) }
+    }
+    private var historyBar: some View {
+        HStack(spacing: 8) {
+            IconAction("Back", symbol: "chevron.left") { travel(-1) }
+                .disabled(!history.canGoBack || restoringHistory)
+                .keyboardShortcut("[", modifiers: [.command, .option])
+            IconAction("Forward", symbol: "chevron.right") { travel(1) }
+                .disabled(!history.canGoForward || restoringHistory)
+                .keyboardShortcut("]", modifiers: [.command, .option])
+            if selection == "Notes", let parent = history.parentTask {
+                Button { travel(parent.offset) } label: {
+                    Text(model.workTasks.first(where: { $0.id == parent.id })?.title ?? "Back to task")
+                        .lineLimit(1)
+                }.buttonStyle(.plain).font(.caption).foregroundStyle(CiderColor.accent)
+                    .help("Return to the linked task").disabled(restoringHistory)
+                Image(systemName: "chevron.right").font(.caption2).foregroundStyle(.tertiary)
+            }
+            Text(selection == "Today" && linked.selectedTask != nil ? "Today / Task" : selection)
+                .font(.caption).foregroundStyle(.secondary)
+            Spacer()
+        }.padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 10)
+    }
+    private func travel(_ offset: Int) {
+        guard !restoringHistory, let target = history.destination(offset) else { return }
+        restoringHistory = true
+        Task { @MainActor in
+            defer { restoringHistory = false }
+            guard await notes.save() else { return }
+            if let note = target.note {
+                await notes.open(note)
+                guard notes.selected == note else { return }
+            }
+            linked.selectedTask = target.task
+            selection = target.section
+            history.move(offset)
+        }
     }
     private var sidebarToggle: some View {
         IconAction(collapsed ? "Expand sidebar" : "Collapse sidebar", symbol: "sidebar.left") {
@@ -168,7 +223,7 @@ struct WorkspaceView: View {
     private func navigation(_ title: String, symbol: String) -> some View {
         Button {
             if title == "Graph" { linked.route(.graph(nil)) }
-            else { selection = title }
+            else { linked.selectedTask = nil; selection = title }
         } label: {
             HStack { Image(systemName: symbol).frame(width: 18); if !collapsed { Text(title); Spacer() } }
                 .frame(width: collapsed ? 44 : nil, height: 40).frame(maxWidth: collapsed ? nil : .infinity, alignment: .leading).padding(.horizontal, collapsed ? 0 : 10)

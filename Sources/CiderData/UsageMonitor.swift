@@ -28,7 +28,7 @@ public final class UsageMonitor {
                 fetch: @escaping Fetch = { try await UsageClient.fetch(path: $0, provider: $1, source: $2) }) {
         self.defaults = defaults; self.automaticScheduling = automaticScheduling; self.date = date; self.fetch = fetch
         displayMode = UsageDisplayMode(rawValue: defaults.string(forKey: "usageDisplayMode") ?? "used") ?? .used
-        enabledProviders = Set(defaults.stringArray(forKey: "usageProviders") ?? ["codex", "claude"]).intersection(["codex", "claude"])
+        enabledProviders = Set(defaults.stringArray(forKey: "usageProviders") ?? ["codex", "claude"]).intersection(UsageProvider.allCases.map(\.rawValue))
         // The old default forced OAuth for both agents. Migrate to automatic fallback once.
         let saved = defaults.string(forKey: "usageConnectionMode") ?? (defaults.string(forKey: "usageSource") == "cli" ? "cli" : "automatic")
         source = ["automatic", "oauth", "cli"].contains(saved) ? saved : "automatic"
@@ -48,7 +48,7 @@ public final class UsageMonitor {
         for provider in Array(requests.keys) { cancel(provider) }
     }
     public func setEnabled(_ provider: String, _ enabled: Bool) {
-        guard ["codex", "claude"].contains(provider) else { return }
+        guard UsageProvider(rawValue: provider) != nil, enabledProviders.contains(provider) != enabled else { return }
         if enabled { enabledProviders.insert(provider); schedules[provider] = UsageRefreshSchedule() }
         else { enabledProviders.remove(provider); cancel(provider) }
         defaults.set(Array(enabledProviders), forKey: "usageProviders")

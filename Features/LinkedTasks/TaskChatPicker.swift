@@ -27,13 +27,14 @@ struct TaskChatPicker: View {
             Text("A new attachment starts with upcoming observed turns. It never resumes, forks, or messages a chat.")
                 .font(.caption).foregroundStyle(.secondary)
             TextField("Search title, workspace, or provider", text: $search)
+                .textFieldStyle(.plain).padding(12).background(.white.opacity(0.04), in: RoundedRectangle(cornerRadius: 12))
             if candidates.isEmpty {
                 ContentUnavailableView("No matching observed chats", systemImage: "bubble.left.and.bubble.right", description: Text("Refresh Activity or change the search."))
             } else {
                 List(candidates, id: \.identity, selection: $selectedID) { chat in
                     ChatRow(chat: chat, duplicateTitle: duplicateTitle(chat))
                         .tag(chat.identity)
-                }.frame(minHeight: 180)
+                }.scrollContentBackground(.hidden).listStyle(.plain).frame(minHeight: 180)
             }
             if let selected {
                 TextField("Contributor role (optional)", text: $role)

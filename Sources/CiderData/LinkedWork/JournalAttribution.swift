@@ -66,7 +66,7 @@ struct JournalAttributionPlanner: Sendable {
 
             let matches = matches(for: event, links: links, episodes: knownEpisodes)
             switch event.name {
-            case "Stop", "SubagentStop":
+            case "Stop", "SubagentStop", "AgentResponse":
                 guard let preview = event.lastMessage, !preview.isEmpty else { continue }
                 for match in matches {
                     entries.append(draft(

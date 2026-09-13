@@ -38,15 +38,9 @@ struct AgentsView: View {
             }
         }.padding(compact ? 0 : 24)
         .sheet(item: $model.proposal) { proposal in
-            VStack(alignment: .leading, spacing: 16) {
-                Text(proposal.removing ? "Disconnect \(proposal.provider.title)" : "Connect \(proposal.provider.title)").font(.title2)
-                Text(proposal.destination.path).font(.caption).textSelection(.enabled)
-                ScrollView { Text(proposal.preview).font(.body.monospaced()).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
-                Text("Cider collects session identifiers, workspace paths and activity names, plus up to 600 characters of each response or question request. Codex chat names come from its local title index. Other prompts, tool inputs and your answers are discarded. Disconnect removes Cider’s observer.").font(.caption)
-                HStack { Button("Cancel") { model.proposal = nil }.keyboardShortcut(.cancelAction); Spacer(); Button(proposal.removing ? "Disconnect" : "Install observer") { model.apply() }.disabled(model.busy) }
-            }.padding(24).frame(width: 550, height: 370)
+            AgentConnectionReviewSheet(model: model, proposal: proposal)
         }
-        .alert("Tracking", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } })) { Button("OK") { model.error = nil } } message: { Text(model.error ?? "") }
+        .ciderNotice("Tracking", message: model.error ?? "", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } }))
     }
 
     private var activity: some View {

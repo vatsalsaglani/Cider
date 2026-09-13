@@ -2,6 +2,7 @@ import AppKit
 import Observation
 import Foundation
 import CiderDomain
+import CiderData
 
 @MainActor @Observable
 final class NotesModel {
@@ -14,12 +15,18 @@ final class NotesModel {
     var folders: [URL] = []
     var files: [URL] = []
     var trees: [WorkspaceNode] = []
-    var expandedFolders: Set<String> = []
-    var tabs: [URL] = []
+    var expandedFolders: Set<String> = [] {
+        didSet { defaults.set(Array(expandedFolders).sorted(), forKey: "expandedNoteFolders") }
+    }
+    var tabs: [URL] = [] {
+        didSet { defaults.set(tabs.map(\.path), forKey: "openNoteTabs") }
+    }
     var fragment = ""
     var opening = false
     var selectedFolder: URL?
-    var selected: URL?
+    var selected: URL? {
+        didSet { defaults.set(selected?.path, forKey: "selectedNoteTab") }
+    }
     var body = ""
     var header = ""
     var status = ""
@@ -28,23 +35,60 @@ final class NotesModel {
     private var saving = false
     private var original = ""
     private var saveTask: Task<Void, Never>?
-    init(folders: [URL]? = nil) { self.folders = folders ?? (UserDefaults.standard.stringArray(forKey: "workspaceFolders") ?? []).map { URL(fileURLWithPath: $0) }; scan() }
+    private let defaults: UserDefaults
+    private let defaultFolder: URL
+    private var creating = false
+    init(folders: [URL]? = nil, defaults: UserDefaults = .standard, defaultFolder: URL = DefaultNotesFolder.url) {
+        self.defaults = defaults; self.defaultFolder = defaultFolder
+        self.folders = folders ?? (defaults.stringArray(forKey: "workspaceFolders") ?? []).map { URL(fileURLWithPath: $0) }
+        let roots = self.folders
+        expandedFolders = Set(defaults.stringArray(forKey: "expandedNoteFolders") ?? roots.map(\.path))
+        let restoredTabs = (defaults.stringArray(forKey: "openNoteTabs") ?? []).map { URL(fileURLWithPath: $0) }
+            .filter { url in roots.contains { url.path.hasPrefix($0.path + "/") } && FileManager.default.fileExists(atPath: url.path) }
+        tabs = restoredTabs
+        let savedSelection = defaults.string(forKey: "selectedNoteTab").map { URL(fileURLWithPath: $0) }
+        let restore = savedSelection.flatMap { restoredTabs.contains($0) ? $0 : nil } ?? restoredTabs.last
+        scan()
+        if let restore { Task { [weak self] in
+            guard let self, self.selected == nil, !self.opening else { return }
+            await self.open(restore)
+        } }
+    }
     func addFolder() {
         let picker = NSOpenPanel(); picker.canChooseDirectories = true; picker.canChooseFiles = false; picker.allowsMultipleSelection = true
         guard picker.runModal() == .OK else { return }
         for url in picker.urls where !folders.contains(url) { folders.append(url) }
-        UserDefaults.standard.set(folders.map(\.path), forKey: "workspaceFolders"); scan()
+        defaults.set(folders.map(\.path), forKey: "workspaceFolders"); scan()
     }
+    func ciderFolderForCLI() async throws -> URL {
+        let root = try await DefaultNotesFolder.prepare(at: defaultFolder)
+        if !folders.contains(root) {
+            folders.append(root)
+            defaults.set(folders.map(\.path), forKey: "workspaceFolders")
+        }
+        return root
+    }
+    func allowsCLIWrite(at url: URL) -> Bool {
+        if defaults.string(forKey: "noteDraft:" + url.path) != nil { return false }
+        guard selected?.standardizedFileURL == url.standardizedFileURL else { return true }
+        return !opening && !saving && header + body == original
+    }
+    func receivedCLIWrite(at url: URL, markdown: String) {
+        guard selected?.standardizedFileURL == url.standardizedFileURL else { return }
+        guard !saving, header + body == original else { status = "Changed on disk · your draft is kept"; return }
+        let parts = MarkdownParts(markdown)
+        original = markdown; header = parts.header; body = parts.body; status = "Saved"; generation = UUID()
+    }
+    var renameTarget: URL?
+    var renameDraft = ""
     func requestRename(_ url: URL) {
-        let alert = NSAlert()
-        alert.messageText = "Rename note"
-        alert.informativeText = "Related task connections will keep following this note."
-        let field = NSTextField(string: url.lastPathComponent)
-        field.frame = NSRect(x: 0, y: 0, width: 300, height: 24)
-        alert.accessoryView = field
-        alert.addButton(withTitle: "Rename"); alert.addButton(withTitle: "Cancel")
-        guard alert.runModal() == .alertFirstButtonReturn else { return }
-        let name = field.stringValue
+        renameDraft = url.lastPathComponent
+        renameTarget = url
+    }
+    func confirmRename() {
+        guard let url = renameTarget else { return }
+        let name = renameDraft
+        renameTarget = nil
         Task { await onRename?(url, name) }
     }
     func didRename(_ old: URL, to new: URL) {
@@ -60,15 +104,16 @@ final class NotesModel {
             selected = nil; body = ""; header = ""; original = ""
         }
         if selectedFolder?.path.hasPrefix(url.path) == true { selectedFolder = nil }
-        UserDefaults.standard.set(folders.map(\.path), forKey: "workspaceFolders")
+        defaults.set(folders.map(\.path), forKey: "workspaceFolders")
         scan()
     }
     func scan() {
         let roots = folders
         Task {
-            files = await Task.detached(priority: .utility) {
+            let scanned = await Task.detached(priority: .utility) {
                 var result: [URL] = []
                 for root in roots {
+                    guard result.count < 2000 else { break }
                     guard let e = FileManager.default.enumerator(at: root, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles]) else { continue }
                     while let url = e.nextObject() as? URL {
                         if ["node_modules", ".git"].contains(url.lastPathComponent) { e.skipDescendants(); continue }
@@ -79,6 +124,7 @@ final class NotesModel {
                 return result.sorted { $0.path < $1.path }
             }.value
             guard roots == folders else { return }
+            files = scanned
             trees = roots.map { WorkspaceNode.tree(root: $0, files: files) }
             await onScan?(files)
         }
@@ -121,17 +167,35 @@ final class NotesModel {
             selectedFolder = url.deletingLastPathComponent()
             selected = url; original = text; header = ""; body = text
             let parts = MarkdownParts(text); header = parts.header; body = parts.body
-            if let draft = UserDefaults.standard.string(forKey: "noteDraft:" + url.path), draft != text { let parts = MarkdownParts(draft); header = parts.header; body = parts.body; status = "Recovered draft" } else { status = "Saved" }
+            if let draft = defaults.string(forKey: "noteDraft:" + url.path), draft != text { let parts = MarkdownParts(draft); header = parts.header; body = parts.body; status = "Recovered draft" } else { status = "Saved" }
             generation = UUID()
             await onFileOpened?(url)
         } catch { self.error = "This note could not be opened." }
     }
     func create(in destination: URL? = nil) async {
-        if folders.isEmpty { addFolder() }
+        guard !creating, !opening else { return }
+        creating = true
+        defer { creating = false }
+        guard await save() else { return }
+        if folders.isEmpty, destination == nil {
+            do {
+                let root = try await DefaultNotesFolder.prepare(at: defaultFolder)
+                // Folder selection can change while disk work is suspended.
+                if folders.isEmpty {
+                    folders = [root]; selectedFolder = root
+                    defaults.set(folders.map(\.path), forKey: "workspaceFolders")
+                }
+            } catch {
+                self.error = "Cider’s notes folder couldn’t be created. Add a folder to choose another location."
+                return
+            }
+        }
         guard let folder = destination ?? selectedFolder ?? selected?.deletingLastPathComponent() ?? folders.first else { return }
         guard folders.contains(where: { folder.resolvingSymlinksInPath().path == $0.resolvingSymlinksInPath().path || folder.resolvingSymlinksInPath().path.hasPrefix($0.resolvingSymlinksInPath().path + "/") }) else { error = "Choose a workspace folder first."; return }
-        let url = folder.appending(path: "Note-\(UUID().uuidString.prefix(8)).md")
-        do { try "".write(to: url, atomically: true, encoding: .utf8); scan(); await open(url) } catch { self.error = "Couldn’t create this note." }
+        do {
+            let url = try await DefaultNotesFolder.createNote(in: folder)
+            scan(); await open(url)
+        } catch { self.error = "Couldn’t create this note." }
     }
     func selectTab(offset: Int) async {
         guard !tabs.isEmpty else { return }
@@ -141,7 +205,7 @@ final class NotesModel {
     func reveal(_ url: URL) { NSWorkspace.shared.activateFileViewerSelecting([url]) }
     func copyPath(_ url: URL) { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(url.path, forType: .string) }
     func changed(_ value: String) {
-        body = value; UserDefaults.standard.set(header + value, forKey: "noteDraft:" + (selected?.path ?? "")); status = "Saving…"; saveTask?.cancel()
+        body = value; defaults.set(header + value, forKey: "noteDraft:" + (selected?.path ?? "")); status = "Saving…"; saveTask?.cancel()
         saveTask = Task { do { try await Task.sleep(for: .milliseconds(500)) } catch { return }; _ = await save() }
     }
     func save() async -> Bool {
@@ -163,7 +227,7 @@ final class NotesModel {
                 }
                 if let error = coordinationError ?? failure as NSError? { throw error }
             }.value
-            original = text; await onFileSaved?(url); status = "Saved"; if header + body == text { UserDefaults.standard.removeObject(forKey: "noteDraft:" + url.path) }; if header + body != text { saveTask = Task { _ = await save() } }; return true
+            original = text; await onFileSaved?(url); status = "Saved"; if header + body == text { defaults.removeObject(forKey: "noteDraft:" + url.path) }; if header + body != text { saveTask = Task { _ = await save() } }; return true
         } catch { status = "Unsaved"; self.error = "The file changed or couldn’t be saved. Your writing remains open; copy it before closing."; return false }
     }
     func pasteImage(_ data: Data, name: String) -> Bool {

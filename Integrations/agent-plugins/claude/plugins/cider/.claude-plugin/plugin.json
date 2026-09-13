@@ -1,0 +1,8 @@
+{
+  "name": "cider",
+  "version": "1.0.0",
+  "description": "Read Cider work context and manage requested tasks, notes and connections.",
+  "author": {
+    "name": "Cider"
+  }
+}

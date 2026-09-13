@@ -1,0 +1,28 @@
+{
+  "name": "cider",
+  "version": "1.0.0+codex.20260913142409",
+  "description": "Read Cider work context and manage requested tasks, notes and connections.",
+  "author": {
+    "name": "Cider"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Cider",
+    "shortDescription": "Tasks, notes and connected agent work.",
+    "longDescription": "Use the local Cider CLI to read work context and make user-requested task and note changes.",
+    "developerName": "Cider",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Show my Cider tasks for today.",
+      "Create a Cider note for this plan."
+    ],
+    "logo": "./assets/cider.png",
+    "logoDark": "./assets/cider.png",
+    "composerIcon": "./assets/cider.png",
+    "brandColor": "#FF8A32"
+  }
+}

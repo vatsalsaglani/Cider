@@ -6,6 +6,8 @@ Saved links point to stable note IDs and registered roots/relative paths. Resolu
 
 Checkpoint export chooses a Markdown file within a workspace folder, saves any active editor draft, then previews source, timestamp, preview status and the exact append. Confirmation checks the file hash again and atomically replaces it. The append includes an inert `cider-checkpoint` entry-ID comment; explicitly selecting that same checkpoint/destination after restart recognizes the marker and avoids another append. A successful write with failed metadata registration retains its receipt for retry. Explicit destination selection reads current file identity to recover a prior replacement; ordinary background reads never adopt replacements silently.
 
+CLI note replacement and append require the saved SHA-256 and recheck it during coordinated replacement. Unsaved or recovered editor drafts block writes; edits made while a file operation is in flight retain their draft. Replacement writes the supplied complete Markdown verbatim and append adds the supplied bytes without formatting. File identity/graph registration follow a successful replacement; a registration failure returns a recovery path rather than claiming nothing was written. CLI creation uses the default Cider folder or an explicit available registered root. See [CLI guide](../cli.md).
+
 CLI/context export reads saved contents only. Unsaved editor text is not included. Provider output and Markdown remain data, never authorization. See [linked-work evidence](../progress/linked-work-14.md); the broader document/editor proposals below do not imply implemented vault compatibility.
 
 

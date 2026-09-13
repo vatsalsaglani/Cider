@@ -1,0 +1,9 @@
+# Inline task pages and navigation
+
+Task details render in the main workspace, replacing the fixed-size modal sheet. The overview uses an open title/description, compact date/status controls, acceptance criteria and a shared primary Save action. Notes use grouped content and compact actions; chats hide the opaque list background. Attachment, confirmation and checkpoint dialogs remain secondary presentations.
+
+The scene owns bounded Back/Forward history (100 destinations), including task identity and selected note URL. A new visit after Back drops the forward branch; duplicates do not add entries. Navigation waits for note saving/opening before committing history movement. Back/Forward buttons expose disabled states and Option-Command-[ / ] shortcuts, avoiding the existing document-tab shortcuts. Scene-owned task sessions retain overview drafts, conflict state and selected detail tabs when opening linked notes. History is ephemeral; it is not restored after relaunch.
+
+Changed: App/WorkspaceView.swift, App/WorkspaceHistory.swift, App/LinkedWorkCoordinator.swift; Features/LinkedTasks/TaskDetailView.swift, TaskDetailSession.swift, TaskOverviewView.swift, TaskLinksView.swift and TaskChatPicker.swift; Tests/CiderIntegrationTests/WorkspaceHistoryTests.swift.
+
+Verification: all 158 Swift tests in 29 suites passed, including new history round-trip, branching, bounds and per-task draft/tab retention tests. Normal native build/relaunch passed. A separately identified QA bundle and synthetic store under /tmp/cider-navigation-qa showed the full inline task page, sidebar, history buttons and open editing layout. The normal live board contained no tasks during verification; no replacement live tasks were created. CUA subsequently rejected tab actions with an app-state change error, then its native pipe closed, so full task → note → Back/Forward UI acceptance, keyboard and narrow-window behavior remain unverified. No agent settings were changed.

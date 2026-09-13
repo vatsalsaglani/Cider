@@ -1,0 +1,9 @@
+# Notch window layout crash
+
+The supplied crash report records Cider PID 17682 terminating at 19:40:54 on September 13, 2026, with `EXC_BREAKPOINT` inside AppKit's constraint update cycle. Unified logs identify `CiderPlatform.NotchPanel` as the offending window and report that constraint passes exceeded the number of views. Its frame had grown to 820 × 1783 points. The user was on the plugin screen; the exception belongs to the separate HUD, not the plugin installer. The exact background event that initiated the loop is not established.
+
+The notch previously assigned an NSHostingView directly as panel content. Disabling hosting sizing options alone did not protect the controller-owned frame in this reported failure. A plain AppKit PanelContentView now owns the panel content boundary, with an autoresizing, clipped NSHostingView child and automatic hosting sizing disabled. Both the passive notch and keyboard capture panel use this boundary. SwiftUI content changes no longer own window geometry.
+
+Verification: all 155 Swift tests passed. The new native AppKit regression test orders a synthetic panel behind other windows, repeatedly swaps oversized 820 × 1783 SwiftUI content through 60 compact/expanded/capture-sized frames, allows display-cycle processing, and verifies the assigned panel/container/host dimensions remain intact. This tests the sizing invariant; it does not reproduce the user's exact sequence of background agent events. No CUA, user data changes, or provider setup changes were used.
+
+Native rebuild/relaunch and strict deep signature verification passed. Read-only CoreGraphics window metadata confirmed the relaunched app (PID 20620) had a 345 × 33 point status-bar panel, rather than the oversized crash frame. Extended live recurrence and multi-display interaction remain to be confirmed.

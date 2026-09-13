@@ -18,7 +18,35 @@ struct GraphInspector: View {
                         .foregroundStyle(CiderColor.warning)
                 }
             }
-            Section("Connection list") {
+            if let node = snapshot.nodes.first(where: { $0.id == viewport.selected }) {
+                Section("Selected") {
+                    Text(node.title).font(.headline).textSelection(.enabled)
+                    if let subtitle = node.subtitle, !subtitle.isEmpty { Text(subtitle).font(.caption).foregroundStyle(.secondary).textSelection(.enabled) }
+                    Text(status(node)).font(.caption).foregroundStyle(.secondary)
+                    if let attention = node.attention { Label(attention, systemImage: "exclamationmark.bubble").foregroundStyle(CiderColor.warning) }
+                    HStack {
+                        Button("Open") { open(node.id) }
+                        Button("Focus graph") { navigate(.graph(node.id)) }
+                    }
+                    if case .note(let id) = node.id { Button("Link to a task") { navigate(.attachNote(id)) } }
+                }
+                Section("Connections") {
+                    let incident = snapshot.edges.filter { $0.source == node.id || $0.target == node.id }
+                    if incident.isEmpty { Text("No connections yet. Link this work to a task or another note.").font(.caption).foregroundStyle(.secondary) }
+                    ForEach(incident) { edge in
+                        let target = edge.source == node.id ? edge.target : edge.source
+                        if let neighbor = snapshot.nodes.first(where: { $0.id == target }) {
+                            Button { viewport.select(target) } label: {
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Label(neighbor.title, systemImage: icon(target.kind)).lineLimit(2)
+                                    Text(edgeLabel(edge.kind)).font(.caption).foregroundStyle(.secondary)
+                                }
+                            }.buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+            Section("All work · \(snapshot.nodes.count)") {
                 ForEach(snapshot.nodes) { node in
                     HStack {
                         Image(systemName: icon(node.id.kind)).foregroundStyle(CiderColor.accent)
@@ -26,29 +54,20 @@ struct GraphInspector: View {
                             Text(node.title).lineLimit(1)
                             Text(metadata(node)).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                         }
-                        Spacer()
-                        Button("Open") { open(node.id) }.buttonStyle(.borderless)
-                        Button("View connections") { navigate(.graph(node.id)) }.buttonStyle(.borderless)
                     }
                     .tag(node.id)
                     .contextMenu { contextActions(for: node.id) }
                     .accessibilityElement(children: .contain)
                 }
             }
-            if let node = snapshot.nodes.first(where: { $0.id == viewport.selected }) {
-                Section("Selected") {
-                    LabeledContent("Title", value: node.title)
-                    LabeledContent("Workspace", value: workspace)
-                    if let subtitle = node.subtitle, !subtitle.isEmpty { LabeledContent("Details", value: subtitle) }
-                    LabeledContent("Status", value: status(node))
-                    LabeledContent("Connections", value: "\(snapshot.edges.filter { $0.source == node.id || $0.target == node.id }.count)")
-                    Button("Open selected") { open(node.id) }
-                }
-            }
         }
+        .scrollContentBackground(.hidden)
         .accessibilityLabel("Graph connection list")
     }
 
+    private func edgeLabel(_ kind: GraphEdgeKind) -> String {
+        switch kind { case .contributes: "Contributes to task"; case .documentLink: "Note link"; case .noteContext: "Task context"; case .noteEvidence: "Task evidence"; case .notePlan: "Task plan" }
+    }
     private var selection: Binding<LinkedEntityID?> { Binding { viewport.selected } set: { viewport.select($0) } }
     @ViewBuilder private func contextActions(for id: LinkedEntityID) -> some View {
         Button("Open") { open(id) }

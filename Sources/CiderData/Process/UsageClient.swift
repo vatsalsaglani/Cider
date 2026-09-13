@@ -5,11 +5,11 @@ public enum UsageFailure: Error, Sendable {
     case authentication, unavailable, timedOut, rateLimited, cliMissing
     public var message: String {
         switch self {
-        case .authentication: "The usage connection could not access your sign-in. Agent activity can still work. Try Automatic or check /usage in the agent."
+        case .authentication: "The usage connection could not access your sign-in. Agent activity can still work. Check your sign-in and usage in the provider."
         case .timedOut: "Usage took too long to respond. Cider will retry automatically."
         case .rateLimited: "Usage requests are temporarily limited. Cider will retry later."
         case .cliMissing: "The agent command line could not be found. Install it or choose Agent sign-in."
-        case .unavailable: "Usage could not be read. Agent activity can still work. Check /usage in the agent; Cider will retry automatically."
+        case .unavailable: "Usage could not be read. Agent activity can still work. Check usage in the provider; Cider will retry automatically."
         }
     }
 }
@@ -22,15 +22,17 @@ public enum UsageClient {
     public typealias Run = @Sendable (String, [String], TimeInterval, [String: String]) async throws -> Data
     public static func fetch(path: String, provider: String, source: String,
                              run: Run = { try await CommandRunner.run($0, arguments: $1, timeout: $2, environment: $3) }) async throws -> ProviderUsage {
-        // Explicit sources avoid the helper's browser-cookie discovery in its auto mode.
-        let sources = source == "automatic" ? ["oauth", "cli"] : [source]
+        guard let connection = UsageProvider(rawValue: provider), ["automatic", "oauth", "cli"].contains(source) else { throw UsageFailure.unavailable }
+        // Cursor's separately enabled connection uses CodexBar's documented app/browser
+        // session ladder. Other providers retain explicit sign-in/CLI-only fallback.
+        let sources = connection.sources(for: source)
         var failure = UsageFailure.unavailable
         for candidate in sources {
             try Task.checkCancellation()
             do {
                 let data = try await run(path, ["usage", "--provider", provider, "--source", candidate, "--format", "json", "--no-credits"], candidate == "cli" ? 75 : 45, environment(provider: provider, base: ProcessInfo.processInfo.environment))
                 var value = try decode(data, provider: provider)
-                value.source = candidate
+                value.source = value.source ?? candidate
                 return value
             } catch is CancellationError { throw CancellationError() }
             catch CommandFailure.timedOut { failure = .timedOut }

@@ -12,6 +12,13 @@ public struct HookProposal: Identifiable, Sendable {
     let after: Data
 }
 public enum AgentHookSetup {
+    public static func destination(provider: TrackedProvider, home: URL, environment: [String: String]) -> URL {
+        switch provider {
+        case .codex: return (environment["CODEX_HOME"].map { URL(fileURLWithPath: $0) } ?? home.appending(path: ".codex")).appending(path: "hooks.json")
+        case .claude: return (environment["CLAUDE_CONFIG_DIR"].map { URL(fileURLWithPath: $0) } ?? home.appending(path: ".claude")).appending(path: "settings.json")
+        case .cursor: return home.appending(path: ".cursor/hooks.json")
+        }
+    }
     public static func command(helper: URL, provider: TrackedProvider) -> String {
         "'" + helper.path.replacingOccurrences(of: "'", with: "'\\''") + "' " + provider.rawValue
     }
@@ -27,6 +34,9 @@ public enum AgentHookSetup {
         if let hooks = document["hooks"], !(hooks is [String: Any]) { throw CocoaError(.coderInvalidValue) }
         var hooks = document["hooks"] as? [String: Any] ?? [:]
         let cmd = command(helper: helper, provider: provider)
+        if provider == .cursor {
+            return try CursorHookSetup.propose(destination: destination, helper: helper, removing: removing, before: before, document: document, command: cmd)
+        }
         for event in provider.events {
             if let value = hooks[event], !(value is [[String: Any]]) { throw CocoaError(.coderInvalidValue) }
             var entries = hooks[event] as? [[String: Any]] ?? []

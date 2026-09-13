@@ -53,3 +53,9 @@ No formatter allocation, image decoding, SQL/network access, file enumeration, o
 ## Preview gallery and checks
 
 Phase 01 creates a fixture gallery for all listed states, including long titles, zero/missing quota, 100% usage, Unicode paths, narrow window width, large text, reduced motion/transparency, and disconnected folders. UI fixtures use deterministic times/IDs. Snapshot checks focus on hierarchy, clipping, focus and status distinctions; integration tests verify domain behavior separately.
+
+## App dialogs
+
+App-owned sheets use `ciderDialog()`: an opaque black reading surface with a restrained upper-left ember glow, continuous 24-point corners and a warm border that strengthens with Increase Contrast. `CiderDialogHeading` pairs the title with a quiet ember symbol. Secondary controls use the shared capsule button style; one primary action uses the ember fill. Technical setup details remain collapsible on calm inset surfaces.
+
+`ciderNotice` and `ciderConfirmation` share this treatment for errors and destructive confirmations. Escape cancels; acknowledgement uses Return, while destructive confirmation has no Return shortcut. Note renaming uses a focused native SwiftUI text field in the same shell. File selection remains a native system panel. These surfaces use no animated background and remain opaque with Reduce Transparency.

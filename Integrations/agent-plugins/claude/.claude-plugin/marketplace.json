@@ -1,0 +1,13 @@
+{
+  "name": "cider-bundled",
+  "owner": {
+    "name": "Cider"
+  },
+  "plugins": [
+    {
+      "name": "cider",
+      "source": "./plugins/cider",
+      "description": "Read Cider work context and manage requested tasks, notes and connections."
+    }
+  ]
+}

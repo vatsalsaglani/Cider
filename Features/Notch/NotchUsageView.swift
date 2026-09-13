@@ -16,7 +16,7 @@ struct NotchUsageView: View {
             }
             ScrollView {
                 VStack(spacing: 8) {
-                    ForEach(["codex", "claude"], id: \.self) { provider in
+                    ForEach(UsageProvider.allCases.map(\.rawValue).filter { model.enabledProviders.contains($0) }, id: \.self) { provider in
                         UsageProviderCard(provider: provider, value: model.values[provider], mode: model.displayMode,
                                           enabled: model.enabledProviders.contains(provider), refreshing: model.refreshing.contains(provider),
                                           message: model.messages[provider], compact: true)

@@ -24,9 +24,9 @@ import CiderData
         _ = try await repository.apply(WorkMutation(change: .attachNote(taskID: task.id, noteID: note.id, role: .context)))
         let readOnly = try await SQLiteWorkRepository.open(at: database, access: .cliReadOnly)
         let detail = try await readOnly.detail(task.id)
-        guard detail.chats.count == 2, detail.notes.count == 1, detail.task.status == .planned else { throw WorkStoreError.conflict }
+        guard detail.chats.count == TrackedProvider.allCases.count, detail.notes.count == 1, detail.task.status == .planned else { throw WorkStoreError.conflict }
         let connections = try await readOnly.connections(.note(note.id), limit: 100)
         guard connections.tasks.map(\.id) == [task.id] else { throw WorkStoreError.conflict }
-        print("Linked work fixture smoke passed: two exact chats, shared note, restart and backlinks.")
+        print("Linked work fixture smoke passed: all tracked providers, shared note, restart and backlinks.")
     }
 }

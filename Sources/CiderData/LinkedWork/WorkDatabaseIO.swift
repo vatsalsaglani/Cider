@@ -44,13 +44,15 @@ actor WorkDatabaseExecutor {
                 try verifySchema()
                 try execute("COMMIT")
             } catch { try? execute("ROLLBACK"); throw error }
-        } else if version != 1 { throw WorkStoreError.unsupportedSchema }
+        } else if version != 1 && version != 2 { throw WorkStoreError.unsupportedSchema }
+        if try scalarInt("PRAGMA user_version") == 1 { try migrateProviders() }
         try verifySchema()
     }
     func verifyReadOnlySchema() throws { try verifySchema() }
     private func verifySchema() throws {
-        guard try scalarInt("PRAGMA user_version") == 1,
-              try scalarInt("SELECT count(*) FROM metadata WHERE singleton=1 AND schema_version=1") == 1 else { throw WorkStoreError.unsupportedSchema }
+        let version = try scalarInt("PRAGMA user_version")
+        guard [1, 2].contains(version),
+              try scalarInt("SELECT count(*) FROM metadata WHERE singleton=1 AND schema_version=?", [.integer(version)]) == 1 else { throw WorkStoreError.unsupportedSchema }
     }
     func transaction<T: Sendable>(_ body: @Sendable (isolated WorkDatabaseExecutor) throws -> T) throws -> T {
         try execute("BEGIN IMMEDIATE")

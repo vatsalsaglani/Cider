@@ -2,7 +2,7 @@ import CryptoKit
 import Foundation
 import CiderDomain
 
-/// A deliberately small Markdown-link parser: ordinary links only, never wiki links or remote URLs.
+/// Read-only local Markdown and wiki-link index. Ambiguous wiki titles never guess a target.
 public enum MarkdownLinkIndex {
     public static func links(in markdown: String, source: NoteReference, knownNotes: [NoteReference], rootID: UUID) throws -> [NoteDocumentLink] {
         guard source.rootID == rootID else { throw WorkStoreError.invalidInput }
@@ -36,6 +36,22 @@ public enum MarkdownLinkIndex {
                 guard let resolved = resolve(destination, sourcePath: source.relativePath), let matches = targets[resolved.path] else { continue }
                 guard matches.count == 1, let target = matches.first else { throw WorkStoreError.conflict }
                 pairs.insert(LinkKey(targetID: target.id, fragment: resolved.fragment))
+            }
+            for match in matches(#"(?<![!\\])\[\[([^\]\n]+)\]\]"#, in: line) {
+                guard let value = capture(match, 1, in: line) else { continue }
+                let destination = String(value.split(separator: "|", maxSplits: 1, omittingEmptySubsequences: false)[0])
+                let pieces = destination.split(separator: "#", maxSplits: 1, omittingEmptySubsequences: false)
+                let name = String(pieces[0]).trimmingCharacters(in: .whitespaces)
+                guard !name.isEmpty, !name.hasPrefix("/"), !name.contains("\\"), URLComponents(string: name)?.scheme == nil else { continue }
+                let path = ["md", "markdown"].contains((name as NSString).pathExtension.lowercased()) ? name : name + ".md"
+                let relative = resolve(path, sourcePath: source.relativePath)?.path
+                let exact = relative.flatMap { targets[$0] } ?? targets[normalized(path)] ?? []
+                let matches = exact.isEmpty && !name.contains("/") ? candidates.filter {
+                    ($0.relativePath as NSString).lastPathComponent == path
+                } : exact
+                guard matches.count == 1, let target = matches.first else { continue }
+                let fragment = pieces.count == 2 && !pieces[1].isEmpty ? String(pieces[1]) : nil
+                pairs.insert(LinkKey(targetID: target.id, fragment: fragment))
             }
         }
         return pairs.map { key in

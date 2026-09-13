@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc" data-state="idle">
+  <title id="title">Cider, the little note sprite</title>
+  <desc id="desc">An amber character with a folded note corner and dark expressive eyes. It gently breathes, blinks and looks around.</desc>
+  <defs>
+    <linearGradient id="body" x1=".22" y1=".08" x2=".8" y2=".94" gradientUnits="objectBoundingBox">
+      <stop stop-color="#ffe58b"/><stop offset=".37" stop-color="#ffbb47"/><stop offset=".72" stop-color="#ff8a21"/><stop offset="1" stop-color="#c9440e"/>
+    </linearGradient>
+    <radialGradient id="light" cx=".28" cy=".25" r=".75">
+      <stop stop-color="#fff4b7" stop-opacity=".64"/><stop offset=".65" stop-color="#ffd66e" stop-opacity=".08"/><stop offset="1" stop-color="#ffd66e" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fold" x1=".2" y1="0" x2=".72" y2="1">
+      <stop stop-color="#fff4c2"/><stop offset=".5" stop-color="#ffdb80"/><stop offset=".88" stop-color="#ffb847"/><stop offset="1" stop-color="#ed781b"/>
+    </linearGradient>
+    <linearGradient id="eyes" x1="0" y1="0" x2=".6" y2="1">
+      <stop stop-color="#382017"/><stop offset=".6" stop-color="#21110e"/><stop offset="1" stop-color="#140c0a"/>
+    </linearGradient>
+    <filter id="fold-shadow" x="-40%" y="-40%" width="180%" height="200%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="4"/>
+    </filter>
+    <path id="silhouette" d="M274 77 C293 75 303 80 317 93 L382 155 C411 180 428 216 437 253 C450 300 452 350 426 378 C397 411 322 421 252 420 C173 420 105 410 80 379 C55 347 62 299 70 264 C84 201 111 159 153 128 C190 101 232 82 274 77 Z"/>
+    <clipPath id="body-clip"><use href="#silhouette"/></clipPath>
+  </defs>
+  <style>
+    .sprite { transform-origin: 256px 412px; animation: breathe 6s ease-in-out infinite; }
+    .gaze { animation: glance 13s ease-in-out infinite; }
+    .eye { transform-box: fill-box; transform-origin: center; animation: blink 6.7s linear infinite; }
+    .happy { display: none; }
+    @keyframes breathe { 0%,100% { transform: translateY(0) scale(1,1); } 50% { transform: translateY(-3px) scale(1.008,.992); } }
+    @keyframes blink { 0%,40%,43%,76%,79%,100% { transform: scaleY(1); } 41.5%,77.5% { transform: scaleY(.09); } }
+    @keyframes glance { 0%,18%,36%,65%,83%,100% { transform: translate(0,0); } 23%,30% { transform: translate(7px,-2px); } 70%,77% { transform: translate(-6px,1px); } }
+    @keyframes working { 0%,100% { transform: translate(-7px,0); } 45%,55% { transform: translate(7px,-2px); } }
+    @keyframes bounce { 0%,70%,100% { transform: translateY(0) scale(1,1); } 76% { transform: translateY(1px) scale(1.035,.965); } 83% { transform: translateY(-12px) scale(.985,1.015); } 91% { transform: translateY(0) scale(1.025,.975); } }
+    svg[data-state="working"] .gaze { animation: working 3.6s ease-in-out infinite; }
+    svg[data-state="attention"] .gaze { animation: none; transform: translateY(-5px); }
+    svg[data-state="attention"] .eye-right { transform: scaleY(1.15); animation: none; }
+    svg[data-state="reply"] .sprite { animation: bounce 4s ease-in-out infinite; }
+    svg[data-state="reply"] .gaze { animation: none; }
+    svg[data-state="reply"] .eye { display: none; }
+    svg[data-state="reply"] .happy { display: inline; }
+    svg[data-motion="still"] .sprite, svg[data-motion="still"] .gaze, svg[data-motion="still"] .eye { animation: none !important; }
+    @media (prefers-reduced-motion: reduce) { .sprite, .gaze, .eye { animation: none !important; } }
+  </style>
+  <g class="sprite">
+    <use href="#silhouette" fill="url(#body)"/>
+    <use href="#silhouette" fill="url(#light)"/>
+    <g clip-path="url(#body-clip)">
+      <path d="M296 87 C310 112 295 161 313 174 C333 189 365 175 391 186 L397 199 C363 179 330 205 307 188 C289 174 303 125 291 91 Z" fill="#8a3009" opacity=".33" filter="url(#fold-shadow)"/>
+      <path d="M292 79 C309 91 299 139 309 158 C321 177 354 164 382 177 C374 164 340 131 317 107 C307 96 300 86 292 79 Z" fill="url(#fold)"/>
+      <path d="M292 80 C304 96 300 133 307 153" fill="none" stroke="#fff4ce" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+    </g>
+    <g class="gaze">
+      <rect class="eye eye-left" x="158" y="250" width="35" height="64" rx="17.5" fill="url(#eyes)"/>
+      <rect class="eye eye-right" x="314" y="250" width="35" height="64" rx="17.5" fill="url(#eyes)"/>
+      <g class="happy" fill="none" stroke="#26140f" stroke-width="12" stroke-linecap="round">
+        <path d="M158 289 C161 260 189 260 193 289"/><path d="M314 289 C318 260 345 260 349 289"/>
+      </g>
+    </g>
+  </g>
+</svg>

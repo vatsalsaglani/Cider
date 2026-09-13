@@ -23,6 +23,7 @@ final class LinkedWorkCoordinator {
     private(set) var appending = false
     private var appendReceipt: NoteFileSnapshot?
     var selectedTask: UUID?
+    @ObservationIgnored var showTask: (() -> Void)?
     var attachmentTask: UUID?
     var connectionNote: UUID?
     var pendingChat: ChatReference?
@@ -36,7 +37,7 @@ final class LinkedWorkCoordinator {
     @ObservationIgnored var showNotes: (() -> Void)?
     @ObservationIgnored var openChat: ((ChatIdentity) -> Void)?
     @ObservationIgnored var journalIngestor: (any WorkJournalIngesting)?
-    private let noteAccess = LinkedNoteService()
+    let noteAccess = LinkedNoteService()
 
     func start(repository: any WorkRepository) async throws {
         guard model == nil else { return }
@@ -87,31 +88,55 @@ final class LinkedWorkCoordinator {
             }
         }
     }
-    private var indexing = false
+    private var indexingTask: Task<Void, Never>?
+    private var pendingIndex: [URL]?
     private func indexNotes(_ urls: [URL]) async {
-        guard let model, !indexing else { return }
-        indexing = true
-        defer { indexing = false }
-        do {
-            try await syncFolders()
-            let roots = try await model.repository.folders()
-            var known: [NoteReference] = []
-            var cursor: String?
-            repeat {
-                let page = try await model.repository.notes(NoteQuery(cursor: cursor, limit: WorkLimits.list))
-                known += page.items; cursor = page.nextCursor
-            } while cursor != nil
-            for url in urls.prefix(2000) {
-                guard let root = roots.filter({ url.path.hasPrefix($0.path + "/") }).max(by: { $0.path.count < $1.path.count }) else { continue }
-                let path = String(url.path.dropFirst(root.path.count + 1))
-                if known.contains(where: { $0.rootID == root.id && $0.relativePath == path }) { continue }
-                let note = NoteReference(rootID: root.id, relativePath: path)
-                // Resolve checks containment without loading document bodies during indexing.
-                _ = try await noteAccess.resolve(note, root: root)
-                _ = try await model.repository.apply(WorkMutation(change: .registerNote(note: note)))
-                known.append(note)
-            }
-        } catch { self.error = "Some note connections could not be indexed. Your files remain available in Notes." }
+        pendingIndex = urls
+        if let indexingTask { await indexingTask.value; return }
+        let operation = Task { await drainNoteIndex(); indexingTask = nil }
+        indexingTask = operation
+        await operation.value
+    }
+    private func drainNoteIndex() async {
+        guard let model else { return }
+        while let urls = pendingIndex {
+            pendingIndex = nil
+            do {
+                try await syncFolders()
+                let roots = try await model.repository.folders()
+                var known: [NoteReference] = []
+                var cursor: String?
+                repeat {
+                    let page = try await model.repository.notes(NoteQuery(cursor: cursor, limit: WorkLimits.list))
+                    known += page.items; cursor = page.nextCursor
+                } while cursor != nil
+                for url in urls.prefix(2000) {
+                    guard let root = roots.filter({ url.path.hasPrefix($0.path + "/") }).max(by: { $0.path.count < $1.path.count }) else { continue }
+                    let path = String(url.path.dropFirst(root.path.count + 1))
+                    if known.contains(where: { $0.rootID == root.id && $0.relativePath == path }) { continue }
+                    let note = try await ensureNoteReference(url)
+                    if !known.contains(where: { $0.id == note.id }) { known.append(note) }
+                }
+                // Resolve links after all note identities exist, including notes never opened in the editor.
+                let visible = Set(urls.map(\.standardizedFileURL.path))
+                for note in known {
+                    guard let root = roots.first(where: { $0.id == note.rootID && $0.available }),
+                          visible.contains(URL(fileURLWithPath: root.path).appending(path: note.relativePath).standardizedFileURL.path) else { continue }
+                    do {
+                        let links = try await noteAccess.documentLinks(note: note, root: root, knownNotes: known, maxBytes: WorkLimits.noteBytes)
+                        let previous = try await model.repository.connections(.note(note.id), limit: WorkLimits.list)
+                        let outgoingIDs = Set(previous.edges.filter { $0.kind == .documentLink && $0.source == .note(note.id) }.map(\.id))
+                        if previous.truncated || outgoingIDs != Set(links.map(\.id)) {
+                            _ = try await model.repository.apply(WorkMutation(change: .replaceDocumentLinks(sourceNoteID: note.id, links: links)))
+                        }
+                    } catch {
+                        // Oversized, replaced or unavailable files keep their saved relationships.
+                        continue
+                    }
+                }
+                await refresh()
+            } catch { self.error = "Some note connections could not be indexed. Your files remain available in Notes." }
+        }
     }
     func observe(_ sessions: [TrackedSession]) async {
         guard let model, let hostID else { return }
@@ -141,13 +166,6 @@ final class LinkedWorkCoordinator {
         route(next)
     }
     func route(_ route: LinkedRoute) {
-        if selectedTask != nil {
-            switch route {
-            case .graph, .saveCheckpoint:
-                deferredRoute = route; selectedTask = nil; return
-            default: break
-            }
-        }
         if connectionNote != nil {
             switch route {
             case .task, .attachNote, .createTaskFromNote, .graph:
@@ -156,7 +174,7 @@ final class LinkedWorkCoordinator {
             }
         }
         switch route {
-        case .task(let id): selectedTask = id
+        case .task(let id): selectedTask = id; showTask?()
         case .chat(let identity): openChat?(identity)
         case .note(let id): Task { await openNote(id) }
         case .chooseNotes(let id), .createLinkedNote(let id): attachmentTask = id
@@ -194,7 +212,7 @@ final class LinkedWorkCoordinator {
                 _ = try await model.repository.apply(WorkMutation(change: .attachNote(taskID: taskID, noteID: note, role: .context)))
             }
             if linking || createDraft { deferredRoute = .task(taskID) }
-            else { selectedTask = taskID }
+            else { route(.task(taskID)) }
             linking = false; createDraft = false
             pendingChat = nil; pendingNote = nil
             return true
@@ -296,8 +314,17 @@ final class LinkedWorkCoordinator {
         do { _ = try await registerNote(url, replaced: replaced) }
         catch { self.error = "The note is open, but its connections could not be refreshed." }
     }
-    @discardableResult
-    func registerNote(_ url: URL, replaced: Bool = false) async throws -> NoteReference {
+    @ObservationIgnored private var pendingNoteReferences: [String: Task<NoteReference, Error>] = [:]
+    /// Opening a file and discovering it in a scan must agree on one saved identity.
+    private func ensureNoteReference(_ url: URL) async throws -> NoteReference {
+        let key = try await AgentIO.run { url.resolvingSymlinksInPath().path }
+        if let pending = pendingNoteReferences[key] { return try await pending.value }
+        let operation = Task { try await findOrRegisterNote(url) }
+        pendingNoteReferences[key] = operation
+        defer { pendingNoteReferences[key] = nil }
+        return try await operation.value
+    }
+    private func findOrRegisterNote(_ url: URL) async throws -> NoteReference {
         guard let model else { throw WorkStoreError.unavailable }
         try await syncFolders()
         let roots = try await model.repository.folders()
@@ -315,7 +342,20 @@ final class LinkedWorkCoordinator {
             reference = page.items.first { $0.relativePath == path }
             cursor = page.nextCursor
         } while reference == nil && cursor != nil
-        var note = reference ?? NoteReference(rootID: root.id, relativePath: path)
+        let note = reference ?? NoteReference(rootID: root.id, relativePath: path)
+        if reference == nil {
+            _ = try await noteAccess.resolve(note, root: root)
+            _ = try await model.repository.apply(WorkMutation(change: .registerNote(note: note)))
+        }
+        return note
+    }
+    @discardableResult
+    func registerNote(_ url: URL, replaced: Bool = false) async throws -> NoteReference {
+        guard let model else { throw WorkStoreError.unavailable }
+        let reference = try await ensureNoteReference(url)
+        guard let root = try await model.repository.folders().first(where: { $0.id == reference.rootID }) else { throw WorkStoreError.notFound }
+        var note = reference
+        var cursor: String?
         // Only our successful coordinated save can explicitly adopt a replacement inode.
         if replaced { note.fileIdentity = nil }
         let snapshot = try await noteAccess.read(note, root: root, maxBytes: WorkLimits.noteBytes)
@@ -331,6 +371,7 @@ final class LinkedWorkCoordinator {
         } while cursor != nil
         let links = try await noteAccess.documentLinks(note: note, root: root, knownNotes: known, maxBytes: WorkLimits.noteBytes)
         _ = try await model.repository.apply(WorkMutation(change: .replaceDocumentLinks(sourceNoteID: note.id, links: links)))
+        await refresh()
         return note
     }
     private var renaming = false

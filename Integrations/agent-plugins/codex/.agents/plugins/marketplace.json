@@ -1,0 +1,20 @@
+{
+  "name": "cider-bundled",
+  "interface": {
+    "displayName": "Cider"
+  },
+  "plugins": [
+    {
+      "name": "cider",
+      "source": {
+        "source": "local",
+        "path": "./plugins/cider"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

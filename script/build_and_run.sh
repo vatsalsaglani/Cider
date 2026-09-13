@@ -25,7 +25,7 @@ cat > "$CIDER_APP/Contents/Info.plist" <<'PLIST'
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
 <key>CFBundleExecutable</key><string>Cider</string>
-<key>CFBundleIdentifier</key><string>app.cinder.desktop</string>
+<key>CFBundleIdentifier</key><string>app.cider.desktop</string>
 <key>CFBundleName</key><string>Cider</string>
 <key>CFBundleDisplayName</key><string>Cider</string>
 <key>CFBundleIconFile</key><string>Cider.icns</string>
@@ -39,6 +39,7 @@ PLIST
 mkdir -p "$CIDER_APP/Contents/Helpers"
 cp "$CIDER_BUILD/cider-cli" "$CIDER_APP/Contents/Helpers/cider"
 cp -R "$CIDER_ROOT/Integrations/cider-workflow" "$CIDER_APP/Contents/Resources/"
+cp -R "$CIDER_ROOT/Integrations/agent-plugins" "$CIDER_APP/Contents/Resources/"
 cp "$CIDER_BUILD/cider-events" "$CIDER_APP/Contents/Helpers/"
 CIDER_HELPER="$CIDER_ROOT/.cache/codexbar/$(uname -m)"
 cp -R "$CIDER_HELPER/CodexBarCLI" "$CIDER_HELPER/CodexBar_CodexBarCore.bundle" "$CIDER_APP/Contents/Helpers/"
@@ -59,5 +60,5 @@ fi
 case "$MODE" in
  --verify) sleep 1; pgrep -x Cider >/dev/null ;;
  --logs) exec /usr/bin/log stream --info --style compact --predicate 'process == "Cider"' ;;
- --telemetry) exec /usr/bin/log stream --info --style compact --predicate 'subsystem == "app.cinder.desktop"' ;;
+ --telemetry) exec /usr/bin/log stream --info --style compact --predicate 'subsystem == "app.cider.desktop"' ;;
 esac

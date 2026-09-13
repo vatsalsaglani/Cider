@@ -4,65 +4,70 @@ import CiderUI
 
 struct TaskOverviewView: View {
     @Binding var draft: TaskDraft
+    let hasChanges: Bool
     let saving: Bool
     let validationMessage: String?
     let onSave: () -> Void
 
     var body: some View {
-        Form {
-            Section("Task") {
-                TextField("Title", text: $draft.title)
-                DatePicker("Planned day", selection: plannedDay, displayedComponents: .date)
-                Toggle("Due date", isOn: hasDueDate)
-                if draft.dueAt != nil {
-                    DatePicker("Due", selection: dueDate, displayedComponents: [.date, .hourAndMinute])
+        VStack(alignment: .leading, spacing: 24) {
+                TextField("Untitled task", text: $draft.title, axis: .vertical)
+                    .font(.system(size: 30, weight: .semibold)).textFieldStyle(.plain)
+                    .padding(.trailing, 48).accessibilityLabel("Task title")
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 12) { metadata }
+                    VStack(alignment: .leading, spacing: 12) { metadata }
                 }
-            }
-            Section("Status") {
-                CiderPillPicker("Task status", selection: $draft.status,
-                                options: WorkTaskStatus.allCases, title: statusTitle)
-                    .frame(maxWidth: 620)
-                Toggle("Completed", isOn: completion)
-                    .help("Mark this task complete or reopen it")
-            }
-            Section("Description") {
-                TextEditor(text: $draft.descriptionMarkdown)
-                    .font(.body.monospaced())
-                    .frame(minHeight: 150)
-                    .accessibilityLabel("Description Markdown source")
-                Text("Markdown source is saved with this task.")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-            Section("Criteria") {
-                if draft.criteria.isEmpty {
-                    Text("No criteria yet.").foregroundStyle(.secondary)
-                } else {
+                TextField("Add a description…", text: $draft.descriptionMarkdown, axis: .vertical)
+                    .font(.system(size: 15)).lineSpacing(6).textFieldStyle(.plain)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityLabel("Task description")
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Text("Acceptance criteria").font(.headline)
+                        Spacer()
+                        IconAction("Add criterion", symbol: "plus") { draft.addCriterion() }
+                    }
+                    if draft.criteria.isEmpty { Text("Add the checks that will make this task complete.").foregroundStyle(.secondary) }
                     ForEach(draft.criteria) { criterion in
                         HStack {
                             Toggle("Criterion complete", isOn: criterionCompletion(criterion)).labelsHidden()
-                            TextField("Criterion", text: criterionText(criterion))
+                            TextField("Criterion", text: criterionText(criterion)).textFieldStyle(.plain)
                             IconAction("Remove criterion", symbol: "minus.circle") { draft.removeCriterion(id: criterion.id) }
                         }
                     }
-                    if let progress = draft.criteriaProgress {
-                        Text("\(Int(progress * 100))% of criteria checked").font(.caption).foregroundStyle(.secondary)
-                    }
                 }
-                Button("Add criterion", systemImage: "plus") { draft.addCriterion() }
+                if hasChanges { HStack {
+                    Text("Unsaved changes").font(.caption).foregroundStyle(.secondary)
+                    if let validationMessage { Text(validationMessage).font(.caption).foregroundStyle(CiderColor.warning) }
+                    Spacer()
+                    Button("Save changes", action: onSave)
+                        .buttonStyle(CiderDialogButtonStyle(primary: true))
+                        .disabled(validationMessage != nil || saving)
+                } }
+        }.disabled(saving)
+    }
+
+    @ViewBuilder private var metadata: some View {
+        Menu {
+            ForEach(WorkTaskStatus.allCases, id: \.self) { status in
+                Button(statusTitle(status)) { draft.status = status }
             }
-            HStack {
-                Spacer()
-                Button("Save changes") { onSave() }
-                    .buttonStyle(.borderedProminent)
-                    .tint(CiderColor.accent)
-                    .disabled(validationMessage != nil || saving)
-            }
-            if let validationMessage {
-                Text(validationMessage).font(.caption).foregroundStyle(CiderColor.warning)
-            }
+        } label: {
+            Label(statusTitle(draft.status), systemImage: draft.status == .done ? "checkmark.circle.fill" : "circle")
+                .font(.caption).foregroundStyle(CiderColor.accent)
+        }.menuStyle(.borderlessButton).fixedSize()
+        DatePicker("Planned day", selection: plannedDay, displayedComponents: .date)
+            .labelsHidden().datePickerStyle(.field).fixedSize().help("Planned day")
+        if draft.dueAt != nil {
+            DatePicker("Due date", selection: dueDate, displayedComponents: [.date, .hourAndMinute])
+                .labelsHidden().fixedSize().help("Due date")
+            Button { draft.dueAt = nil } label: { Image(systemName: "xmark.circle") }
+                .buttonStyle(.plain).help("Remove due date").accessibilityLabel("Remove due date")
+        } else {
+            Button("Add due date", systemImage: "plus") { draft.dueAt = .now }
+                .font(.caption).buttonStyle(.plain).foregroundStyle(.secondary)
         }
-        .formStyle(.grouped)
-        .disabled(saving)
     }
 
     private var plannedDay: Binding<Date> {

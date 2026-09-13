@@ -2,44 +2,61 @@ import SwiftUI
 import CiderDomain
 import CiderUI
 
-private enum TaskDetailSection: String, CaseIterable {
-    case overview = "Overview", chats = "Chats", notes = "Notes", timeline = "Timeline"
-}
-
 /// The linked-work entry point. App navigation is deliberately supplied by Plan 05.
 struct TaskDetailView: LinkedTaskDetailFeature {
     let taskID: UUID
     let model: LinkedWorkModel
     let navigate: (LinkedRoute) -> Void
-    @Environment(\.dismiss) private var dismiss
-    @State private var section: TaskDetailSection = .overview
-    @State private var draft: TaskDraft?
-    @State private var conflict: TaskDraftConflict?
-    @State private var operationError: String?
+    @Bindable var session: TaskDetailSession
+    var backToBoard: () -> Void
     @State private var showDeleteConfirmation = false
 
-    init(taskID: UUID, model: LinkedWorkModel, navigate: @escaping (LinkedRoute) -> Void) {
+    init(taskID: UUID, model: LinkedWorkModel, navigate: @escaping (LinkedRoute) -> Void,
+         session: TaskDetailSession, backToBoard: @escaping () -> Void = {}) {
         self.taskID = taskID; self.model = model; self.navigate = navigate
+        self.session = session; self.backToBoard = backToBoard
     }
+
+    init(taskID: UUID, model: LinkedWorkModel, navigate: @escaping (LinkedRoute) -> Void) {
+        self.init(taskID: taskID, model: model, navigate: navigate, session: TaskDetailSession())
+    }
+
+    private var draft: TaskDraft? { get { session.draft } nonmutating set { session.draft = newValue } }
+    private var conflict: TaskDraftConflict? { get { session.conflict } nonmutating set { session.conflict = newValue } }
+    private var operationError: String? { get { session.operationError } nonmutating set { session.operationError = newValue } }
+    private var section: TaskDetailSection { session.section }
 
     var body: some View {
         Group {
             if let detail = currentDetail, let draft {
-                VStack(alignment: .leading, spacing: 18) {
-                    header(detail)
-                    recoveryMessage
-                    CiderPillPicker("Task detail section", selection: $section,
-                                    options: TaskDetailSection.allCases, title: { $0.rawValue })
-                        .frame(maxWidth: 520)
-                    sectionContent(detail: detail, draft: draft)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 28) {
+                        recoveryMessage
+                        TaskOverviewView(draft: Binding(get: { self.draft ?? draft }, set: { self.draft = $0 }),
+                                         hasChanges: (self.draft ?? draft) != TaskDraft(task: detail.task),
+                                         saving: model.busy, validationMessage: validationError(for: self.draft ?? draft), onSave: save)
+                            .overlay(alignment: .topTrailing) { actions(detail) }.id("overview")
+                        TaskLinksView(detail: detail, model: model, navigate: navigate, onChanged: reload).id("notes")
+                        DisclosureGroup("Attach a chat", isExpanded: $session.showChatPicker) {
+                            TaskChatPicker(taskID: taskID, model: model, attached: detail.chatLinks, onChanged: reload)
+                                .frame(height: 320).padding(.top, 14)
+                        }.font(.callout).foregroundStyle(.secondary).id("chats")
+                        Divider().opacity(0.25)
+                        DisclosureGroup("Activity", isExpanded: $session.showActivity) {
+                            TaskTimelineView(taskID: taskID, repository: model.repository, navigate: navigate, refreshRevision: detail.revision)
+                                .frame(minHeight: 220).padding(.top, 14)
+                        }.font(.callout).id("activity")
+                    }.scrollTargetLayout()
+                    .frame(maxWidth: 720, alignment: .leading)
+                    .padding(.horizontal, 32).padding(.top, 24).padding(.bottom, 40)
+                    .frame(maxWidth: .infinity, alignment: .center)
                 }
-                .padding(24)
-                .alert("Delete \(detail.task.title)?", isPresented: $showDeleteConfirmation) {
-                    Button("Delete task", role: .destructive) { delete(detail) }
-                    Button("Cancel", role: .cancel) { }
-                } message: {
-                    Text("This removes the task and its \(detail.journalCount) saved checkpoint\(detail.journalCount == 1 ? "" : "s"). Files and chats remain.")
-                }
+                .scrollPosition(id: $session.scrollAnchor, anchor: .top)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .buttonStyle(CiderDialogButtonStyle())
+                .ciderConfirmation("Delete \(detail.task.title)?",
+                    message: "This removes the task and its \(detail.journalCount) saved checkpoint\(detail.journalCount == 1 ? "" : "s"). Files and chats remain.",
+                    isPresented: $showDeleteConfirmation, confirmTitle: "Delete task") { delete(detail) }
             } else if model.busy {
                 ProgressView("Loading task")
             } else if model.error != nil {
@@ -52,34 +69,17 @@ struct TaskDetailView: LinkedTaskDetailFeature {
         .onChange(of: currentDetail?.revision) { _, _ in seedDraftIfNeeded() }
     }
 
-    @ViewBuilder private func header(_ detail: TaskDetail) -> some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(detail.task.title).font(.title2.weight(.semibold))
-                Text("\(detail.chatLinks.count) contributor\(detail.chatLinks.count == 1 ? "" : "s") · \(detail.noteLinks.count) note\(detail.noteLinks.count == 1 ? "" : "s")")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-            Spacer()
-            Button("Back to board") { dismiss() }
-            Menu {
-                Button("Delete task", role: .destructive) { showDeleteConfirmation = true }
-            } label: { Image(systemName: "ellipsis.circle") }
+    private func actions(_ detail: TaskDetail) -> some View {
+        Menu {
+            Button("Back to board", action: backToBoard)
+            Button("View connections") { navigate(.graph(.task(taskID))) }
+            Button("Copy saved context") { navigate(.copyContext(taskID: taskID, includeNotes: false)) }
+            Button("Copy context with notes") { navigate(.copyContext(taskID: taskID, includeNotes: true)) }
+            Divider()
+            Button("Delete task", role: .destructive) { showDeleteConfirmation = true }
+        } label: { Image(systemName: "ellipsis").frame(width: 28, height: 28) }
+            .menuStyle(.borderlessButton).fixedSize()
             .help("Task actions").accessibilityLabel("Task actions")
-        }
-    }
-
-    @ViewBuilder private func sectionContent(detail: TaskDetail, draft: TaskDraft) -> some View {
-        switch section {
-        case .overview:
-            TaskOverviewView(draft: Binding(get: { self.draft ?? draft }, set: { self.draft = $0 }), saving: model.busy,
-                             validationMessage: validationError(for: self.draft ?? draft), onSave: save)
-        case .chats:
-            TaskChatPicker(taskID: taskID, model: model, attached: detail.chatLinks, onChanged: reload)
-        case .notes:
-            TaskLinksView(detail: detail, model: model, navigate: navigate, onChanged: reload)
-        case .timeline:
-            TaskTimelineView(taskID: taskID, repository: model.repository, navigate: navigate, refreshRevision: detail.revision)
-        }
     }
 
     private var currentDetail: TaskDetail? {
@@ -159,7 +159,7 @@ struct TaskDetailView: LinkedTaskDetailFeature {
     private func validationError(for draft: TaskDraft) -> String? { draft.validationMessage }
     private func delete(_ detail: TaskDetail) {
         Task {
-            if await model.perform(WorkMutation(change: .deleteTask(taskID: detail.task.id))) { dismiss() }
+            if await model.perform(WorkMutation(change: .deleteTask(taskID: detail.task.id))) { backToBoard() }
         }
     }
 }

@@ -11,6 +11,7 @@ public final class NotchPresentation {
     public var expanded = false
     public var pinned = false
     public var available = false
+    public var motionActive = false
     public var capturing = false
     public var dismissCapture: (() -> Void)?
     public var cameraWidth: CGFloat = 0
@@ -32,6 +33,10 @@ public final class NotchController {
     private var peekTask: Task<Void, Never>?
     private var peekRequiresInput = false
     private var pointerInside = false
+    private var running = false
+    private var systemAsleep = false
+    private var displayAsleep = false
+    private var sessionInactive = false
     private let captureContent: (@escaping () -> Void) -> AnyView
 
     public init(content: (NotchPresentation, @escaping () -> Void, @escaping () -> Void, @escaping () -> Void) -> AnyView,
@@ -42,22 +47,20 @@ public final class NotchController {
         panel.hidesOnDeactivate = false; panel.isReleasedWhenClosed = false
         panel.level = .statusBar
         panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary]
-        let hosting = NSHostingView(rootView: content(presentation,
+        let container = PanelContentView(rootView: content(presentation,
             { [weak self] in self?.toggle() },
             { [weak self] in self?.togglePin() },
             { [weak self] in self?.beginCapture() }).preferredColorScheme(.dark))
-        hosting.sizingOptions = []
-        hosting.wantsLayer = true
-        hosting.layer?.masksToBounds = true
-        panel.contentView = hosting
+        panel.contentView = container
     }
 
     public func start(preferences: NotchPreferences) {
         self.preferences = preferences
+        running = true
         guard observers.isEmpty else { refresh(); return }
         observe(NotificationCenter.default, NSApplication.didChangeScreenParametersNotification)
-        observe(NSWorkspace.shared.notificationCenter, NSWorkspace.didWakeNotification)
         observe(NSWorkspace.shared.notificationCenter, NSWorkspace.activeSpaceDidChangeNotification)
+        observeVisibility()
         if let monitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged, .leftMouseDown, .rightMouseDown], handler: { [weak self] event in
             let clicked = event.type == .leftMouseDown || event.type == .rightMouseDown
             Task { @MainActor [weak self] in self?.handlePointer(clicked: clicked) }
@@ -79,6 +82,8 @@ public final class NotchController {
         transition?.cancel(); closeCapture(); refresh()
     }
     public func stop() {
+        running = false
+        presentation.available = false; presentation.motionActive = false
         peekTask?.cancel(); presentation.peekTitle = nil; presentation.activatePeek = nil
         transition?.cancel(); transition = nil
         closeCapture(restoreFocus: false); transition?.cancel(); panel.orderOut(nil)
@@ -120,7 +125,7 @@ public final class NotchController {
     }
     private func refresh() {
         guard preferences.enabled, let (_, display) = BuiltinDisplay.resolve() else {
-            presentation.available = false; closeCapture(); panel.orderOut(nil); return
+            presentation.available = false; presentation.motionActive = false; closeCapture(); panel.orderOut(nil); return
         }
         presentation.available = true; presentation.edge = preferences.edge
         presentation.cameraWidth = preferences.edge == .top ? display.cameraWidth : 0
@@ -134,8 +139,44 @@ public final class NotchController {
         }
         panel.setFrame(frame, display: true)
         panel.orderFrontRegardless()
+        updateMotionVisibility()
         positionCapture()
     }
+    private func observeVisibility() {
+        let center = NSWorkspace.shared.notificationCenter
+        let changes: [(Notification.Name, VisibilitySource, Bool)] = [
+            (NSWorkspace.willSleepNotification, .system, true),
+            (NSWorkspace.didWakeNotification, .system, false),
+            (NSWorkspace.screensDidSleepNotification, .display, true),
+            (NSWorkspace.screensDidWakeNotification, .display, false),
+            (NSWorkspace.sessionDidResignActiveNotification, .session, true),
+            (NSWorkspace.sessionDidBecomeActiveNotification, .session, false)
+        ]
+        for (name, source, value) in changes {
+            let token = center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    guard let self, self.running else { return }
+                    switch source {
+                    case .system: self.systemAsleep = value
+                    case .display: self.displayAsleep = value
+                    case .session: self.sessionInactive = value
+                    }
+                    if value { self.updateMotionVisibility() } else { self.refresh() }
+                }
+            }
+            observers.append((center, token))
+        }
+        let token = NotificationCenter.default.addObserver(forName: NSWindow.didChangeOcclusionStateNotification,
+                                                           object: panel, queue: .main) { [weak self] _ in
+            Task { @MainActor [weak self] in self?.updateMotionVisibility() }
+        }
+        observers.append((NotificationCenter.default, token))
+    }
+    private func updateMotionVisibility() {
+        presentation.motionActive = running && presentation.available && panel.isVisible
+            && panel.occlusionState.contains(.visible) && !systemAsleep && !displayAsleep && !sessionInactive
+    }
+    private enum VisibilitySource: Sendable { case system, display, session }
     private func handlePointer(clicked: Bool) {
         if clicked, let capture, !capture.frame.contains(NSEvent.mouseLocation) {
             closeCapture(restoreFocus: false)
@@ -175,7 +216,7 @@ public final class NotchController {
         capture.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary]
         capture.cancel = { [weak self] in self?.closeCapture() }
         capture.lostFocus = { [weak self] in self?.closeCapture(restoreFocus: false) }
-        capture.contentView = NSHostingView(rootView: captureContent { [weak self] in self?.closeCapture() }.preferredColorScheme(.dark))
+        capture.contentView = PanelContentView(rootView: captureContent { [weak self] in self?.closeCapture() }.preferredColorScheme(.dark))
         self.capture = capture
         panel.addChildWindow(capture, ordered: .above)
         positionCapture(); capture.makeKeyAndOrderFront(nil)

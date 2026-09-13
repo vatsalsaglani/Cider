@@ -22,6 +22,10 @@ struct NotesView: View {
                     MarkdownEditor(text: notes.body, document: file, changed: notes.changed, imagePasted: notes.pasteImage, openLink: notes.openLink, fragment: notes.fragment).id(notes.generation)
                 } else { ContentUnavailableView("Room for your thoughts", systemImage: "doc.text", description: Text("Add a folder or create a note to begin.")).frame(maxWidth: .infinity, maxHeight: .infinity) }
             }
-        }.alert("Note needs attention", isPresented: Binding(get: { notes.error != nil }, set: { if !$0 { notes.error = nil } })) { Button("OK") { notes.error = nil } } message: { Text(notes.error ?? "") }
+        }
+        .ciderNotice("Note needs attention", message: notes.error ?? "", isPresented: Binding(get: { notes.error != nil }, set: { if !$0 { notes.error = nil } }))
+        .sheet(isPresented: Binding(get: { notes.renameTarget != nil }, set: { if !$0 { notes.renameTarget = nil } })) {
+            NoteRenameDialog(notes: notes)
+        }
     }
 }

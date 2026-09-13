@@ -1,10 +1,11 @@
 import Foundation
 
 public enum TrackedProvider: String, Codable, CaseIterable, Sendable, Identifiable {
-    case codex, claude
+    case codex, claude, cursor
     public var id: String { rawValue }
-    public var title: String { self == .codex ? "Codex" : "Claude Code" }
+    public var title: String { switch self { case .codex: "Codex"; case .claude: "Claude Code"; case .cursor: "Cursor" } }
     public var events: [String] {
+        if self == .cursor { return CursorHookInput.events }
         let common = ["SessionStart", "SessionEnd", "UserPromptSubmit", "PreToolUse", "PostToolUse", "PermissionRequest", "Stop", "SubagentStart", "SubagentStop"]
         return common + (self == .codex ? ["Interrupt"] : ["Notification", "PostToolUseFailure", "StopFailure"])
     }
@@ -28,9 +29,12 @@ public struct AgentEvent: Codable, Identifiable, Sendable {
     public let time: Date
     public init(provider: TrackedProvider, payload: Data, time: Date = .now) throws {
         guard payload.count <= 1_048_576,
-              let object = try JSONSerialization.jsonObject(with: payload) as? [String: Any],
+              let raw = try JSONSerialization.jsonObject(with: payload) as? [String: Any] else { throw CocoaError(.coderInvalidValue) }
+        let object = try provider == .cursor ? CursorHookInput.normalize(raw) : raw
+        guard
               let session = object["session_id"] as? String, !session.isEmpty, session.count < 256,
-              let event = object["hook_event_name"] as? String, provider.events.contains(event) else { throw CocoaError(.coderInvalidValue) }
+              let event = object["hook_event_name"] as? String,
+              provider == .cursor || provider.events.contains(event) else { throw CocoaError(.coderInvalidValue) }
         func field(_ name: String, limit: Int = 256, keepLines: Bool = false) -> String? {
             guard let value = object[name] as? String else { return nil }
             return String(String(value.prefix(limit)).unicodeScalars.filter { !CharacterSet.controlCharacters.contains($0) || (keepLines && ($0 == "\n" || $0 == "\t")) })
@@ -42,7 +46,7 @@ public struct AgentEvent: Codable, Identifiable, Sendable {
         toolCallID = field("tool_use_id")
         questions = event == "PreToolUse" ? AgentQuestionInput.questions(provider: provider, tool: tool, requestID: toolCallID, input: object["tool_input"]) : nil
         answeredQuestionIDs = event == "UserPromptSubmit" ? AgentQuestionInput.answeredIDs(prompt: object["prompt"]) : nil
-        lastMessage = ["Stop", "SubagentStop"].contains(event) ? field("last_assistant_message", limit: 600, keepLines: true) : nil
+        lastMessage = ["Stop", "SubagentStop", "AgentResponse"].contains(event) ? field("last_assistant_message", limit: 600, keepLines: true) : nil
     }
     public var sessionKey: String { provider.rawValue + ":" + session }
     public var key: String { sessionKey + (child.map { ":child:" + $0 } ?? "") }
